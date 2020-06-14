@@ -9,3 +9,6 @@ Next up:
  * abstract camera to fly camera
  * make fps camera
  * basically can start making not minecraft after that
+
+facing ratio light
+easy

@@ -8,13 +8,14 @@
 #include <cglm/struct.h>
 #include "shader.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height); 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-
-// nb wireframe mode glPolygonMode(GL_FRONT_AND_BACK, GL_LINE), GL_FILL for solid
 
 vec3s cam_pos = (vec3s) {0,0,3};
 vec3s cam_front = (vec3s) {0,0,-1};
@@ -35,6 +36,9 @@ float min(float a, float b) { return a < b? a : b; }
 float max(float a, float b) { return a > b? a : b; }
 
 int main(int argc, char** argv) {
+    
+
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -60,6 +64,8 @@ int main(int argc, char** argv) {
     glfwSetScrollCallback(window, scroll_callback); 
     glfwSetKeyCallback(window, key_callback);
 
+    glEnable(GL_DEPTH_TEST);
+
     // Shader stuff
     unsigned int vertex_shader = make_shader("vertex.glsl", GL_VERTEX_SHADER);
     unsigned int fragment_shader = make_shader("fragment.glsl", GL_FRAGMENT_SHADER);
@@ -83,6 +89,7 @@ int main(int argc, char** argv) {
     glDeleteShader(fragment_shader);
 
     // cube
+    /*
     float vertices[] = {
         -1, 1, 1,
         1,1,1,
@@ -121,6 +128,51 @@ int main(int argc, char** argv) {
         -1,-1,1,
         1,-1,1,
     };
+    */
+
+   float vertices[] = {
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0, 0, -1,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0, 0, -1,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0, 0, -1,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0, 0, -1,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0, 0, -1,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0, 0, -1,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0, 0, 1,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0, 0, 1,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0, 0, 1,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0, 0, 1,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0, 0, 1,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0, 0, 1,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1, 0, 0,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, -1, 0, 0,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1, 0, 0,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1, 0, 0,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, -1, 0, 0,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1, 0, 0,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1, 0, 0,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1, 0, 0,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1, 0, 0,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1, 0, 0,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1, 0, 0,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1, 0, 0,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0, -1, 0,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0, -1, 0,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0, -1, 0,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0, -1, 0,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0, -1, 0,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0, -1, 0,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0, 1, 0,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0, 1, 0,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0, 1, 0,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0, 1, 0,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0, 1, 0,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0, 1, 0,
+};
 
     unsigned int vao;
     glGenVertexArrays(1, &vao);
@@ -130,14 +182,44 @@ int main(int argc, char** argv) {
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    // position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    // texture coords
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // normals
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     float last = 0;
     float dt = 0;
+
+
+    // texture stuff
+    // load texture
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load("tromp.jpg", &width, &height, &nrChannels, 0); 
+    unsigned int texture;
+    glGenTextures(1, &texture); 
+    glBindTexture(GL_TEXTURE_2D, texture);  
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(data);
+    // wrap
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+    // filtering
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // mipmapping
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     while (!glfwWindowShouldClose(window)) {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -165,7 +247,7 @@ int main(int argc, char** argv) {
         
 
         glClearColor(0, 0, 0, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         /*
         vec3s cam_pos = (vec3s) {0,0,3};
@@ -187,6 +269,8 @@ int main(int argc, char** argv) {
 
         projection = glms_perspective(glm_rad(fovx), scrX / scrY, 0.1, 100);
 
+        vec3s light = glms_vec3_normalize((vec3s){1,2,1});
+
 
 
         // send uniforms
@@ -194,8 +278,12 @@ int main(int argc, char** argv) {
         glUniformMatrix4fv(glGetUniformLocation(shader_program, "view"), 1, GL_FALSE, view.raw[0]);
         glUniformMatrix4fv(glGetUniformLocation(shader_program, "model"), 1, GL_FALSE, model.raw[0]);
         glUniformMatrix4fv(glGetUniformLocation(shader_program, "projection"), 1, GL_FALSE, projection.raw[0]);
+        glUniform3fv(glGetUniformLocation(shader_program, "light"), 1, light.raw);
 
+        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(vao);
+        //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        //glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         
         glfwSwapBuffers(window);
