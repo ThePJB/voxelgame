@@ -9,6 +9,13 @@
 #include <cglm/struct.h>
 #include "shader.h"
 #include "texture.h"
+#include "world.h"
+
+context c;
+
+context *get_context() {
+    return &c;
+}
 
 float min(float a, float b) { return a < b? a : b; }
 float max(float a, float b) { return a > b? a : b; }
@@ -65,8 +72,8 @@ void graphics_init() {
 
 
     // Shader stuff
-    unsigned int vertex_shader = make_shader("vertex.glsl", GL_VERTEX_SHADER);
-    unsigned int fragment_shader = make_shader("fragment.glsl", GL_FRAGMENT_SHADER);
+    unsigned int vertex_shader = make_shader("shaders/vertex.glsl", GL_VERTEX_SHADER);
+    unsigned int fragment_shader = make_shader("shaders/fragment.glsl", GL_FRAGMENT_SHADER);
 
     int success;
     char buf[512] = {0};
@@ -118,8 +125,11 @@ void graphics_init() {
 
     c.cube.vertex_data = vertices;
     c.cube.vao = vao;
-    c.cube.texture = load_texture("tromp.jpg");
+    c.cube.texture = load_texture("assets/tromp.jpg");
     c.cube.num_triangles = 12;
+
+
+    //c.atlas = load_texture("assets/tromp.jpg");
 
 
 }
@@ -128,7 +138,7 @@ void graphics_teardown() {
     glfwTerminate();
 }
 
-void draw_mesh(context c, mesh m) {
+void draw_mesh(context *c, mesh m) {
     //printf("draw cube texture %u vao %u num tris %u\n", m.texture, m.vao, m.num_triangles);
     // for now just do this here
     mat4s model = GLMS_MAT4_IDENTITY_INIT;
@@ -136,41 +146,39 @@ void draw_mesh(context c, mesh m) {
     m.transform = model;
 
     // upload mesh transform
-    glUniformMatrix4fv(glGetUniformLocation(c.mesh_program, "model"), 1, GL_FALSE, m.transform.raw[0]);
+    glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, m.transform.raw[0]);
 
     glBindTexture(GL_TEXTURE_2D, m.texture);
     glBindVertexArray(m.vao);
     glDrawArrays(GL_TRIANGLES, 0, m.num_triangles * 3);
 }
 
-void draw(context c) {
+void begin_draw(context *c) {
     glClearColor(0.3, 0.5, 0.7, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     mat4s view = GLMS_MAT4_IDENTITY_INIT;
-    view = glms_lookat(c.cam.pos, glms_vec3_add(c.cam.pos, c.cam.front), c.cam.up);
+    view = glms_lookat(c->cam.pos, glms_vec3_add(c->cam.pos, c->cam.front), c->cam.up);
 
     mat4s projection = GLMS_MAT4_IDENTITY_INIT;
-    projection = glms_perspective(glm_rad(c.cam.fovx), (float)c.w / c.h, 0.1, 100);
+    projection = glms_perspective(glm_rad(c->cam.fovx), (float)c->w / c->h, 0.1, 100);
 
     vec3s light = glms_vec3_normalize((vec3s){1,2,1});
 
 
     // send shared uniforms
-    glUseProgram(c.mesh_program);
-    glUniformMatrix4fv(glGetUniformLocation(c.mesh_program, "view"), 1, GL_FALSE, view.raw[0]);
-    glUniformMatrix4fv(glGetUniformLocation(c.mesh_program, "projection"), 1, GL_FALSE, projection.raw[0]);
-    glUniform3fv(glGetUniformLocation(c.mesh_program, "light"), 1, light.raw);
+    glUseProgram(c->mesh_program);
+    glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "view"), 1, GL_FALSE, view.raw[0]);
+    glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "projection"), 1, GL_FALSE, projection.raw[0]);
+    glUniform3fv(glGetUniformLocation(c->mesh_program, "light"), 1, light.raw);
+}
 
-    // draw cubes
-    draw_mesh(c, c.cube);
-    
-    glfwSwapBuffers(c.window);
+void end_draw(context *c) {
+    glfwSwapBuffers(c->window);
     glfwPollEvents();
 
     glBindVertexArray(0);
 }
-
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     c.w = width;

@@ -14,8 +14,6 @@
 #include "texture.h"
 #include "camera.h"
 
-
-
 typedef struct {
     mat4s transform;
     unsigned int texture;
@@ -23,6 +21,7 @@ typedef struct {
     float *vertex_data;
     unsigned int num_triangles;
 } mesh;
+
 
 typedef struct {
     int w;
@@ -35,17 +34,24 @@ typedef struct {
 
     bool wireframe;
 
-    mesh cube;
     unsigned int mesh_program;
+
+    // test cube
+    mesh cube;
+
+    unsigned int atlas;
 } context;
 
-context c;
+context *get_context();
 
 void graphics_init();
 
 void graphics_teardown();
 
-void draw(context c);
+void begin_draw(context *c);
+void end_draw(context *c);
+
+void draw_mesh(context *c, mesh m);
 
 
 #endif
