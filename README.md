@@ -12,3 +12,9 @@ Next up:
 
 facing ratio light
 easy
+
+
+warn forgotten return type strikes again need to do something about that.
+if we are talking maintenance probably a makefile, folder structure, compiler warnings
+
+lets go chunks
