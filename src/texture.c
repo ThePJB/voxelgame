@@ -17,7 +17,11 @@ unsigned int load_texture(char *path) {
     // texture stuff
     // load texture
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("tromp.jpg", &width, &height, &nrChannels, 0); 
+    unsigned char *data = stbi_load("assets/tromp.jpg", &width, &height, &nrChannels, 0); 
+    if (!data) {
+        printf("error loading %s\n", path);
+        exit(1);
+    }
     unsigned int texture;
     glGenTextures(1, &texture); 
     glBindTexture(GL_TEXTURE_2D, texture);  
