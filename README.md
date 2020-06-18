@@ -31,6 +31,20 @@ Wed 17/6/20
 
 this context thing has gotten really out of hand. might need some revision. Passing around pointer to context is ok I think. Globals can get a bit dirty making them known where they're needed in C.
 
-Textures not working but texture coords are fine, so not sure whats up there. where is le trump :(
+fixed trump its now texture time
 
 Chunks not working, have done like no testing though like print out how many triangles it meshes etc.
+
+debug info like fps, cam pos etc would be nice
+
+OK lets get started on non cooked meshing
+first figure out what the faces correspond to
+
+drawing coordinate system would be good
+or just facing angle at least
+
+-----
+Fri 19 Jun
+- Ok we gotta get freetype going for some debug info
+- do chunk things with chunks - freeing the vao to remesh etc
+- texture atlas and texturing voxels individually

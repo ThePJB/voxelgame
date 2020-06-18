@@ -6,11 +6,11 @@ void generate_chunk(chunk *c, int x, int y, int z) {
     c->y = y;
     c->z = z;
 
-    const float filledness = 0.5;
+    const float filledness = 0.2;
     for (int i = 0; i < CHUNK_RADIX; i++) {
         for (int j = 0; j < CHUNK_RADIX; j++) {
             for (int k = 0; k < CHUNK_RADIX; k++) {
-                if (k < 8) {
+                if (j < 8) {
                     c->blocks[i][j][k] = (block) {BLOCK_DIRT};
                 } else {
                     if ((float)rand() / RAND_MAX < filledness) {
@@ -22,6 +22,7 @@ void generate_chunk(chunk *c, int x, int y, int z) {
             }
         }
     }
+    printf("generated chunk at %d %d %d\n", x, y, z);
 }
 
 
@@ -32,7 +33,7 @@ int vertex_idx = 0;
 // might turn out to be better to compute some of that stuff in place than send it over
 // or it might not we'll see
 
-#define TRIANGLE_STRIDE 8
+#define VERT_STRIDE 8
 
 void mesh_chunk(chunk *c) {
     const float cube_verts[] = 
@@ -45,24 +46,30 @@ void mesh_chunk(chunk *c) {
         for (int j = 0; j < CHUNK_RADIX; j++) {
             for (int k = 0; k < CHUNK_RADIX; k++) {
 
-                for (int cube_idx = 0; cube_idx < TRIANGLE_STRIDE * 6; cube_idx += TRIANGLE_STRIDE) {
+                if (c->blocks[i][j][k].tag == BLOCK_AIR) {
+                    continue;
+                }
+
+                // each face of the cube
+                for (int cube_vert = 0; cube_vert < 36; cube_vert++) {
+
+                /*
+                for (int cube_idx = 0; cube_idx < vert_STRIDE * 12; cube_idx += vert_STRIDE) {
+                */
+                    
+
                     // walk the cube verts
-                    const float *current_triangle = &(cube_verts[cube_idx]);
+                    const float *current_vert = &(cube_verts[cube_vert * VERT_STRIDE]);
                     
                     // push to the vertex buffer
-                    /*
-                    vertices[vertex_idx++] = cube_verts[0] + i + c->x; // x pos + transform
-                    vertices[vertex_idx++] = cube_verts[1] + j + c->y; // y pos + transform
-                    vertices[vertex_idx++] = cube_verts[2] + k + c->z; // z pos +  pos + transform
-                    */
-                    vertices[vertex_idx++] = current_triangle[0] + i; // x pos
-                    vertices[vertex_idx++] = current_triangle[1] + j; // y pos 
-                    vertices[vertex_idx++] = current_triangle[2] + k; // z pos
-                    vertices[vertex_idx++] = current_triangle[3]; // normal x
-                    vertices[vertex_idx++] = current_triangle[4]; // normal y
-                    vertices[vertex_idx++] = current_triangle[5]; // normal z
-                    vertices[vertex_idx++] = current_triangle[6]; // normal u
-                    vertices[vertex_idx++] = current_triangle[7]; // normal v
+                    vertices[vertex_idx++] = current_vert[0] + i; // x pos
+                    vertices[vertex_idx++] = current_vert[1] + j; // y pos 
+                    vertices[vertex_idx++] = current_vert[2] + k; // z pos
+                    vertices[vertex_idx++] = current_vert[3]; // normal x
+                    vertices[vertex_idx++] = current_vert[4]; // normal y
+                    vertices[vertex_idx++] = current_vert[5]; // normal z
+                    vertices[vertex_idx++] = current_vert[6]; // normal u
+                    vertices[vertex_idx++] = current_vert[7]; // normal v
 
 
                 }
@@ -70,6 +77,9 @@ void mesh_chunk(chunk *c) {
             }
         }
     }
+
+    c->num_triangles = vertex_idx / VERT_STRIDE / 3;
+    printf("meshed chunk, %d triangles\n", c->num_triangles);
 
     // now just bind the vao
     // how to clean up this stuff when i want to? good question
@@ -104,7 +114,7 @@ void draw_chunk(chunk *ch, context *c) {
     model = glms_translate(model, (vec3s){ch->x, ch->y, ch->z});
     glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, model.raw[0]);
 
-    glBindTexture(GL_TEXTURE_2D, c->atlas);
+    glBindTexture(GL_TEXTURE_2D, c->spoderman);
     glBindVertexArray(ch->vao);
     glDrawArrays(GL_TRIANGLES, 0, ch->num_triangles * 3);
 }

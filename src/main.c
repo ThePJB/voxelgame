@@ -38,8 +38,8 @@ int main(int argc, char** argv) {
         c->cam = new_cam;
 
         begin_draw(c);
-        draw_mesh(c, c->cube); 
-        //draw_chunk(&ch, c);
+        //draw_mesh(c, c->cube); 
+        draw_chunk(&ch, c);
         end_draw(c);
     }
 

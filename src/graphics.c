@@ -129,7 +129,8 @@ void graphics_init() {
     c.cube.num_triangles = 12;
 
 
-    //c.atlas = load_texture("assets/tromp.jpg");
+    c.tromp = load_texture("assets/tromp.jpg");
+    c.spoderman = load_texture("assets/spoderman.jpg");
 
 
 }

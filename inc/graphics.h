@@ -39,7 +39,8 @@ typedef struct {
     // test cube
     mesh cube;
 
-    unsigned int atlas;
+    unsigned int tromp;
+    unsigned int spoderman;
 } context;
 
 context *get_context();
