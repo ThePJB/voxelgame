@@ -22,9 +22,10 @@ int main(int argc, char** argv) {
     float last = 0;
     float dt = 0;
 
-    chunk ch = {0};
+    chunk_manager cm = {0};
+    chunk_manager_position_hint(&cm, (vec3s){0,0,0});
+    
 
-    generate_chunk(&ch, 0, 0, 0);
 
     /*
     ch.blocks[8][8][8] = (block){.tag = BLOCK_DIRT};
@@ -33,11 +34,11 @@ int main(int argc, char** argv) {
     ch.blocks[7][8][8] = (block){.tag = BLOCK_DIRT};
     ch.blocks[8][8][8] = (block){.tag = BLOCK_DIRT};
     */
-    mesh_chunk(&ch);
+    //mesh_chunk(&ch);
 
     text_init(c);
 
-    c->cam.pos = (vec3s) {8, 8, 20};
+    c->cam.pos = (vec3s) {64, 64, 64};
     c->cam.front = (vec3s) {0, 0, -1};
 
 
@@ -55,8 +56,9 @@ int main(int argc, char** argv) {
         c->cam = new_cam;
 
         begin_draw(c);
-        draw_mesh(c, c->cube); 
-        draw_chunk(&ch, c);
+        //draw_mesh(c, c->cube); 
+        //draw_chunk(&ch, c);
+        draw_chunks(&cm, c);
 
 
 

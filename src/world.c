@@ -1,4 +1,5 @@
 #include "world.h"
+#include "easing.h"
 #include "stdlib.h"
 
 void generate_chunk(chunk *c, int x, int y, int z) {
@@ -6,18 +7,26 @@ void generate_chunk(chunk *c, int x, int y, int z) {
     c->y = y;
     c->z = z;
 
-    const float filledness = 0.2;
+    float chunk_x = x*CHUNK_RADIX;
+    float chunk_y = y*CHUNK_RADIX;
+    float chunk_z = z*CHUNK_RADIX;
+
+    float fill0_at = 64;
+    float fill1_at = -64;
+    float fill_divisor = fill0_at - fill1_at;
+
+    float filledness = 1 - (chunk_y + fill0_at)/fill_divisor;
+    filledness = slow_start4(filledness);
+
+    printf("filledness %.2f\n", filledness);
+
     for (int i = 0; i < CHUNK_RADIX; i++) {
         for (int j = 0; j < CHUNK_RADIX; j++) {
             for (int k = 0; k < CHUNK_RADIX; k++) {
-                if (j < 8) {
-                    c->blocks[i][j][k] = (block) {BLOCK_DIRT};
-                } else {
-                    if ((float)rand() / RAND_MAX < filledness) {
+                if ((float)rand() / RAND_MAX < filledness) {
                         c->blocks[i][j][k] = (block) {BLOCK_GRASS};
-                    } else {
+                } else {
                         c->blocks[i][j][k] = (block) {BLOCK_AIR};
-                    }
                 }
             }
         }
@@ -27,7 +36,6 @@ void generate_chunk(chunk *c, int x, int y, int z) {
 
 
 float vertices[819200] = {0};
-int vertex_idx = 0;
 
 // Currently I'll push position, texture and normals
 // might turn out to be better to compute some of that stuff in place than send it over
@@ -36,6 +44,8 @@ int vertex_idx = 0;
 #define VERT_STRIDE 8
 
 void mesh_chunk(chunk *c) {
+    int vertex_idx = 0;
+
     const float cube_verts[] = 
     #include "cube.h"
     // for now we are gonna do the dirty and generate geometry for every single block
@@ -129,11 +139,33 @@ void mesh_chunk(chunk *c) {
 void draw_chunk(chunk *ch, context *c) {
     glUseProgram(c->mesh_program);
     mat4s model = GLMS_MAT4_IDENTITY_INIT;
-    model = glms_translate(model, (vec3s){ch->x, ch->y, ch->z});
+    model = glms_translate(model, (vec3s){ch->x*CHUNK_RADIX, ch->y*CHUNK_RADIX, ch->z*CHUNK_RADIX});
     glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, model.raw[0]);
 
     glBindTexture(GL_TEXTURE_2D, c->spoderman);
     glBindVertexArray(ch->vao);
     glDrawArrays(GL_TRIANGLES, 0, ch->num_triangles * 3);
     
+}
+
+void chunk_manager_position_hint(chunk_manager *cm, vec3s pos) {
+    int bottom_corner_x = pos.x/CHUNK_RADIX - MAX_CHUNKS_S/2;
+    int bottom_corner_y = pos.y/CHUNK_RADIX - MAX_CHUNKS_S/2;
+    int bottom_corner_z = pos.z/CHUNK_RADIX - MAX_CHUNKS_S/2;
+    for (int x = 0; x < MAX_CHUNKS_S; x++) {
+        for (int y = 0; y < MAX_CHUNKS_S; y++) {
+            for (int z = 0; z < MAX_CHUNKS_S; z++) {
+                chunk *new_chunk = calloc(1, sizeof(chunk));
+                generate_chunk(new_chunk, x + bottom_corner_x, y + bottom_corner_y, z + bottom_corner_z);
+                mesh_chunk(new_chunk);
+                cm->chunk_pointers[MAX_CHUNKS_SS * x + MAX_CHUNKS_S * y + z] = new_chunk;
+            }
+        }
+    }
+}
+
+void draw_chunks(chunk_manager *cm, context *c) {
+    for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
+        draw_chunk(cm->chunk_pointers[i], c);
+    }
 }

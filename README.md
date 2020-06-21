@@ -63,3 +63,6 @@ Sun 21 Jun
 
 Ok so the chunk was 29724 triangles
 now it works down to 6000. easy. was just indexing array wrong
+
+next up, some degree of chunk management
+also texturing blocks and stuff

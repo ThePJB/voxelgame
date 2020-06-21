@@ -124,7 +124,7 @@ void begin_draw(context *c) {
     view = glms_lookat(c->cam.pos, glms_vec3_add(c->cam.pos, c->cam.front), c->cam.up);
 
     mat4s projection = GLMS_MAT4_IDENTITY_INIT;
-    projection = glms_perspective(glm_rad(c->cam.fovx), (float)c->w / c->h, 0.1, 100);
+    projection = glms_perspective(glm_rad(c->cam.fovx), (float)c->w / c->h, 0.1, 1000);
 
     vec3s light = glms_vec3_normalize((vec3s){1,2,1});
 
