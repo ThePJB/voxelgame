@@ -70,30 +70,7 @@ void graphics_init() {
         glEnable(GL_DEPTH_TEST);
     }
 
-
-    // Shader stuff
-    unsigned int vertex_shader = make_shader("shaders/vertex.glsl", GL_VERTEX_SHADER);
-    unsigned int fragment_shader = make_shader("shaders/fragment.glsl", GL_FRAGMENT_SHADER);
-
-    int success;
-    char buf[512] = {0};
-    unsigned int shader_program;
-    shader_program = glCreateProgram();
-    glAttachShader(shader_program, vertex_shader);
-    glAttachShader(shader_program, fragment_shader);
-    glLinkProgram(shader_program);
-
-    glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shader_program, 512, NULL, buf);
-        printf("error linking shaders: %s\n", buf);
-        exit(1);
-    }
-
-    glDeleteShader(vertex_shader);
-    glDeleteShader(fragment_shader);
-    c.mesh_program = shader_program;
-
+    c.mesh_program = make_shader_program("shaders/vertex.glsl", "shaders/fragment.glsl");
 
     // make cube
    float vertices[] =
@@ -139,21 +116,6 @@ void graphics_teardown() {
     glfwTerminate();
 }
 
-void draw_mesh(context *c, mesh m) {
-    //printf("draw cube texture %u vao %u num tris %u\n", m.texture, m.vao, m.num_triangles);
-    // for now just do this here
-    mat4s model = GLMS_MAT4_IDENTITY_INIT;
-    model = glms_rotate(model, glfwGetTime(), (vec3s){1,1,1});
-    m.transform = model;
-
-    // upload mesh transform
-    glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, m.transform.raw[0]);
-
-    glBindTexture(GL_TEXTURE_2D, m.texture);
-    glBindVertexArray(m.vao);
-    glDrawArrays(GL_TRIANGLES, 0, m.num_triangles * 3);
-}
-
 void begin_draw(context *c) {
     glClearColor(0.3, 0.5, 0.7, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -174,11 +136,31 @@ void begin_draw(context *c) {
     glUniform3fv(glGetUniformLocation(c->mesh_program, "light"), 1, light.raw);
 }
 
+
+void draw_mesh(context *c, mesh m) {
+    glUseProgram(c->mesh_program);
+
+    //printf("draw cube texture %u vao %u num tris %u\n", m.texture, m.vao, m.num_triangles);
+    // for now just do this here
+    mat4s model = GLMS_MAT4_IDENTITY_INIT;
+    model = glms_rotate(model, glfwGetTime(), (vec3s){1,1,1});
+    m.transform = model;
+
+    // upload mesh transform
+    glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, m.transform.raw[0]);
+
+    glBindTexture(GL_TEXTURE_2D, m.texture);
+    glBindVertexArray(m.vao);
+    glDrawArrays(GL_TRIANGLES, 0, m.num_triangles * 3);
+}
+
+
 void end_draw(context *c) {
     glfwSwapBuffers(c->window);
     glfwPollEvents();
 
     glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -225,5 +207,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
         c.wireframe = !c.wireframe;
+    }    
+    if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+        c.show_info = !c.show_info;
     }
 }

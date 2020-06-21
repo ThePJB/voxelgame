@@ -43,3 +43,29 @@ unsigned int make_shader(char *path, unsigned int type) {
 
     return shader;
 }
+
+unsigned int make_shader_program(char *vert_path, char *frag_path) {
+
+    // Shader stuff
+    unsigned int vertex_shader = make_shader(vert_path, GL_VERTEX_SHADER);
+    unsigned int fragment_shader = make_shader(frag_path, GL_FRAGMENT_SHADER);
+
+    int success;
+    char buf[512] = {0};
+    unsigned int shader_program;
+    shader_program = glCreateProgram();
+    glAttachShader(shader_program, vertex_shader);
+    glAttachShader(shader_program, fragment_shader);
+    glLinkProgram(shader_program);
+
+    glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shader_program, 512, NULL, buf);
+        printf("error linking shaders: %s\n", buf);
+        exit(1);
+    }
+
+    glDeleteShader(vertex_shader);
+    glDeleteShader(fragment_shader);
+    return shader_program;
+}

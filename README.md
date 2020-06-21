@@ -48,3 +48,18 @@ Fri 19 Jun
 - Ok we gotta get freetype going for some debug info
 - do chunk things with chunks - freeing the vao to remesh etc
 - texture atlas and texturing voxels individually
+- basic culling
+
+--------
+Sat 20 Jun
+
+Right now calling draw_text is causing it to not draw my chunk
+So using glUseProgram(text_shader) causes it
+
+also im worried about the orthographic projection
+
+------------
+Sun 21 Jun
+
+Ok so the chunk was 29724 triangles
+now it works down to 6000. easy. was just indexing array wrong

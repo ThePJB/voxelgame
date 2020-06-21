@@ -50,30 +50,47 @@ void mesh_chunk(chunk *c) {
                     continue;
                 }
 
-                // each face of the cube
-                for (int cube_vert = 0; cube_vert < 36; cube_vert++) {
-
-                /*
-                for (int cube_idx = 0; cube_idx < vert_STRIDE * 12; cube_idx += vert_STRIDE) {
-                */
+                for (int face = 0; face < 6; face++) {
+                    
+                    // faces are numbered, -+z, -+x, -+y
+                    if (face == 0 && k != 0 && c->blocks[i][j][k-1].tag != BLOCK_AIR) {
+                        continue;
+                    }             
+                    
+                    if (face == 1 && k != CHUNK_RADIX-1 && c->blocks[i][j][k+1].tag != BLOCK_AIR) {
+                        continue;
+                    }
+                    if (face == 2 && i != 0 && c->blocks[i-1][j][k].tag != BLOCK_AIR) {
+                        continue;
+                    }
+                    if (face == 3 && i != CHUNK_RADIX-1 && c->blocks[i+1][j][k].tag != BLOCK_AIR) {
+                        continue;
+                    }                    
+                    if (face == 4 && j != 0 && c->blocks[i][j-1][k].tag != BLOCK_AIR) {
+                        continue;
+                    }
+                    if (face == 5 && j != CHUNK_RADIX-1 && c->blocks[i][j+1][k].tag != BLOCK_AIR) {
+                        continue;
+                    }
                     
 
-                    // walk the cube verts
-                    const float *current_vert = &(cube_verts[cube_vert * VERT_STRIDE]);
-                    
-                    // push to the vertex buffer
-                    vertices[vertex_idx++] = current_vert[0] + i; // x pos
-                    vertices[vertex_idx++] = current_vert[1] + j; // y pos 
-                    vertices[vertex_idx++] = current_vert[2] + k; // z pos
-                    vertices[vertex_idx++] = current_vert[3]; // normal x
-                    vertices[vertex_idx++] = current_vert[4]; // normal y
-                    vertices[vertex_idx++] = current_vert[5]; // normal z
-                    vertices[vertex_idx++] = current_vert[6]; // normal u
-                    vertices[vertex_idx++] = current_vert[7]; // normal v
+                    // now do vert faces
+                    for (int cube_vert = 0; cube_vert < 6; cube_vert++) {
 
-
+                        // walk the cube verts
+                        const float *current_vert = &(cube_verts[face * 6 * VERT_STRIDE + cube_vert * VERT_STRIDE]);
+                        
+                        // push to the vertex buffer
+                        vertices[vertex_idx++] = current_vert[0] + i; // x pos
+                        vertices[vertex_idx++] = current_vert[1] + j; // y pos 
+                        vertices[vertex_idx++] = current_vert[2] + k; // z pos
+                        vertices[vertex_idx++] = current_vert[3]; // normal x
+                        vertices[vertex_idx++] = current_vert[4]; // normal y
+                        vertices[vertex_idx++] = current_vert[5]; // normal z
+                        vertices[vertex_idx++] = current_vert[6]; // normal u
+                        vertices[vertex_idx++] = current_vert[7]; // normal 
+                    }
                 }
-                
             }
         }
     }
@@ -110,6 +127,7 @@ void mesh_chunk(chunk *c) {
 }
 
 void draw_chunk(chunk *ch, context *c) {
+    glUseProgram(c->mesh_program);
     mat4s model = GLMS_MAT4_IDENTITY_INIT;
     model = glms_translate(model, (vec3s){ch->x, ch->y, ch->z});
     glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, model.raw[0]);
@@ -117,4 +135,5 @@ void draw_chunk(chunk *ch, context *c) {
     glBindTexture(GL_TEXTURE_2D, c->spoderman);
     glBindVertexArray(ch->vao);
     glDrawArrays(GL_TRIANGLES, 0, ch->num_triangles * 3);
+    
 }

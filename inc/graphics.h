@@ -32,7 +32,10 @@ typedef struct {
     double mouse_lastx;
     double mouse_lasty;
 
+    float dt;
+
     bool wireframe;
+    bool show_info;
 
     unsigned int mesh_program;
 
