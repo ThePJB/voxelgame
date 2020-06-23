@@ -19,7 +19,8 @@ camera fly_camera() {
 
 camera update_camera(GLFWwindow* window, camera cam, float dt) {
     if (cam.type == CAM_FLY) {
-        const float cam_speed = 8 * dt;
+        const speed_multi = 16;
+        float cam_speed = speed_multi * dt; 
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             cam.pos = glms_vec3_add(cam.pos, glms_vec3_scale(cam.front, cam_speed));

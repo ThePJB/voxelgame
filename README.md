@@ -85,3 +85,69 @@ world gen time. bust out simplex and get it going
 then go macro
 
 some more textures
+probably want modes so theres some that look below (eg grass) and some that look just at the one (eg dirt)
+
+
+
+proc gen palm tree
+
+how about that domain warping
+what about if u did 2d noise and warped dimension 3 by some amount
+gradient info would be nice
+volcano lines or leylines or ridgelines theres pointy noise. i forget whats it called.
+
+
+hey the vertex shader could probably generate texture coordinates itself...
+
+
+ok theres some really random polys, not sure if they are a bad block ID or what.
+
+
+
+how much shit can we load
+
+
+
+terrace biome would be cool
+
+theres some weird 2x2 and even 3x3 artifacts
+
+food for thought how about an enormous scale voxel game where like 1 block is a house
+might want to marching cubes that one
+
+debug info
+
+
+quick optimizations
+- shortcut way below (chunk = full dirt)
+- shortcut way above (chunk = full air)
+- load a long wide rect
+- dont load occluded chunks
+- chunk manager time
+
+debug info
+- looking at block
+- ram and vram usage
+
+game features
+- picking / placing blocks
+- entities, procedural trees im so keen!
+
+world features
+- vegetation (crossy and squarey)
+- noise experimentation, domain warping etc. read up on types of noise
+
+graphical features
+- AO
+- light level
+
+assets
+- flowers, cattails, wood etc
+
+janitorial
+- todos fix cam speed
+- todos fix fov
+- todos fix the size of vertex data
+- todos new seed as well. maybe have a button and regen one
+
+enum orientations? or just vec2i yeah

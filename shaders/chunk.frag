@@ -1,9 +1,9 @@
 #version 460 core
 in vec2 TexCoord;
 in vec4 normal;
+in float texture_x;
 out vec4 FragColour;
 
-uniform float texture_x;
 uniform sampler2D ourTexture;
 uniform vec3 light;
 

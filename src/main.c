@@ -15,6 +15,7 @@
 int main(int argc, char** argv) {
     
     graphics_init();
+    init_world_noise();
     
     context *c = get_context();
     

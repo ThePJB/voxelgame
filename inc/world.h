@@ -8,8 +8,8 @@
 
 typedef enum {
     BLOCK_AIR,
-    BLOCK_DIRT,
     BLOCK_GRASS,
+    BLOCK_DIRT,
     NUM_BLOCKS
 } block_tag;
 // there are ways to pack this
@@ -58,7 +58,7 @@ pls update all the chunks
 so it needs an allocator for chunks
 could use malloc atm, maybe arena allocator later
 */
-#define MAX_CHUNKS_S 8
+#define MAX_CHUNKS_S 10
 #define MAX_CHUNKS_SS MAX_CHUNKS_S*MAX_CHUNKS_S
 #define MAX_CHUNKS_SSS MAX_CHUNKS_S*MAX_CHUNKS_SS
 typedef struct {

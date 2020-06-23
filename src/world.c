@@ -1,8 +1,58 @@
 #include "world.h"
 #include "easing.h"
 #include "stdlib.h"
+#include "simplex.h"
+
+struct osn_context *ctx;
+
+void init_world_noise() {
+    open_simplex_noise(123456789, &ctx);
+}
 
 void generate_chunk(chunk *c, int x, int y, int z) {
+
+    c->x = x;
+    c->y = y;
+    c->z = z;
+
+    float chunk_x = x*CHUNK_RADIX;
+    float chunk_y = y*CHUNK_RADIX;
+    float chunk_z = z*CHUNK_RADIX;
+
+    const float amplitude = 48;
+
+    for (int i = 0; i < CHUNK_RADIX; i++) {
+        for (int k = 0; k < CHUNK_RADIX; k++) {
+            double block_x = chunk_x + i;
+            double block_z = chunk_z + k;
+
+            double scale = 0.01;
+            double v = 539847;
+
+            float height = 
+                amplitude * open_simplex_noise2(ctx, scale*block_x, scale*block_z) +
+                amplitude/2 * open_simplex_noise2(ctx, v+2*scale*block_x, v+2*scale*block_z);// +
+                amplitude/4 * open_simplex_noise2(ctx, 2*v+4*scale*block_x, 2*v+4*scale*block_z);// +
+                amplitude/8 * open_simplex_noise2(ctx, 3*v+8*scale*block_x, 3*v+8*scale*block_z);
+
+
+            for (int j = 0; j < CHUNK_RADIX; j++) {
+                float block_y = chunk_y + j;
+
+                if (block_y < height - 0.5) {
+                    c->blocks[i][j][k] = (block) {BLOCK_DIRT};
+                } else if (block_y < height + 0.5) {
+                    c->blocks[i][j][k] = (block) {BLOCK_GRASS};
+                } else {
+                    c->blocks[i][j][k] = (block) {BLOCK_AIR};
+                }
+            }
+        }
+    }
+    //printf("generated chunk at %d %d %d\n", x, y, z);
+}
+
+void generate_chunk_random(chunk *c, int x, int y, int z) {
     c->x = x;
     c->y = y;
     c->z = z;
@@ -29,9 +79,8 @@ void generate_chunk(chunk *c, int x, int y, int z) {
             }
         }
     }
-    //printf("generated chunk at %d %d %d\n", x, y, z);
+    //printf
 }
-
 
 float vertices[819200] = {0};
 
@@ -97,13 +146,14 @@ void mesh_chunk(chunk *c) {
                         vertices[vertex_idx++] = current_vert[5]; // normal z
                         vertices[vertex_idx++] = current_vert[6]; // normal u
                         vertices[vertex_idx++] = current_vert[7]; // normal 
+                        vertices[vertex_idx++] = c->blocks[i][j][k].tag - 1.0; // block type 
                     }
                 }
             }
         }
     }
 
-    c->num_triangles = vertex_idx / VERT_STRIDE / 3;
+    c->num_triangles = vertex_idx / (VERT_STRIDE+1) / 3;
     //printf("meshed chunk, %d triangles\n", c->num_triangles);
 
     // now just bind the vao
@@ -118,16 +168,20 @@ void mesh_chunk(chunk *c) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     // texture coords
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     // normals
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(5 * sizeof(float)));
     glEnableVertexAttribArray(2);
+
+    // block type
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(8 * sizeof(float)));
+    glEnableVertexAttribArray(3);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
