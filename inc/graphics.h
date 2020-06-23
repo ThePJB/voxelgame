@@ -38,12 +38,14 @@ typedef struct {
     bool show_info;
 
     unsigned int mesh_program;
+    unsigned int chunk_program;
 
     // test cube
     mesh cube;
 
     unsigned int tromp;
     unsigned int spoderman;
+    unsigned int atlas;
 } context;
 
 context *get_context();

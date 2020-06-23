@@ -64,5 +64,24 @@ Sun 21 Jun
 Ok so the chunk was 29724 triangles
 now it works down to 6000. easy. was just indexing array wrong
 
-next up, some degree of chunk management
-also texturing blocks and stuff
+next up, some degree of chunk management -- check
+
+also texturing blocks and stuff -- check
+
+so
+ - switch to chunk shader
+ -  >> do modulo in frag shader      --- mostly this
+    oh mod is only needed for greedy meshing
+ - bind atlas when drawing chunks
+
+then world gen. bust out the noise
+also macro world gen -- think about it and have a big scale map visualizer thing
+
+
+------------
+Tue 23 Jun
+
+world gen time. bust out simplex and get it going
+then go macro
+
+some more textures

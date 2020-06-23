@@ -71,6 +71,7 @@ void graphics_init() {
     }
 
     c.mesh_program = make_shader_program("shaders/vertex.glsl", "shaders/fragment.glsl");
+    c.chunk_program = make_shader_program("shaders/chunk.vert", "shaders/chunk.frag");
 
     // make cube
    float vertices[] =
@@ -106,8 +107,10 @@ void graphics_init() {
     c.cube.num_triangles = 12;
 
 
+    // load textures
     c.tromp = load_texture("assets/tromp.jpg");
     c.spoderman = load_texture("assets/spoderman.jpg");
+    c.atlas = load_texture("assets/atlas.png");
 
 
 }
@@ -134,6 +137,12 @@ void begin_draw(context *c) {
     glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "view"), 1, GL_FALSE, view.raw[0]);
     glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "projection"), 1, GL_FALSE, projection.raw[0]);
     glUniform3fv(glGetUniformLocation(c->mesh_program, "light"), 1, light.raw);
+
+    // send shared uniforms
+    glUseProgram(c->chunk_program);
+    glUniformMatrix4fv(glGetUniformLocation(c->chunk_program, "view"), 1, GL_FALSE, view.raw[0]);
+    glUniformMatrix4fv(glGetUniformLocation(c->chunk_program, "projection"), 1, GL_FALSE, projection.raw[0]);
+    glUniform3fv(glGetUniformLocation(c->chunk_program, "light"), 1, light.raw);
 }
 
 

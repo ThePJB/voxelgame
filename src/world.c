@@ -18,8 +18,6 @@ void generate_chunk(chunk *c, int x, int y, int z) {
     float filledness = 1 - (chunk_y + fill0_at)/fill_divisor;
     filledness = slow_start4(filledness);
 
-    printf("filledness %.2f\n", filledness);
-
     for (int i = 0; i < CHUNK_RADIX; i++) {
         for (int j = 0; j < CHUNK_RADIX; j++) {
             for (int k = 0; k < CHUNK_RADIX; k++) {
@@ -31,7 +29,7 @@ void generate_chunk(chunk *c, int x, int y, int z) {
             }
         }
     }
-    printf("generated chunk at %d %d %d\n", x, y, z);
+    //printf("generated chunk at %d %d %d\n", x, y, z);
 }
 
 
@@ -106,7 +104,7 @@ void mesh_chunk(chunk *c) {
     }
 
     c->num_triangles = vertex_idx / VERT_STRIDE / 3;
-    printf("meshed chunk, %d triangles\n", c->num_triangles);
+    //printf("meshed chunk, %d triangles\n", c->num_triangles);
 
     // now just bind the vao
     // how to clean up this stuff when i want to? good question
@@ -137,16 +135,25 @@ void mesh_chunk(chunk *c) {
 }
 
 void draw_chunk(chunk *ch, context *c) {
-    glUseProgram(c->mesh_program);
     mat4s model = GLMS_MAT4_IDENTITY_INIT;
     model = glms_translate(model, (vec3s){ch->x*CHUNK_RADIX, ch->y*CHUNK_RADIX, ch->z*CHUNK_RADIX});
     glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, model.raw[0]);
 
-    glBindTexture(GL_TEXTURE_2D, c->spoderman);
     glBindVertexArray(ch->vao);
     glDrawArrays(GL_TRIANGLES, 0, ch->num_triangles * 3);
     
 }
+
+void draw_chunks(chunk_manager *cm, context *c) {
+    glBindTexture(GL_TEXTURE_2D, c->atlas);
+    glUseProgram(c->chunk_program);
+
+
+    for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
+        draw_chunk(cm->chunk_pointers[i], c);
+    }
+}
+
 
 void chunk_manager_position_hint(chunk_manager *cm, vec3s pos) {
     int bottom_corner_x = pos.x/CHUNK_RADIX - MAX_CHUNKS_S/2;
@@ -161,11 +168,5 @@ void chunk_manager_position_hint(chunk_manager *cm, vec3s pos) {
                 cm->chunk_pointers[MAX_CHUNKS_SS * x + MAX_CHUNKS_S * y + z] = new_chunk;
             }
         }
-    }
-}
-
-void draw_chunks(chunk_manager *cm, context *c) {
-    for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
-        draw_chunk(cm->chunk_pointers[i], c);
     }
 }
