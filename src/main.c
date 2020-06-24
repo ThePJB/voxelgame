@@ -89,6 +89,17 @@ int main(int argc, char** argv) {
             sprintf(buf, "VRAM: %lu MB (remember this is total)", get_vram_usage()/ (1024));
             draw_text(buf, 10, y, debug_text);
             y += 100;
+
+            // block coords
+            block_coordinates bc = (block_coordinates) {c->cam.pos.x, c->cam.pos.y, c->cam.pos.z};
+
+            sprintf(buf, "Block ur in: %d", get_block(&cm, bc));
+            draw_text(buf, 10, y, debug_text);
+            y += 100;
+
+            set_block(&cm, bc, (block){.tag = BLOCK_DIRT});
+
+            
         }
         
         end_draw(c);

@@ -19,7 +19,7 @@ camera fly_camera() {
 
 camera update_camera(GLFWwindow* window, camera cam, float dt) {
     if (cam.type == CAM_FLY) {
-        const speed_multi = 16;
+        const speed_multi = 32;
         float cam_speed = speed_multi * dt; 
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {

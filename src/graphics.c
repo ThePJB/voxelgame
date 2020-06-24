@@ -21,6 +21,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height); 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
 context *graphics_init() {
     {
@@ -62,6 +63,8 @@ context *graphics_init() {
         glfwSetCursorPosCallback(c.window, mouse_callback);  
         glfwSetScrollCallback(c.window, scroll_callback); 
         glfwSetKeyCallback(c.window, key_callback);
+        glfwSetMouseButtonCallback(c.window, mouse_button_callback);
+
 
         glViewport(0,0,c.w,c.h);
         glEnable(GL_DEPTH_TEST);
@@ -149,6 +152,7 @@ void draw_mesh(context *c, mesh m) {
     //printf("draw cube texture %u vao %u num tris %u\n", m.texture, m.vao, m.num_triangles);
     // for now just do this here
     mat4s model = GLMS_MAT4_IDENTITY_INIT;
+    model = glms_translate(model, (vec3s) {m.x, m.y, m.z});
     model = glms_rotate(model, glfwGetTime(), (vec3s){1,1,1});
     m.transform = model;
 
@@ -224,6 +228,23 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
 }
 
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
+        printf("lmb\n");
+        pick_info p = pick_block(&cm, c.cam.pos, c.cam.front, 5);
+        printf("success %d block %d coords %lu %lu %lu normal %d %d %d\n", p.success, get_block(&cm, p.coords).tag, p.coords.x, p.coords.y, p.coords.z, p.normal_x, p.normal_y, p.normal_z);
+        block_coordinates new_coords = {
+            .x = p.coords.x + p.normal_x,
+            .y = p.coords.y + p.normal_y,
+            .z = p.coords.z + p.normal_z,
+        };
+        set_block(&cm, new_coords, (block){.tag = BLOCK_DIRT});
+    } else if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS) {
+        printf("rmb\n");
+    }
+}
+
+
 #define GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX 0x9048
 #define GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX 0x9049
 
@@ -240,3 +261,4 @@ unsigned long int get_vram_usage() {
 
     return total_mem_kb - cur_avail_mem_kb;                
 }
+

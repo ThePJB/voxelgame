@@ -15,6 +15,9 @@
 #include "camera.h"
 
 typedef struct {
+    double x;
+    double y;
+    double z;
     mat4s transform;
     unsigned int texture;
     unsigned int vao;

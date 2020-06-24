@@ -204,3 +204,23 @@ Basically its just a way of pythoning it up. That might be a smell. The compiler
 What if instead I can tidy things up and its not a problem. should probably do that regardless.
 
 or just use globals. but then it needs to know the types and thats a pain...
+
+
+
+--------
+
+so how are we gonna do picking / placing
+
+cast ray up to view distance and test cubes for opaqueness
+
+OK block picking is weird. why does it end up with a z coordinate of 18447635409834095834
+
+get and set block not quite right. I sometimes get - blocks.
+I think it rounds differently when negative from memory.
+
+sometimes end up in block 16 instead of block 15, wat
+
+get block set block seem correct except for climbing ram usage lol
+
+
+in future maybe the concept of a "chunk slot", vbo and vao could belong to that

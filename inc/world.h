@@ -6,12 +6,26 @@
 #include <stdbool.h>
 #include <cglm/struct.h>
 
+typedef struct {
+    long int x;
+    long int y;
+    long int z;
+} block_coordinates;
+
+typedef struct {
+    bool success;
+    block_coordinates coords;
+    int normal_x;
+    int normal_y;
+    int normal_z;
+} pick_info;
 
 typedef enum {
     BLOCK_AIR,
     BLOCK_GRASS,
     BLOCK_DIRT,
-    NUM_BLOCKS
+    // BLOCK_UNKNOWN, todo use this, and look up block opacity
+    NUM_BLOCKS,
 } block_tag;
 // there are ways to pack this
 // could also use a bunch of #defines
@@ -43,6 +57,7 @@ typedef struct {
     int y;
     int z;
     unsigned int vao;
+    unsigned int vbo;
     int num_triangles;
     block blocks[CHUNK_RADIX][CHUNK_RADIX][CHUNK_RADIX];
 } chunk;
@@ -74,7 +89,10 @@ void draw_chunk(chunk *ch, context *c);
 
 // basically gets it to update and load chunks
 void chunk_manager_position_hint(chunk_manager *cm, vec3s pos);
+block get_block(chunk_manager *cm, block_coordinates pos);
+void set_block(chunk_manager *cm, block_coordinates pos, block b);
 
 void draw_chunks(chunk_manager *cm, context *c);
 void init_world_noise();
+pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance);
 #endif

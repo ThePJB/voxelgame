@@ -15,6 +15,9 @@ void generate_chunk(chunk *c, int x, int y, int z) {
     c->y = y;
     c->z = z;
 
+    glGenVertexArrays(1, &c->vao);
+    glGenBuffers(1, &c->vbo);
+
     float chunk_x = x*CHUNK_RADIX;
     float chunk_y = y*CHUNK_RADIX;
     float chunk_z = z*CHUNK_RADIX;
@@ -158,11 +161,11 @@ void mesh_chunk(chunk *c) {
 
     // now just bind the vao
     // how to clean up this stuff when i want to? good question
-    glGenVertexArrays(1, &c->vao);
+
+
     
     unsigned int vao = c->vao;
-    unsigned int vbo;
-    glGenBuffers(1, &vbo);
+    unsigned int vbo = c->vbo;
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -223,4 +226,196 @@ void chunk_manager_position_hint(chunk_manager *cm, vec3s pos) {
             }
         }
     }
+}
+
+block get_block(chunk_manager *cm, block_coordinates pos) {
+    int cx = pos.x / CHUNK_RADIX;
+    int cy = pos.y / CHUNK_RADIX;
+    int cz = pos.z / CHUNK_RADIX;
+
+    if (pos.x < 0) cx--;
+    if (pos.y < 0) cy--;
+    if (pos.z < 0) cz--;
+
+    int bx = (pos.x - (cx * CHUNK_RADIX)) % CHUNK_RADIX;
+    int by = (pos.y - (cy * CHUNK_RADIX)) % CHUNK_RADIX;
+    int bz = (pos.z - (cz * CHUNK_RADIX)) % CHUNK_RADIX;
+
+    for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
+        chunk *cpi = cm->chunk_pointers[i];
+        if (cpi->x == cx && cpi->y == cy && cpi->z == cz) {
+            // its this chunk
+            return cpi->blocks[bx][by][bz];
+        }
+    }
+
+    // didnt find
+    printf("didnt find %ld %ld %ld\n", pos.x, pos.y, pos.z);
+    return (block) {
+        .tag = BLOCK_AIR, // todo make this separate to air so player dosnt fall lol
+    };
+}
+
+void set_block(chunk_manager *cm, block_coordinates pos, block b) {    
+    int cx = pos.x / CHUNK_RADIX;
+    int cy = pos.y / CHUNK_RADIX;
+    int cz = pos.z / CHUNK_RADIX;
+
+    if (pos.x < 0) cx--;
+    if (pos.y < 0) cy--;
+    if (pos.z < 0) cz--;
+
+    int bx = pos.x - (cx * CHUNK_RADIX);
+    int by = pos.y - (cy * CHUNK_RADIX);
+    int bz = pos.z - (cz * CHUNK_RADIX);
+
+    for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
+        chunk *cpi = cm->chunk_pointers[i];
+        if (cpi->x == cx && cpi->y == cy && cpi->z == cz) {
+            // its this chunk
+            cpi->blocks[bx][by][bz] = b;
+            mesh_chunk(cpi);
+            return;
+        }
+    }
+
+    // didnt find
+    printf("didnt find %ld %ld %ld\n", pos.x, pos.y, pos.z);
+}
+
+
+long int signum(long int x) {
+    return x > 0 ? 1 : -1;
+}
+
+int mod(int val, int modulus) {
+    // ok i think this is because its fake modulus (divisor)
+    return (val % modulus + modulus) % modulus;
+}
+
+
+float intbound(float s, float ds) {
+    if (ds < 0) {
+        return intbound(-s, -ds);
+    } else {
+        if (ds > 0) {
+            s = s - floorf(s);
+        } else {
+            s = s - ceilf(s);
+        }
+        return (1-s)/ds;
+    }
+}
+
+/*
+float intbound(float s, float ds) { 
+    return (ds > 0? ceil(s)-s: s-floor(s)) / abs(ds); 
+}
+*/
+
+pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance) {
+/*
+    printf("%.2f\n", intbound(-1.5, 1));
+    printf("%.2f\n", intbound(-1.6, 1));
+    printf("%.2f\n", intbound(-1.6, 0.5));
+
+    printf("%.2f\n", intbound(1.5, -1));
+    printf("%.2f\n", intbound(1.6, -1));
+    printf("%.2f\n", intbound(1.6, -0.5));
+
+    printf("%.2f\n", intbound(1.5, 1));
+    printf("%.2f\n", intbound(1.6, 1));
+    printf("%.2f\n", intbound(1.6, 0.5));
+    */
+
+    printf("facing %.2f, %.2f, %.2f\n", facing.x, facing.y, facing.z);
+
+    pick_info ret = {0};
+    ret.success = true;
+
+    ret.coords = (block_coordinates) {
+        .x = (long int)pos.x,
+        .y = (long int)pos.y,
+        .z = (long int)pos.z,
+    };
+
+    int sx = signum(facing.x);
+    int sy = signum(facing.y);
+    int sz = signum(facing.z);
+
+    float tMaxX = intbound(pos.x, facing.x); // sorry
+    float tMaxY = intbound(pos.y, facing.y);
+    float tMaxZ = intbound(pos.z, facing.z);
+
+    //printf("initial tmx: %.2f, tmy: %.2f, tmz: %.2f\n", tMaxX, tMaxY, tMaxZ);
+
+    float accX = 0;
+    float accY = 0;
+    float accZ = 0;
+
+    float tDeltaX = (float)sx / facing.x;
+    float tDeltaY = (float)sy / facing.y;
+    float tDeltaZ = (float)sz / facing.z;
+
+    float max_squared = max_distance*max_distance;
+
+    // error on direction 0,0,0
+
+    int n = 0;
+    // accX*accX + accY*accY + accZ*accZ <= max_squared
+    while (n < 10) {
+        n++;
+        printf("x: %ld y: %ld z: %ld\n", ret.coords.x, ret.coords.y, ret.coords.z);
+        //printf("tmx: %.2f, tmy: %.2f, tmz: %.2f\n", tMaxX, tMaxY, tMaxZ);
+        if (get_block(world, ret.coords).tag != BLOCK_AIR) {
+            printf("not air\n");
+            ret.success=true;
+            return ret;
+        }
+
+        if (tMaxX < tMaxY) {
+            if (tMaxX < tMaxZ) {
+                // X min
+                ret.coords.x += sx;
+                accX = tMaxX;
+                tMaxX += tDeltaX;
+                ret.normal_x = -sx;
+                ret.normal_y = 0;
+                ret.normal_z = 0;
+            } else {
+                // Z min
+                ret.coords.z += sz;
+                accZ = tMaxZ;
+                tMaxZ += tDeltaZ;
+                ret.normal_x = 0;
+                ret.normal_y = 0;
+                ret.normal_z = -sz;
+            }
+        } else {
+            if (tMaxY < tMaxZ) {
+                // Y min
+                ret.coords.y += sy;
+                accY += tMaxY;
+                tMaxY += tDeltaY;
+                ret.normal_x = 0;
+                ret.normal_y = -sy;
+                ret.normal_z = 0;
+            } else {
+                // Z min (again)
+                ret.coords.z += sz;
+                accZ += tMaxZ;
+                tMaxZ += tDeltaZ;
+                ret.normal_x = 0;
+                ret.normal_y = 0;
+                ret.normal_z = -sz;
+            }
+        }
+
+    }
+    ret.success = false;
+    //printf("didnt find anything after n iters %d\n", n);
+    //printf("bailed with accx: %.2f, accy: %.2f, accz: %.2f\n", accX, accY, accZ);
+
+    return ret;
+    
 }
