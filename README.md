@@ -204,3 +204,27 @@ Basically its just a way of pythoning it up. That might be a smell. The compiler
 What if instead I can tidy things up and its not a problem. should probably do that regardless.
 
 or just use globals. but then it needs to know the types and thats a pain...
+
+------------
+Wed 24 Jun
+
+this event code is literally the simplest thing ive ever written. just a table of function pointers nice.
+
+Using it does mean adding a call to post_event and register_listener for each thing. Itll probably simplify many to one things more
+
+globals approach kind of works but i dont think its that scalable
+whered me ram go lol
+
+there might be a problem though, the event system would need to know about everything. Or would it.
+No it wouldnt. It can just take the void* and pass it
+
+but the thing that generates events would need to know
+oh but we actually poll movement. man this is complicated.
+
+lets just try and get placing and breaking of blocks working.
+
+hmm maybe I can make it so the poster doesn't have to know by phrasing the events as purely things the poster knows. i.e. inputs. So events like CLICK, MOVE_FORWARD etc.
+
+the supplied data still needs to be in an agreed upon format. Could they both depend on that format? or maybe I could just extern some globals and not worry about it
+
+maybe I can try and do picking in that style

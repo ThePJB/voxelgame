@@ -10,6 +10,7 @@
 #include "shader.h"
 #include "texture.h"
 #include "world.h"
+#include "event.h"
 
 context c = {0};
 
@@ -21,6 +22,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height); 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
 context *graphics_init() {
     {
@@ -62,6 +64,8 @@ context *graphics_init() {
         glfwSetCursorPosCallback(c.window, mouse_callback);  
         glfwSetScrollCallback(c.window, scroll_callback); 
         glfwSetKeyCallback(c.window, key_callback);
+        glfwSetMouseButtonCallback(window, mouse_button_callback);
+
 
         glViewport(0,0,c.w,c.h);
         glEnable(GL_DEPTH_TEST);
@@ -208,6 +212,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 extern chunk_manager cm;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    // Keymaps actually gonna do this
     if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
         if (c.wireframe) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -220,7 +225,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         c.show_info = !c.show_info;
     }
     if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
-        chunk_manager_position_hint(&cm, (vec3s){0,0,0});
+        chunk_manager_position_hint(&cm, c.cam.pos);
+    }
+    
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
+        post_event(EVENT_BREAK_BLOCK, )
     }
 }
 
