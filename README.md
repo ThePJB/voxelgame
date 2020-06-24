@@ -128,6 +128,11 @@ quick optimizations
 debug info
 - looking at block
 - ram and vram usage
+   jank but done
+   - ram on windows: GetProcessMemoryInfo(GetCurrentProcess()).WorkingSetSize
+   - on linux: oof maybe getrusage
+
+   vram usage nvidia-smi
 
 game features
 - picking / placing blocks
@@ -145,9 +150,57 @@ assets
 - flowers, cattails, wood etc
 
 janitorial
-- todos fix cam speed
+- todos fix cam speed, and cam in general
 - todos fix fov
 - todos fix the size of vertex data
 - todos new seed as well. maybe have a button and regen one
+- the whole context thing. if its always a ptr then stuff doesnt shit itself because it doesnt need to know
+just have a function that allocates it
 
 enum orientations? or just vec2i yeah
+
+------------
+So RAM and VRAM usage is sitting pretty at 3.1GB
+with 10*10*10 of chunks so 1000 * 16^3 
+4 million blocks
+812 bytes per block? thats munted
+I wonder if im leaking some shit. lets see what happens if i remake the chunk
+
+generating time would be a good one as well
+
+
+
+---- 
+ok circular dependencies with context struct are no good
+probably need to break it up
+
+one root problem is the way inputs getting handled. maybe its command pattern time.
+
+can I even separate input and graphics?
+
+input depends on game state
+input depends on graphics
+graphics doesnt depend on game state
+does graphics depend on input? it kind of needs the callbacks
+
+      window
+      ^     ^
+   input   graphics
+
+input is a bit vague there
+
+so when u make the graphics u could pass in the callbacks and any other info
+
+the callbacks need access I think to the graphics to update it yeesh.
+
+maybe start by separatign out stuff that is strictly rendering and doesnt depend on anything
+
+Im being tested by this event queue shit. I feel like theres a simpler way to do things. Maybe. I want things to be synchronous so not even really a queue, more of an observer situation. Runtime dependencies instead of compile time dependencies.
+
+That could be OK, it would basically be like a ptr to a function that takes a void ptr. Things register for the callback say when key press happens, or not.
+
+Basically its just a way of pythoning it up. That might be a smell. The compiler is my friend. I think.
+
+What if instead I can tidy things up and its not a problem. should probably do that regardless.
+
+or just use globals. but then it needs to know the types and thats a pain...

@@ -1,10 +1,11 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+#include "graphics.h"
+
 #include <stdbool.h>
 #include <cglm/struct.h>
 
-#include "graphics.h"
 
 typedef enum {
     BLOCK_AIR,
@@ -75,5 +76,5 @@ void draw_chunk(chunk *ch, context *c);
 void chunk_manager_position_hint(chunk_manager *cm, vec3s pos);
 
 void draw_chunks(chunk_manager *cm, context *c);
-
+void init_world_noise();
 #endif

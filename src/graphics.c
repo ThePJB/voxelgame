@@ -11,11 +11,8 @@
 #include "texture.h"
 #include "world.h"
 
-context c;
+context c = {0};
 
-context *get_context() {
-    return &c;
-}
 
 float min(float a, float b) { return a < b? a : b; }
 float max(float a, float b) { return a > b? a : b; }
@@ -25,7 +22,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-void graphics_init() {
+context *graphics_init() {
     {
         c.w = 2560;
         c.h = 1440;
@@ -112,7 +109,7 @@ void graphics_init() {
     c.spoderman = load_texture("assets/spoderman.jpg");
     c.atlas = load_texture("assets/atlas.png");
 
-
+    return &c;
 }
 
 void graphics_teardown() {
@@ -208,6 +205,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     c.cam.fovx = max(c.cam.fovx, 1);
 }
 
+extern chunk_manager cm;
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
         if (c.wireframe) {
@@ -220,4 +219,24 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
         c.show_info = !c.show_info;
     }
+    if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
+        chunk_manager_position_hint(&cm, (vec3s){0,0,0});
+    }
+}
+
+#define GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX 0x9048
+#define GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX 0x9049
+
+// nvidia smi better breakdown
+// this is total vram usage not just ur app
+unsigned long int get_vram_usage() {
+    GLint total_mem_kb = 0;
+    glGetIntegerv(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX, 
+                &total_mem_kb);
+
+    GLint cur_avail_mem_kb = 0;
+    glGetIntegerv(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX, 
+                &cur_avail_mem_kb);
+
+    return total_mem_kb - cur_avail_mem_kb;                
 }

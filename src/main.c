@@ -11,19 +11,19 @@
 #include "graphics.h"
 #include "world.h"
 #include "text.h"
+#include "ram_usage.h"
+
+chunk_manager cm = {0};
 
 int main(int argc, char** argv) {
     
-    graphics_init();
+    context *c = graphics_init();
     init_world_noise();
-    
-    context *c = get_context();
-    
+        
 
     float last = 0;
     float dt = 0;
 
-    chunk_manager cm = {0};
     chunk_manager_position_hint(&cm, (vec3s){0,0,0});
     
 
@@ -80,9 +80,17 @@ int main(int argc, char** argv) {
 
             sprintf(buf, "Pos {%.2f, %.2f, %.2f}", c->cam.pos.x, c->cam.pos.y, c->cam.pos.z);
             draw_text(buf, 10, y, debug_text);
+            y += 100;            
+            
+            sprintf(buf, "RAM: %lu MB", get_ram_usage()/ (1024*1024));
+            draw_text(buf, 10, y, debug_text);
+            y += 100;        
+
+            sprintf(buf, "VRAM: %lu MB (remember this is total)", get_vram_usage()/ (1024));
+            draw_text(buf, 10, y, debug_text);
             y += 100;
         }
-
+        
         end_draw(c);
     }
 

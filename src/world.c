@@ -31,8 +31,8 @@ void generate_chunk(chunk *c, int x, int y, int z) {
 
             float height = 
                 amplitude * open_simplex_noise2(ctx, scale*block_x, scale*block_z) +
-                amplitude/2 * open_simplex_noise2(ctx, v+2*scale*block_x, v+2*scale*block_z);// +
-                amplitude/4 * open_simplex_noise2(ctx, 2*v+4*scale*block_x, 2*v+4*scale*block_z);// +
+                amplitude/2 * open_simplex_noise2(ctx, v+2*scale*block_x, v+2*scale*block_z) +
+                amplitude/4 * open_simplex_noise2(ctx, 2*v+4*scale*block_x, 2*v+4*scale*block_z) +
                 amplitude/8 * open_simplex_noise2(ctx, 3*v+8*scale*block_x, 3*v+8*scale*block_z);
 
 

@@ -22,7 +22,6 @@ typedef struct {
     unsigned int num_triangles;
 } mesh;
 
-
 typedef struct {
     int w;
     int h;
@@ -48,9 +47,7 @@ typedef struct {
     unsigned int atlas;
 } context;
 
-context *get_context();
-
-void graphics_init();
+context *graphics_init();
 
 void graphics_teardown();
 
