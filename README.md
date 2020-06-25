@@ -293,4 +293,15 @@ Thu 25 Jun
 
 Todos:
 - Offsets are fixed, still got to work out the "cant place in certain orientations" bug
--chunk slots and  all air, all dirt optimizations
+   fixed. directions < 1, cast to int, then not > 0. lol.
+   automatic coercion so bad.
+
+
+- time to make some textures
+
+
+- placing distance
+- ghost blocks for placing
+- chunk slots and  all air, all dirt optimizations
+
+greedy meshing + AO would be another big one

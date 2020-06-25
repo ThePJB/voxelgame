@@ -9,6 +9,53 @@ void init_world_noise(int seed) {
     open_simplex_noise(seed, &ctx);
 }
 
+long int signum(float x) {
+    if (x > 0) {
+        return 1;
+    } else {
+        return -1;
+    }
+}
+
+int mod(int val, int modulus) {
+    // ok i think this is because its fake modulus (divisor)
+    return (val % modulus + modulus) % modulus;
+}
+
+
+float intbound(float s, float ds) {
+    if (ds < 0) {
+        return intbound(-s, -ds);
+    } else {
+        if (ds > 0) {
+            s = s - floorf(s);
+        } else {
+            s = s - ceilf(s);
+        }
+        return (1-s)/ds;
+    }
+}
+
+vec3l nearest_block_pos(vec3s pos) {
+    vec3l ret;
+    if (pos.x > 0) {
+        ret.x = pos.x;
+    } else {
+        ret.x = pos.x - 1;
+    }
+    if (pos.y > 0) {
+        ret.y = pos.y;
+    } else {
+        ret.y = pos.y - 1;
+    }
+    if (pos.z > 0) {
+        ret.z = pos.z;
+    } else {
+        ret.z = pos.z - 1;
+    }
+    return ret;
+}
+
 void generate_chunk(chunk *c, int x, int y, int z) {
 
     c->x = x;
@@ -42,7 +89,9 @@ void generate_chunk(chunk *c, int x, int y, int z) {
             for (int j = 0; j < CHUNK_RADIX; j++) {
                 float block_y = chunk_y + j;
 
-                if (block_y < height - 0.5) {
+                if (block_y < height - 4) {
+                    c->blocks[i][j][k] = (block) {BLOCK_STONE};
+                } else if (block_y < height - 0.5) {
                     c->blocks[i][j][k] = (block) {BLOCK_DIRT};
                 } else if (block_y < height + 0.5) {
                     c->blocks[i][j][k] = (block) {BLOCK_GRASS};
@@ -193,7 +242,13 @@ void mesh_chunk(chunk *c) {
 
 void draw_chunk(chunk *ch, context *c) {
     mat4s model = GLMS_MAT4_IDENTITY_INIT;
-    model = glms_translate(model, (vec3s){ch->x*CHUNK_RADIX + 0.5, ch->y*CHUNK_RADIX + 0.5, ch->z*CHUNK_RADIX + 0.5});
+    //float ox = 0.5 * signum(ch->x);
+    //float oy = 0.5 * signum(ch->y);
+    //float oz = 0.5 * signum(ch->z);
+    float ox = 0.5;
+    float oy = 0.5;
+    float oz = 0.5;
+    model = glms_translate(model, (vec3s){ch->x*CHUNK_RADIX + ox, ch->y*CHUNK_RADIX + oy, ch->z*CHUNK_RADIX + oz});
     glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, model.raw[0]);
 
     glBindVertexArray(ch->vao);
@@ -297,32 +352,6 @@ void set_block(chunk_manager *cm, vec3l pos, block b) {
 }
 
 
-long int signum(float x) {
-    if (x > 0) {
-        return 1;
-    } else {
-        return -1;
-    }
-}
-
-int mod(int val, int modulus) {
-    // ok i think this is because its fake modulus (divisor)
-    return (val % modulus + modulus) % modulus;
-}
-
-
-float intbound(float s, float ds) {
-    if (ds < 0) {
-        return intbound(-s, -ds);
-    } else {
-        if (ds > 0) {
-            s = s - floorf(s);
-        } else {
-            s = s - ceilf(s);
-        }
-        return (1-s)/ds;
-    }
-}
 
 /*
 float intbound(float s, float ds) { 
@@ -350,7 +379,7 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
     pick_info ret = {0};
     ret.success = true;
 
-    ret.coords = (vec3l) {pos.x, pos.y, pos.z};
+    ret.coords = nearest_block_pos(pos);
 
     int sx = signum(facing.x);
     int sy = signum(facing.y);
@@ -377,7 +406,7 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
 
     int n = 0;
     // accX*accX + accY*accY + accZ*accZ <= max_squared
-    while (n < 10) {
+    while (accX*accX + accY*accY + accZ*accZ <= max_squared) {
         n++;
         block_tag t = get_block(world, ret.coords).tag;
         printf("x: %ld y: %ld z: %ld, t: %d\n", ret.coords.x, ret.coords.y, ret.coords.z, t);

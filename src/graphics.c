@@ -179,6 +179,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0,0,width,height);
 }
 
+block_tag place_block = 0;
+
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     float xoff = xpos - c.mouse_lastx;
     float yoff = c.mouse_lasty - ypos; // reversed Y
@@ -227,21 +229,31 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         init_world_noise(rand());
         chunk_manager_position_hint(&cm, (vec3s){0,0,0});
     }
+    if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+        place_block = (place_block + (NUM_BLOCKS - 1)) % NUM_BLOCKS;
+        printf("placing %d\n", place_block);
+    }
+    if (key == GLFW_KEY_E && action == GLFW_PRESS) {
+        place_block = (place_block + 1) % NUM_BLOCKS;
+        printf("placing %d\n", place_block);
+    }
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
         printf("lmb\n");
-        pick_info p = pick_block(&cm, c.cam.pos, c.cam.front, 5);
+        pick_info p = pick_block(&cm, c.cam.pos, c.cam.front, 9);
         printf("success %d block %d coords %ld %ld %ld normal %d %d %d\n", p.success, get_block(&cm, p.coords).tag, p.coords.x, p.coords.y, p.coords.z, p.normal_x, p.normal_y, p.normal_z);
         vec3l new_coords = {
             .x = p.coords.x + p.normal_x,
             .y = p.coords.y + p.normal_y,
             .z = p.coords.z + p.normal_z,
         };
-        if (p.success) set_block(&cm, new_coords, (block){.tag = BLOCK_DIRT});
+        if (p.success) set_block(&cm, new_coords, (block){.tag = place_block});
     } else if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS) {
         printf("rmb\n");
+        pick_info p = pick_block(&cm, c.cam.pos, c.cam.front, 9);
+        if (p.success) set_block(&cm, p.coords, (block){.tag = BLOCK_AIR});
     }
 }
 
