@@ -233,7 +233,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         printf("lmb\n");
         pick_info p = pick_block(&cm, c.cam.pos, c.cam.front, 5);
         printf("success %d block %d coords %lu %lu %lu normal %d %d %d\n", p.success, get_block(&cm, p.coords).tag, p.coords.x, p.coords.y, p.coords.z, p.normal_x, p.normal_y, p.normal_z);
-        block_coordinates new_coords = {
+        vec3l new_coords = {
             .x = p.coords.x + p.normal_x,
             .y = p.coords.y + p.normal_y,
             .z = p.coords.z + p.normal_z,

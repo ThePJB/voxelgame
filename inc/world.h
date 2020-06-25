@@ -10,11 +10,17 @@ typedef struct {
     long int x;
     long int y;
     long int z;
-} block_coordinates;
+} vec3l;
+
+typedef struct {
+    int x;
+    int y;
+    int z;
+} vec3i;
 
 typedef struct {
     bool success;
-    block_coordinates coords;
+    vec3l coords;
     int normal_x;
     int normal_y;
     int normal_z;
@@ -89,10 +95,14 @@ void draw_chunk(chunk *ch, context *c);
 
 // basically gets it to update and load chunks
 void chunk_manager_position_hint(chunk_manager *cm, vec3s pos);
-block get_block(chunk_manager *cm, block_coordinates pos);
-void set_block(chunk_manager *cm, block_coordinates pos, block b);
+block get_block(chunk_manager *cm, vec3l pos);
+void set_block(chunk_manager *cm, vec3l pos, block b);
 
 void draw_chunks(chunk_manager *cm, context *c);
 void init_world_noise();
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance);
+
+void world_to_block_and_chunk(vec3i *chunk, vec3i *block, vec3l block_global);
+void test_wtbc();
+
 #endif

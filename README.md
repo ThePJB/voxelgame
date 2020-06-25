@@ -224,3 +224,19 @@ get block set block seem correct except for climbing ram usage lol
 
 
 in future maybe the concept of a "chunk slot", vbo and vao could belong to that
+
+------
+So what are the problems?
+ - Get and Set blocks is still a bit cooked like at the chunk boundaries skipping over a chunk
+ - then picking seems to be kind of goin from bottom left or soomat
+ - also eventually there was an Abort
+
+maybe unit test some functional stuff
+function for block coords > chunk
+and block coords > block
+
+
+----------
+so today
+-test chunk idxing
+-chunk slots and  all air, all dirt optimizations

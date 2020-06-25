@@ -16,6 +16,19 @@
 chunk_manager cm = {0};
 
 int main(int argc, char** argv) {
+    test_wtbc(0,0,0);
+    test_wtbc(1,1,1);
+    test_wtbc(15,0,0);
+    test_wtbc(16,0,0);
+    test_wtbc(17,0,0);
+    test_wtbc(-1,-1,-1);
+    test_wtbc(16,16,16);
+    test_wtbc(-16,-16,-16);
+    test_wtbc(-15,0,0);
+    test_wtbc(-16,0,0);
+    test_wtbc(-17,0,0);
+    test_wtbc(-31,0,0);
+    test_wtbc(-32,0,0);
     
     context *c = graphics_init();
     init_world_noise();
@@ -26,15 +39,6 @@ int main(int argc, char** argv) {
 
     chunk_manager_position_hint(&cm, (vec3s){0,0,0});
     
-
-
-    /*
-    ch.blocks[8][8][8] = (block){.tag = BLOCK_DIRT};
-    ch.blocks[8][9][8] = (block){.tag = BLOCK_DIRT};
-    ch.blocks[8][7][8] = (block){.tag = BLOCK_DIRT};
-    ch.blocks[7][8][8] = (block){.tag = BLOCK_DIRT};
-    ch.blocks[8][8][8] = (block){.tag = BLOCK_DIRT};
-    */
     //mesh_chunk(&ch);
 
     text_init(c);
@@ -91,9 +95,9 @@ int main(int argc, char** argv) {
             y += 100;
 
             // block coords
-            block_coordinates bc = (block_coordinates) {c->cam.pos.x, c->cam.pos.y, c->cam.pos.z};
+            vec3l bc = (vec3l) {c->cam.pos.x, c->cam.pos.y, c->cam.pos.z};
 
-            sprintf(buf, "Block ur in: %d", get_block(&cm, bc));
+            sprintf(buf, "Block ur in: %d", get_block(&cm, bc).tag);
             draw_text(buf, 10, y, debug_text);
             y += 100;
 

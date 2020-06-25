@@ -228,24 +228,43 @@ void chunk_manager_position_hint(chunk_manager *cm, vec3s pos) {
     }
 }
 
-block get_block(chunk_manager *cm, block_coordinates pos) {
-    int cx = pos.x / CHUNK_RADIX;
-    int cy = pos.y / CHUNK_RADIX;
-    int cz = pos.z / CHUNK_RADIX;
+void test_wtbc(int x, int y, int z) {
+    vec3i chunk_coords;
+    vec3i block_coords;
+    world_to_block_and_chunk(&chunk_coords, &block_coords, (vec3l) {x,y,z});
+    printf("%d %d %d lands in chunk %d %d %d and block %d %d %d\n",
+        x, y, z, chunk_coords.x, chunk_coords.y, chunk_coords.z,
+        block_coords.x, block_coords.y, block_coords.z);
+}
 
-    if (pos.x < 0) cx--;
-    if (pos.y < 0) cy--;
-    if (pos.z < 0) cz--;
+void single_w_t_bc(int *c, int *b, int g) {
+    if (g < 0) {
+        g -= 16;
+        *c = (g+1) / CHUNK_RADIX;
+        *b = (g % CHUNK_RADIX + 16) % CHUNK_RADIX;
+    } else {
+        *c = g / CHUNK_RADIX;
+        *b = (g % CHUNK_RADIX + 16) % CHUNK_RADIX;
+    }
+}
 
-    int bx = (pos.x - (cx * CHUNK_RADIX)) % CHUNK_RADIX;
-    int by = (pos.y - (cy * CHUNK_RADIX)) % CHUNK_RADIX;
-    int bz = (pos.z - (cz * CHUNK_RADIX)) % CHUNK_RADIX;
+void world_to_block_and_chunk(vec3i *chunk, vec3i *block, vec3l block_global) {
+    single_w_t_bc(&(chunk->x), &(block->x), block_global.x);
+    single_w_t_bc(&(chunk->y), &(block->y), block_global.y);
+    single_w_t_bc(&(chunk->z), &(block->z), block_global.z);
+}
+
+block get_block(chunk_manager *cm, vec3l pos) {
+    vec3i chunk_coords;
+    vec3i block_coords;
+    world_to_block_and_chunk(&chunk_coords, &block_coords, pos);
+
 
     for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
         chunk *cpi = cm->chunk_pointers[i];
-        if (cpi->x == cx && cpi->y == cy && cpi->z == cz) {
+        if (cpi->x == chunk_coords.x && cpi->y == chunk_coords.y && cpi->z == chunk_coords.z) {
             // its this chunk
-            return cpi->blocks[bx][by][bz];
+            return cpi->blocks[block_coords.x][block_coords.y][block_coords.z];
         }
     }
 
@@ -256,28 +275,22 @@ block get_block(chunk_manager *cm, block_coordinates pos) {
     };
 }
 
-void set_block(chunk_manager *cm, block_coordinates pos, block b) {    
-    int cx = pos.x / CHUNK_RADIX;
-    int cy = pos.y / CHUNK_RADIX;
-    int cz = pos.z / CHUNK_RADIX;
+void set_block(chunk_manager *cm, vec3l pos, block b) {    
+    vec3i chunk_coords;
+    vec3i block_coords;
+    world_to_block_and_chunk(&chunk_coords, &block_coords, pos);
 
-    if (pos.x < 0) cx--;
-    if (pos.y < 0) cy--;
-    if (pos.z < 0) cz--;
-
-    int bx = pos.x - (cx * CHUNK_RADIX);
-    int by = pos.y - (cy * CHUNK_RADIX);
-    int bz = pos.z - (cz * CHUNK_RADIX);
 
     for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
         chunk *cpi = cm->chunk_pointers[i];
-        if (cpi->x == cx && cpi->y == cy && cpi->z == cz) {
+        if (cpi->x == chunk_coords.x && cpi->y == chunk_coords.y && cpi->z == chunk_coords.z) {
             // its this chunk
-            cpi->blocks[bx][by][bz] = b;
+            cpi->blocks[block_coords.x][block_coords.y][block_coords.z] = b;
             mesh_chunk(cpi);
             return;
         }
     }
+
 
     // didnt find
     printf("didnt find %ld %ld %ld\n", pos.x, pos.y, pos.z);
@@ -333,7 +346,7 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
     pick_info ret = {0};
     ret.success = true;
 
-    ret.coords = (block_coordinates) {
+    ret.coords = (vec3l) {
         .x = (long int)pos.x,
         .y = (long int)pos.y,
         .z = (long int)pos.z,

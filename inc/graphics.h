@@ -58,6 +58,7 @@ void begin_draw(context *c);
 void end_draw(context *c);
 
 void draw_mesh(context *c, mesh m);
+unsigned long int get_vram_usage();
 
 
 #endif
