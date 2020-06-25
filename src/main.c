@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     test_wtbc(-32,0,0);
     
     context *c = graphics_init();
-    init_world_noise();
+    init_world_noise(123456789);
         
 
     float last = 0;
@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 
     text_init(c);
 
-    c->cam.pos = (vec3s) {64, 64, 64};
+    c->cam.pos = (vec3s) {0, 16, 0};
     c->cam.front = (vec3s) {0, 0, -1};
 
 
@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
         c->cam = new_cam;
 
         begin_draw(c);
-        //draw_mesh(c, c->cube); 
+        draw_mesh(c, c->cube); 
         //draw_chunk(&ch, c);
         draw_chunks(&cm, c);
 
@@ -101,10 +101,23 @@ int main(int argc, char** argv) {
             draw_text(buf, 10, y, debug_text);
             y += 100;
 
-            set_block(&cm, bc, (block){.tag = BLOCK_DIRT});
+
+            //set_block(&cm, bc, (block){.tag = BLOCK_DIRT});
+            //printf("setting %ld %ld %ld\n", bc.x, bc.y, bc.z);
+            //c->cube.x = c->cam.pos.x + c->cam.front.x * 10;
+            //c->cube.y = c->cam.pos.y + c->cam.front.y * 10;
+            //c->cube.z = c->cam.pos.z + c->cam.front.z * 10;
 
             
         }
+
+        const text_style debug_text = (text_style) {
+            .scale = 1,
+            .colour = (vec3s) {1,1,1},
+        };
+        // reticle lol
+        draw_text("+", c->w/2 - 24, c->h/2 - 24, debug_text);
+
         
         end_draw(c);
     }

@@ -10,7 +10,7 @@ camera fly_camera() {
     cam.up = (vec3s) {0,1,0};
     cam.pitch = 0;
     cam.yaw = -90;
-    cam.fovx = 45;
+    cam.fovx = 90;
     cam.type = CAM_FLY;
 
     return cam;
@@ -19,7 +19,7 @@ camera fly_camera() {
 
 camera update_camera(GLFWwindow* window, camera cam, float dt) {
     if (cam.type == CAM_FLY) {
-        const speed_multi = 32;
+        const speed_multi = 8;
         float cam_speed = speed_multi * dt; 
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {

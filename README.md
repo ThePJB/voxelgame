@@ -239,4 +239,58 @@ and block coords > block
 ----------
 so today
 -test chunk idxing
+   ok i fixed the indexing
+   picking is probably still cooked
+      ok its not that bad but a bit off
+      i need reticle
+      lol
+      ok in all - direction its correct and in others its le epic fail
+      
+      print out coords checking and block at those coords
+
+      suspicious pattern here, -y then -x then -zzzzzzzzz. maybe if right
+      on a corner or maybe its cooked
+
+      maybe my camera position is wrong
+      maybe I'll try positioning the trump cube at cam_pos + t*facing
+
+      um its like a frame behind which I should probably do something about, but
+      otherwise not too bad. I think im swapping buffers at the end or something idk
+
+      yeah camera pos is definitely correct
+      maybe theres a cooked offset in the chunk pos getting code
+
+
+      theres totally some kind of disconnect between the blocks and the positions. So I click from 10,8,2 and its like yep im checking that, but its actually checking a different block
+
+      position or orientation dependent?
+
+      so when I just do straight up bc = cast from cam pos it works
+      i had to do some other shit for picing so maybe thats whats wrong
+      no didnt actually. when I was wondering about the intbound thing
+
+      I mean I thought getblock setblock worked fine from rollercoaster mode
+      and picking is reporting the right coordinates but its making getblock setblock look wrong.
+      camera is correct i think
+
+      chunks dont draw in the right place?
+      that was it
+
+
+
+
+
+
+
+
+
+back to the structure, maybe FP's can still access globals and shit and its not a closure per se
+that could make them way more useful. Just have ptrs to the things in main or whatever scope they are defined in
+
+
+---------------
+Thu 25 Jun
+
+Todos:
+- Offsets are fixed, still got to work out the "cant place in certain orientations" bug
 -chunk slots and  all air, all dirt optimizations

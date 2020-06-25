@@ -5,8 +5,8 @@
 
 struct osn_context *ctx;
 
-void init_world_noise() {
-    open_simplex_noise(123456789, &ctx);
+void init_world_noise(int seed) {
+    open_simplex_noise(seed, &ctx);
 }
 
 void generate_chunk(chunk *c, int x, int y, int z) {
@@ -52,7 +52,7 @@ void generate_chunk(chunk *c, int x, int y, int z) {
             }
         }
     }
-    //printf("generated chunk at %d %d %d\n", x, y, z);
+    printf("generated chunk at %d %d %d\n", x, y, z);
 }
 
 void generate_chunk_random(chunk *c, int x, int y, int z) {
@@ -157,7 +157,7 @@ void mesh_chunk(chunk *c) {
     }
 
     c->num_triangles = vertex_idx / (VERT_STRIDE+1) / 3;
-    //printf("meshed chunk, %d triangles\n", c->num_triangles);
+    printf("meshed chunk, %d triangles\n", c->num_triangles);
 
     // now just bind the vao
     // how to clean up this stuff when i want to? good question
@@ -193,7 +193,7 @@ void mesh_chunk(chunk *c) {
 
 void draw_chunk(chunk *ch, context *c) {
     mat4s model = GLMS_MAT4_IDENTITY_INIT;
-    model = glms_translate(model, (vec3s){ch->x*CHUNK_RADIX, ch->y*CHUNK_RADIX, ch->z*CHUNK_RADIX});
+    model = glms_translate(model, (vec3s){ch->x*CHUNK_RADIX + 0.5, ch->y*CHUNK_RADIX + 0.5, ch->z*CHUNK_RADIX + 0.5});
     glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, model.raw[0]);
 
     glBindVertexArray(ch->vao);
@@ -297,8 +297,12 @@ void set_block(chunk_manager *cm, vec3l pos, block b) {
 }
 
 
-long int signum(long int x) {
-    return x > 0 ? 1 : -1;
+long int signum(float x) {
+    if (x > 0) {
+        return 1;
+    } else {
+        return -1;
+    }
 }
 
 int mod(int val, int modulus) {
@@ -346,21 +350,18 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
     pick_info ret = {0};
     ret.success = true;
 
-    ret.coords = (vec3l) {
-        .x = (long int)pos.x,
-        .y = (long int)pos.y,
-        .z = (long int)pos.z,
-    };
+    ret.coords = (vec3l) {pos.x, pos.y, pos.z};
 
     int sx = signum(facing.x);
     int sy = signum(facing.y);
     int sz = signum(facing.z);
 
-    float tMaxX = intbound(pos.x, facing.x); // sorry
+    float tMaxX = intbound(pos.x, facing.x);
     float tMaxY = intbound(pos.y, facing.y);
     float tMaxZ = intbound(pos.z, facing.z);
 
     //printf("initial tmx: %.2f, tmy: %.2f, tmz: %.2f\n", tMaxX, tMaxY, tMaxZ);
+    printf("sx %d sy %d sz %d\n", sx, sy, sz);
 
     float accX = 0;
     float accY = 0;
@@ -378,9 +379,10 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
     // accX*accX + accY*accY + accZ*accZ <= max_squared
     while (n < 10) {
         n++;
-        printf("x: %ld y: %ld z: %ld\n", ret.coords.x, ret.coords.y, ret.coords.z);
+        block_tag t = get_block(world, ret.coords).tag;
+        printf("x: %ld y: %ld z: %ld, t: %d\n", ret.coords.x, ret.coords.y, ret.coords.z, t);
         //printf("tmx: %.2f, tmy: %.2f, tmz: %.2f\n", tMaxX, tMaxY, tMaxZ);
-        if (get_block(world, ret.coords).tag != BLOCK_AIR) {
+        if (t != BLOCK_AIR) {
             printf("not air\n");
             ret.success=true;
             return ret;
