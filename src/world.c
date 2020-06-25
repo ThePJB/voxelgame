@@ -69,7 +69,7 @@ void generate_chunk(chunk *c, int x, int y, int z) {
     float chunk_y = y*CHUNK_RADIX;
     float chunk_z = z*CHUNK_RADIX;
 
-    const float amplitude = 48;
+    const float amplitude = 50;
 
     for (int i = 0; i < CHUNK_RADIX; i++) {
         for (int k = 0; k < CHUNK_RADIX; k++) {
@@ -89,12 +89,25 @@ void generate_chunk(chunk *c, int x, int y, int z) {
             for (int j = 0; j < CHUNK_RADIX; j++) {
                 float block_y = chunk_y + j;
 
+                // grass and stuff
                 if (block_y < height - 4) {
                     c->blocks[i][j][k] = (block) {BLOCK_STONE};
                 } else if (block_y < height - 0.5) {
-                    c->blocks[i][j][k] = (block) {BLOCK_DIRT};
+                    // not stone layers
+                    if (height > -25) {
+                        c->blocks[i][j][k] = (block) {BLOCK_DIRT};
+                    } else {
+                        c->blocks[i][j][k] = (block) {BLOCK_SAND};
+                    }
                 } else if (block_y < height + 0.5) {
-                    c->blocks[i][j][k] = (block) {BLOCK_GRASS};
+                    // top layer
+                    if (height > 40) {
+                        c->blocks[i][j][k] = (block) {BLOCK_SNOW};    
+                    } else if (height > -25) {
+                        c->blocks[i][j][k] = (block) {BLOCK_GRASS};
+                    } else {
+                        c->blocks[i][j][k] = (block) {BLOCK_SAND};
+                    }
                 } else {
                     c->blocks[i][j][k] = (block) {BLOCK_AIR};
                 }

@@ -33,6 +33,9 @@ typedef enum {
     BLOCK_STONE,
     BLOCK_TILE,
     BLOCK_BRICK,
+    BLOCK_SNOW,
+    BLOCK_SAND,
+    BLOCK_PLANKS,
     // BLOCK_UNKNOWN, todo use this, and look up block opacity
     NUM_BLOCKS,
 } block_tag;
@@ -70,6 +73,16 @@ typedef struct {
     int num_triangles;
     block blocks[CHUNK_RADIX][CHUNK_RADIX][CHUNK_RADIX];
 } chunk;
+
+typedef struct {
+    unsigned int vao;
+    unsigned int vbo;
+    chunk *c;
+    
+    // opt
+    bool all_one_block;
+    block_tag block;
+} chunk_slot;
 
 /*
 for the first iteration of this guy, lets just have a fixed size array and not worry

@@ -1,153 +1,49 @@
 # Voxel Game
-its a voxel game
-currently in babby's first openGL stage
 
-just got fly camera working.
+- FPS camera
+- context refactor? it might be ok atm
+- texturing modes: everything is minimum or ones where its just one
+   - and other shit like crops
 
-Next up: 
- * textures 
- * abstract camera to fly camera
- * make fps camera
- * basically can start making not minecraft after that
+- different blocks modes like walk thru or not, transparency
+- chunk paging, loading visible etc.
 
-facing ratio light
-easy
+## Optimization
+- Greedy meshing
+   - to do texturing: need to do modulo of tex coords in frag shader
+   - AO at the same time its a similar calculation
 
+- How much of this data do i actually need to be sending to the GPU, for instance can normals be calced, texture coordinates, can it all just be done in a mesh shader from the raw blocks? nah gotta mesh
+- all 1 type chunks
 
-warn forgotten return type strikes again need to do something about that.
-if we are talking maintenance probably a makefile, folder structure, compiler warnings
+## Micro world gen
+- how about cliffs and caves. maybe use a small amount of 3d?
+- domain warping?
+- ridge noise
+- how to do trees? minecraft style or not. ultimately like to not and have some cool L system shit. L system coconut palm tree. oo climbing up it
 
-lets go chunks
+### Features
+- volcano
+- terraces
+- flat with mounds
 
-oo managing the meshes will be interesting. maybe we just generate them from scratch, push to GPU and throw them away
+## Macro world gen
+- maybe diamond square? or some continenty thing or grammar thing... idk
+   world map visualizer, make a mesh and have it spinning and stuff. like kart racer character select
+- gradient info for erosion, fluid calcs
 
-like working out the delta wouldnt be impossible
+## Assets
+- snow and dirt to spruce up world gen
+- wood
 
-maybe we use a VLA
-or just a big buffer and keep recycling it
+## debug info
+- looking at block
 
------------
-Wed 17/6/20
-
-this context thing has gotten really out of hand. might need some revision. Passing around pointer to context is ok I think. Globals can get a bit dirty making them known where they're needed in C.
-
-fixed trump its now texture time
-
-Chunks not working, have done like no testing though like print out how many triangles it meshes etc.
-
-debug info like fps, cam pos etc would be nice
-
-OK lets get started on non cooked meshing
-first figure out what the faces correspond to
-
-drawing coordinate system would be good
-or just facing angle at least
-
------
-Fri 19 Jun
-- Ok we gotta get freetype going for some debug info
-- do chunk things with chunks - freeing the vao to remesh etc
-- texture atlas and texturing voxels individually
-- basic culling
-
---------
-Sat 20 Jun
-
-Right now calling draw_text is causing it to not draw my chunk
-So using glUseProgram(text_shader) causes it
-
-also im worried about the orthographic projection
-
-------------
-Sun 21 Jun
-
-Ok so the chunk was 29724 triangles
-now it works down to 6000. easy. was just indexing array wrong
-
-next up, some degree of chunk management -- check
-
-also texturing blocks and stuff -- check
-
-so
- - switch to chunk shader
- -  >> do modulo in frag shader      --- mostly this
-    oh mod is only needed for greedy meshing
- - bind atlas when drawing chunks
-
-then world gen. bust out the noise
-also macro world gen -- think about it and have a big scale map visualizer thing
-
-
-------------
-Tue 23 Jun
-
-world gen time. bust out simplex and get it going
-then go macro
-
-some more textures
-probably want modes so theres some that look below (eg grass) and some that look just at the one (eg dirt)
-
-
-
-proc gen palm tree
-
-how about that domain warping
-what about if u did 2d noise and warped dimension 3 by some amount
-gradient info would be nice
-volcano lines or leylines or ridgelines theres pointy noise. i forget whats it called.
-
-
-hey the vertex shader could probably generate texture coordinates itself...
-
-
-ok theres some really random polys, not sure if they are a bad block ID or what.
-
-
-
-how much shit can we load
-
-
-
-terrace biome would be cool
-
-theres some weird 2x2 and even 3x3 artifacts
 
 food for thought how about an enormous scale voxel game where like 1 block is a house
 might want to marching cubes that one
 
-debug info
 
-
-quick optimizations
-- shortcut way below (chunk = full dirt)
-- shortcut way above (chunk = full air)
-- load a long wide rect
-- dont load occluded chunks
-- chunk manager time
-
-debug info
-- looking at block
-- ram and vram usage
-   jank but done
-   - ram on windows: GetProcessMemoryInfo(GetCurrentProcess()).WorkingSetSize
-   - on linux: oof maybe getrusage
-
-   vram usage nvidia-smi
-
-game features
-- picking / placing blocks
-- entities, procedural trees im so keen!
-
-world features
-- vegetation (crossy and squarey)
-- noise experimentation, domain warping etc. read up on types of noise
-
-graphical features
-- AO
-- light level
-
-assets
-- flowers, cattails, wood etc
 
 janitorial
 - todos fix cam speed, and cam in general
@@ -207,82 +103,6 @@ or just use globals. but then it needs to know the types and thats a pain...
 
 
 
---------
-
-so how are we gonna do picking / placing
-
-cast ray up to view distance and test cubes for opaqueness
-
-OK block picking is weird. why does it end up with a z coordinate of 18447635409834095834
-
-get and set block not quite right. I sometimes get - blocks.
-I think it rounds differently when negative from memory.
-
-sometimes end up in block 16 instead of block 15, wat
-
-get block set block seem correct except for climbing ram usage lol
-
-
-in future maybe the concept of a "chunk slot", vbo and vao could belong to that
-
-------
-So what are the problems?
- - Get and Set blocks is still a bit cooked like at the chunk boundaries skipping over a chunk
- - then picking seems to be kind of goin from bottom left or soomat
- - also eventually there was an Abort
-
-maybe unit test some functional stuff
-function for block coords > chunk
-and block coords > block
-
-
-----------
-so today
--test chunk idxing
-   ok i fixed the indexing
-   picking is probably still cooked
-      ok its not that bad but a bit off
-      i need reticle
-      lol
-      ok in all - direction its correct and in others its le epic fail
-      
-      print out coords checking and block at those coords
-
-      suspicious pattern here, -y then -x then -zzzzzzzzz. maybe if right
-      on a corner or maybe its cooked
-
-      maybe my camera position is wrong
-      maybe I'll try positioning the trump cube at cam_pos + t*facing
-
-      um its like a frame behind which I should probably do something about, but
-      otherwise not too bad. I think im swapping buffers at the end or something idk
-
-      yeah camera pos is definitely correct
-      maybe theres a cooked offset in the chunk pos getting code
-
-
-      theres totally some kind of disconnect between the blocks and the positions. So I click from 10,8,2 and its like yep im checking that, but its actually checking a different block
-
-      position or orientation dependent?
-
-      so when I just do straight up bc = cast from cam pos it works
-      i had to do some other shit for picing so maybe thats whats wrong
-      no didnt actually. when I was wondering about the intbound thing
-
-      I mean I thought getblock setblock worked fine from rollercoaster mode
-      and picking is reporting the right coordinates but its making getblock setblock look wrong.
-      camera is correct i think
-
-      chunks dont draw in the right place?
-      that was it
-
-
-
-
-
-
-
-
 
 back to the structure, maybe FP's can still access globals and shit and its not a closure per se
 that could make them way more useful. Just have ptrs to the things in main or whatever scope they are defined in
@@ -305,3 +125,7 @@ Todos:
 - chunk slots and  all air, all dirt optimizations
 
 greedy meshing + AO would be another big one
+
+fizix
+
+console
