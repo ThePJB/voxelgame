@@ -30,3 +30,12 @@ e.g. for biomes:
 top block
 next 4 blocks
 rest
+
+------
+Fri 26 Jun
+
+Lets try working out when the player has crossed a chunk boundary
+ok that was easy enough. now we can load and unload chunks
+for now dont worry about the disk just delete them
+
+if we keep track of slot indexes we can just delete that one and make the new one like a 3d treadmill

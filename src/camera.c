@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "util.h"
 
 // maybe camera and controls cause they are pretty tightly coupled
 
@@ -16,6 +17,29 @@ camera fly_camera() {
     return cam;
 }
 
+#define CHUNK_RADIX 16
+
+
+void move(vec3s *pos, vec3s amount) {
+    vec3s old_pos = *pos;
+    *pos = glms_vec3_add(*pos, amount);
+    if ((pos->x > 0 && old_pos.x < 0) || (long int)old_pos.x / CHUNK_RADIX < (long int)pos->x / CHUNK_RADIX) {
+        printf("+x chunk boundary\n");
+    } else if ((pos->x < 0 && old_pos.x > 0) || (long int)old_pos.x / CHUNK_RADIX > (long int)pos->x / CHUNK_RADIX) {
+        printf("-x chunk boundary\n");
+    } else if ((pos->y > 0 && old_pos.y < 0) || (long int)old_pos.y / CHUNK_RADIX < (long int)pos->y / CHUNK_RADIX) {
+        printf("+y chunk boundary\n");
+    } else if ((pos->y < 0 && old_pos.y > 0) || (long int)old_pos.y / CHUNK_RADIX > (long int)pos->y / CHUNK_RADIX) {
+        printf("-y chunk boundary\n");
+    } else if ((pos->z > 0 && old_pos.z < 0) || (long int)old_pos.z / CHUNK_RADIX < (long int)pos->z / CHUNK_RADIX) {
+        printf("+z chunk boundary\n");
+    } else if ((pos->z < 0 && old_pos.z > 0) || (long int)old_pos.z / CHUNK_RADIX > (long int)pos->z / CHUNK_RADIX) {
+        printf("-z chunk boundary\n");
+    }
+
+
+}
+
 
 camera update_camera(GLFWwindow* window, camera cam, float dt) {
     if (cam.type == CAM_FLY) {
@@ -23,18 +47,24 @@ camera update_camera(GLFWwindow* window, camera cam, float dt) {
         float cam_speed = speed_multi * dt; 
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            cam.pos = glms_vec3_add(cam.pos, glms_vec3_scale(cam.front, cam_speed));
+            move(&cam.pos, glms_vec3_scale(cam.front, cam_speed));
         }
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            cam.pos = glms_vec3_sub(cam.pos, glms_vec3_scale(cam.front, cam_speed));
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            cam.pos = glms_vec3_sub(cam.pos, glms_vec3_scale(glms_normalize(glms_vec3_cross(cam.front, cam.up)), cam_speed));
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            cam.pos = glms_vec3_add(cam.pos, glms_vec3_scale(glms_normalize(glms_vec3_cross(cam.front, cam.up)), cam_speed));
-        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-            cam.pos = glms_vec3_add(cam.pos, glms_vec3_scale(cam.up, cam_speed));
-        if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-            cam.pos = glms_vec3_sub(cam.pos, glms_vec3_scale(cam.up, cam_speed));
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            move(&cam.pos, glms_vec3_scale(cam.front, -1 * cam_speed));
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            move(&cam.pos, glms_vec3_scale(glms_normalize(glms_vec3_cross(cam.front, cam.up)), -1*cam_speed));
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            move(&cam.pos, glms_vec3_scale(glms_normalize(glms_vec3_cross(cam.front, cam.up)), cam_speed));
+        }
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+            move(&cam.pos, glms_vec3_scale(cam.up, cam_speed));
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+            move(&cam.pos, glms_vec3_scale(cam.up, -1*cam_speed));
+        }
+            
     } else if (cam.type == CAM_FPS) {
         // not implemented
     }            

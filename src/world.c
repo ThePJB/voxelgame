@@ -1,25 +1,13 @@
 #include "world.h"
 #include "easing.h"
-#include "stdlib.h"
+#include <stdlib.h>
 #include "simplex.h"
+#include "util.h"
 
 struct osn_context *ctx;
 
 void init_world_noise(int seed) {
     open_simplex_noise(seed, &ctx);
-}
-
-long int signum(float x) {
-    if (x > 0) {
-        return 1;
-    } else {
-        return -1;
-    }
-}
-
-int mod(int val, int modulus) {
-    // ok i think this is because its fake modulus (divisor)
-    return (val % modulus + modulus) % modulus;
 }
 
 
