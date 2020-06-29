@@ -73,3 +73,10 @@ a lot of it was the vertex buffer
 
 picking broke again oof
 probably should set up some kind of automated test with like full on inputs and stuff
+
+ok this is pretty weird. So there are sometimes holes in the mesh (but not always from the start) at chunk pos 15
+so it like either thinks its occluded or thinks the block there is empty. maybe empty.
+And also picking there doesnt seem to work but maybe it does
+
+picking messages could be better
+and could refactor a bit probably and things would straighten out.

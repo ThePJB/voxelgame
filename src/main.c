@@ -16,37 +16,20 @@
 chunk_manager cm = {0};
 
 int main(int argc, char** argv) {
-    test_wtbc(0,0,0);
-    test_wtbc(1,1,1);
-    test_wtbc(15,0,0);
-    test_wtbc(16,0,0);
-    test_wtbc(17,0,0);
-    test_wtbc(-1,-1,-1);
-    test_wtbc(16,16,16);
-    test_wtbc(-16,-16,-16);
-    test_wtbc(-15,0,0);
-    test_wtbc(-16,0,0);
-    test_wtbc(-17,0,0);
-    test_wtbc(-31,0,0);
-    test_wtbc(-32,0,0);
-    
+    //test_chunk();
+    //exit(0);
+
     context *c = graphics_init();
-    init_world_noise(123456789);
-        
-
-    float last = 0;
-    float dt = 0;
-
-    chunk_manager_position_hint(&cm, (vec3s){0,0,0});
-    
-    //mesh_chunk(&ch);
-
     text_init(c);
+    init_chunk_manager(&cm, 123456789);
+    chunk_manager_position_hint(&cm, (vec3s){0,0,0}); // generates and meshes chunks
 
     c->cam.pos = (vec3s) {0, 16, 0};
     c->cam.front = (vec3s) {0, 0, -1};
 
-
+    float last = 0;
+    float dt = 0;
+    
     while (!glfwWindowShouldClose(c->window)) {
         if (glfwGetKey(c->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(c->window, true);
@@ -62,10 +45,7 @@ int main(int argc, char** argv) {
 
         begin_draw(c);
         draw_mesh(c, c->cube); 
-        //draw_chunk(&ch, c);
         draw_chunks(&cm, c);
-
-
 
         if (c->show_info) {
             char buf[64] = {0};
@@ -97,10 +77,27 @@ int main(int argc, char** argv) {
             // block coords
             vec3l bc = (vec3l) {c->cam.pos.x, c->cam.pos.y, c->cam.pos.z};
 
-            sprintf(buf, "Block ur in: %d", get_block(&cm, bc).tag);
+            vec3i block_coords = {0};
+            vec3i chunk_coords = {0};
+    
+            world_to_block_and_chunk(&chunk_coords, &block_coords, bc);
+            chunk_slot *cs = get_chunk_slot(&cm, chunk_coords);
+            if (cs) {
+                chunk *c = &cs->chunk;
+                sprintf(buf, "In chunk %d %d %d, empty: %d, block coords %d %d %d", 
+                    chunk_coords.x, chunk_coords.y, chunk_coords.z,
+                    c->empty,
+                    block_coords.x, block_coords.y, block_coords.z);
+            } else {
+                sprintf(buf, "not in chunk");
+            }
+
             draw_text(buf, 10, y, debug_text);
             y += 100;
 
+            sprintf(buf, "Block ur in: %d", get_block(&cm, bc).tag);
+            draw_text(buf, 10, y, debug_text);
+            y += 100;
 
             //set_block(&cm, bc, (block){.tag = BLOCK_DIRT});
             //printf("setting %ld %ld %ld\n", bc.x, bc.y, bc.z);

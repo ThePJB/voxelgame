@@ -2,21 +2,17 @@
 #define WORLD_H
 
 #include "graphics.h"
-
+#include "util.h"
+#include "chunk.h"
 #include <stdbool.h>
 #include <cglm/struct.h>
 
-typedef struct {
-    long int x;
-    long int y;
-    long int z;
-} vec3l;
+#include "simplex.h"
 
-typedef struct {
-    int x;
-    int y;
-    int z;
-} vec3i;
+
+/*
+    In this file we deal with chunks in aggregate
+*/
 
 typedef struct {
     bool success;
@@ -26,64 +22,13 @@ typedef struct {
     int normal_z;
 } pick_info;
 
-typedef enum {
-    BLOCK_AIR,
-    BLOCK_GRASS,
-    BLOCK_DIRT,
-    BLOCK_STONE,
-    BLOCK_TILE,
-    BLOCK_BRICK,
-    BLOCK_SNOW,
-    BLOCK_SAND,
-    BLOCK_PLANKS,
-    // BLOCK_UNKNOWN, todo use this, and look up block opacity
-    NUM_BLOCKS,
-} block_tag;
-// there are ways to pack this
-// could also use a bunch of #defines
-
-typedef struct {
-    block_tag tag;
-} block;
-
-#define CHUNK_RADIX 16
-
-/*
-The plan for chunks
--------------------
-
-Eventually they are going to be all async and crazy
-
-for now lets just actually define a chunk, generate a shit mesh for it
-
-flags will be  like
-    mesh ready
-    empty
-    visible
-    paging status etc.
-
-*/
-
-// The big block of data
-typedef struct {
-    block blocks[CHUNK_RADIX][CHUNK_RADIX][CHUNK_RADIX];
-} chunk_blocks;
-
-// Information that the chunk cares about (would be saved)
-typedef struct {
-    int x;
-    int y;
-    int z;
-    bool empty; // also all_one_block is a possibility, not sure how applicable
-    chunk_blocks *blocks;
-} chunk;
 
 // generated information for 
 typedef struct {
     unsigned int vao;
     unsigned int vbo;
     int num_triangles;
-    chunk c;
+    chunk chunk;
     
     // opt
     bool all_one_block;
@@ -103,16 +48,18 @@ so it needs an allocator for chunks
 could use malloc atm, maybe arena allocator later
 */
 #define MAX_CHUNKS_S 8
-#define MAX_CHUNKS_SS MAX_CHUNKS_S*MAX_CHUNKS_S
-#define MAX_CHUNKS_SSS MAX_CHUNKS_S*MAX_CHUNKS_SS
+#define MAX_CHUNKS_SS (MAX_CHUNKS_S*MAX_CHUNKS_S)
+#define MAX_CHUNKS_SSS (MAX_CHUNKS_S*MAX_CHUNKS_SS)
 typedef struct {
+    struct osn_context *noise_context;
     chunk_slot chunk_slots[MAX_CHUNKS_SSS];
 } chunk_manager;
 
 
-void generate_chunk(chunk *c, int x, int y, int z);
-void draw_chunk(chunk *ch, context *c);
+void init_chunk_manager(chunk_manager *cm, int seed);
 
+void draw_chunk(chunk *ch, context *c);
+chunk_slot *get_chunk_slot(chunk_manager *cm, vec3i chunk_coords);
 
 // basically gets it to update and load chunks
 void chunk_manager_position_hint(chunk_manager *cm, vec3s pos);

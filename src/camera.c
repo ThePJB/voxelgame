@@ -43,7 +43,7 @@ void move(vec3s *pos, vec3s amount) {
 
 camera update_camera(GLFWwindow* window, camera cam, float dt) {
     if (cam.type == CAM_FLY) {
-        const speed_multi = 8;
+        const float speed_multi = 8;
         float cam_speed = speed_multi * dt; 
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {

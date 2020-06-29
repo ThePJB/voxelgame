@@ -226,8 +226,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         c.show_info = !c.show_info;
     }
     if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
-        init_world_noise(rand());
-        chunk_manager_position_hint(&cm, (vec3s){0,0,0});
+        open_simplex_noise(rand(), &cm.noise_context); // reseed the world
+        chunk_manager_position_hint(&cm, (vec3s){0,0,0}); // re gen
     }
     if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
         place_block = (place_block + (NUM_BLOCKS - 1)) % NUM_BLOCKS;

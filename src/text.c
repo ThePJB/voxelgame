@@ -104,7 +104,7 @@ void draw_text(const char* text, float x, float y, text_style style) {
     int i = 0;
     char c;
     while ((c = text[i++]) != '\0') {
-        ft_char ch = charmap[c];
+        ft_char ch = charmap[(int)c];
         
         float xpos = x + ch.bearing_x * style.scale;
         float ypos = y - (ch.size_y - ch.bearing_y) * style.scale;

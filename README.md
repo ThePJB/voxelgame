@@ -129,3 +129,49 @@ greedy meshing + AO would be another big one
 fizix
 
 console
+
+ive really blown out how many pointers and shit there are here hmm its quite error prone. maybe this is what OO is for
+
+ok so it kind of works but at chunk boundaries its not drawing some of the blocks
+I think picking is actually fine but meshing the blocks is not. maybe.
+
+kek OK its when u place a new block it is somehow checking meshy boys against the wrong block
+RAM usage goes up again when u re gen the world as well
+thats kind of to be expected actually it re makes the chunk slots. need to separate that out
+
+any way to refactor meshing code to be less error prone?
+
+
+ahh C macros lol.
+man writing tests is useful. Well done me.
+
+So its nearly working. ATM its culling everything but the chunk boundaries lol.
+if i get rid of culling segfault? ok that was just overflowing the vertex buffer lol.
+
+yeah it runs pretty bad without culling, which is understandable
+
+empty chunks still not quite working
+some weird artifacts in the generation but picking seems to work
+probably calls for tests with fake chunks. 
+
+oo i noticed a slight imprecision in picking. that depends on rotation
+and 2~3 blocks placement range...
+
+OK OSN makes artifacts if u dont use doubles. noted
+
+
+Ok so signoff for Mon 29 Jun: 
+-----------------------------
+Refactor somewhat success
+
+still empty chunks behave a bit weird when u build into them. Why could this be? Mutable / immutable problem? but chunks are basically just a view of their underlying array, so thats not actually a problem that can happen I dont think.
+
+ram and vram usage quite high: using like 3.3gb of vram and 3.2gb of ram.. could that just be all the vertex data? vertex data is 1.6 million floats.. thats not that much? 6.4 million bytes... megabytes so FA? im confused. C how to diagnose memory usage
+
+picking is behaving weird. Its imprecise, depending on rotation and short placement (2-3 blocks)
+
+should clean up the readme / world.md situation
+
+closing remarks: testing good, refactoring good when its sensible. I like structy APIs and not crazy levels of pointers and stuff everywhere when its not necessary. Maybe some of the stuff thats handled automatically in other langs like receiver types, mutable vs immutable etc isnt so dumb because its kind of annoying in C as a baseline.
+
+1D arrays are better. mybe union is superior

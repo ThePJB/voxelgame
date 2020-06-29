@@ -13,7 +13,7 @@ char *slurp(const char *path) {
         fseek (f, 0, SEEK_SET);
         buffer = calloc(length + 1, 1);
         if (buffer) {
-            fread (buffer, 1, length, f);
+            (void)(fread(buffer, 1, length, f) + 1); // to make compiler shut up
         }
         fclose (f);
     }
