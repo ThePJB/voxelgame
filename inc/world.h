@@ -64,20 +64,26 @@ flags will be  like
 
 */
 
+// The big block of data
+typedef struct {
+    block blocks[CHUNK_RADIX][CHUNK_RADIX][CHUNK_RADIX];
+} chunk_blocks;
+
+// Information that the chunk cares about (would be saved)
 typedef struct {
     int x;
     int y;
     int z;
-    unsigned int vao;
-    unsigned int vbo;
-    int num_triangles;
-    block blocks[CHUNK_RADIX][CHUNK_RADIX][CHUNK_RADIX];
+    bool empty; // also all_one_block is a possibility, not sure how applicable
+    chunk_blocks *blocks;
 } chunk;
 
+// generated information for 
 typedef struct {
     unsigned int vao;
     unsigned int vbo;
-    chunk *c;
+    int num_triangles;
+    chunk c;
     
     // opt
     bool all_one_block;
@@ -100,12 +106,11 @@ could use malloc atm, maybe arena allocator later
 #define MAX_CHUNKS_SS MAX_CHUNKS_S*MAX_CHUNKS_S
 #define MAX_CHUNKS_SSS MAX_CHUNKS_S*MAX_CHUNKS_SS
 typedef struct {
-    chunk *chunk_pointers[MAX_CHUNKS_SSS];
+    chunk_slot chunk_slots[MAX_CHUNKS_SSS];
 } chunk_manager;
 
 
 void generate_chunk(chunk *c, int x, int y, int z);
-void mesh_chunk(chunk *c);
 void draw_chunk(chunk *ch, context *c);
 
 

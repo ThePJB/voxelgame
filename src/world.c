@@ -45,13 +45,15 @@ vec3l nearest_block_pos(vec3s pos) {
 }
 
 void generate_chunk(chunk *c, int x, int y, int z) {
+    chunk_blocks *blocks = calloc(sizeof(block), CHUNK_RADIX*CHUNK_RADIX*CHUNK_RADIX);
+    c->blocks = blocks;
+    c->empty = true;
 
     c->x = x;
     c->y = y;
     c->z = z;
 
-    glGenVertexArrays(1, &c->vao);
-    glGenBuffers(1, &c->vbo);
+
 
     float chunk_x = x*CHUNK_RADIX;
     float chunk_y = y*CHUNK_RADIX;
@@ -79,61 +81,44 @@ void generate_chunk(chunk *c, int x, int y, int z) {
 
                 // grass and stuff
                 if (block_y < height - 4) {
-                    c->blocks[i][j][k] = (block) {BLOCK_STONE};
+                    blocks->blocks[i][j][k] = (block) {BLOCK_STONE};
                 } else if (block_y < height - 0.5) {
                     // not stone layers
                     if (height > -25) {
-                        c->blocks[i][j][k] = (block) {BLOCK_DIRT};
+                        blocks->blocks[i][j][k] = (block) {BLOCK_DIRT};
                     } else {
-                        c->blocks[i][j][k] = (block) {BLOCK_SAND};
+                        blocks->blocks[i][j][k] = (block) {BLOCK_SAND};
                     }
                 } else if (block_y < height + 0.5) {
                     // top layer
                     if (height > 40) {
-                        c->blocks[i][j][k] = (block) {BLOCK_SNOW};    
+                        blocks->blocks[i][j][k] = (block) {BLOCK_SNOW};    
                     } else if (height > -25) {
-                        c->blocks[i][j][k] = (block) {BLOCK_GRASS};
+                        blocks->blocks[i][j][k] = (block) {BLOCK_GRASS};
                     } else {
-                        c->blocks[i][j][k] = (block) {BLOCK_SAND};
+                        blocks->blocks[i][j][k] = (block) {BLOCK_SAND};
                     }
                 } else {
-                    c->blocks[i][j][k] = (block) {BLOCK_AIR};
+                    blocks->blocks[i][j][k] = (block) {BLOCK_AIR};
+                }
+
+                // check empty
+                if (blocks->blocks[i][j][k].tag != BLOCK_AIR) {
+                    c->empty = false;
                 }
             }
         }
     }
-    printf("generated chunk at %d %d %d\n", x, y, z);
-}
 
-void generate_chunk_random(chunk *c, int x, int y, int z) {
-    c->x = x;
-    c->y = y;
-    c->z = z;
-
-    float chunk_x = x*CHUNK_RADIX;
-    float chunk_y = y*CHUNK_RADIX;
-    float chunk_z = z*CHUNK_RADIX;
-
-    float fill0_at = 64;
-    float fill1_at = -64;
-    float fill_divisor = fill0_at - fill1_at;
-
-    float filledness = 1 - (chunk_y + fill0_at)/fill_divisor;
-    filledness = slow_start4(filledness);
-
-    for (int i = 0; i < CHUNK_RADIX; i++) {
-        for (int j = 0; j < CHUNK_RADIX; j++) {
-            for (int k = 0; k < CHUNK_RADIX; k++) {
-                if ((float)rand() / RAND_MAX < filledness) {
-                        c->blocks[i][j][k] = (block) {BLOCK_GRASS};
-                } else {
-                        c->blocks[i][j][k] = (block) {BLOCK_AIR};
-                }
-            }
-        }
+    if (c->empty) {
+        free(c->blocks);
+        c->blocks = NULL;
+        printf("generated empty chunk at %d %d %d\n", x, y, z);
+    } else {
+        printf("generated chunk at %d %d %d\n", x, y, z);
     }
-    //printf
 }
+
 
 float vertices[819200] = {0};
 
@@ -143,7 +128,10 @@ float vertices[819200] = {0};
 
 #define VERT_STRIDE 8
 
-void mesh_chunk(chunk *c) {
+int mesh_chunk(chunk *c, int vao, int vbo) {
+    if (c->empty) {
+        return 0;
+    }
     int vertex_idx = 0;
 
     const float cube_verts[] = 
@@ -156,30 +144,30 @@ void mesh_chunk(chunk *c) {
         for (int j = 0; j < CHUNK_RADIX; j++) {
             for (int k = 0; k < CHUNK_RADIX; k++) {
 
-                if (c->blocks[i][j][k].tag == BLOCK_AIR) {
+                if (c->blocks->blocks[i][j][k].tag == BLOCK_AIR) {
                     continue;
                 }
 
                 for (int face = 0; face < 6; face++) {
                     
                     // faces are numbered, -+z, -+x, -+y
-                    if (face == 0 && k != 0 && c->blocks[i][j][k-1].tag != BLOCK_AIR) {
+                    if (face == 0 && k != 0 && c->blocks->blocks[i][j][k-1].tag != BLOCK_AIR) {
                         continue;
                     }             
                     
-                    if (face == 1 && k != CHUNK_RADIX-1 && c->blocks[i][j][k+1].tag != BLOCK_AIR) {
+                    if (face == 1 && k != CHUNK_RADIX-1 && c->blocks->blocks[i][j][k+1].tag != BLOCK_AIR) {
                         continue;
                     }
-                    if (face == 2 && i != 0 && c->blocks[i-1][j][k].tag != BLOCK_AIR) {
+                    if (face == 2 && i != 0 && c->blocks->blocks[i-1][j][k].tag != BLOCK_AIR) {
                         continue;
                     }
-                    if (face == 3 && i != CHUNK_RADIX-1 && c->blocks[i+1][j][k].tag != BLOCK_AIR) {
+                    if (face == 3 && i != CHUNK_RADIX-1 && c->blocks->blocks[i+1][j][k].tag != BLOCK_AIR) {
                         continue;
                     }                    
-                    if (face == 4 && j != 0 && c->blocks[i][j-1][k].tag != BLOCK_AIR) {
+                    if (face == 4 && j != 0 && c->blocks->blocks[i][j-1][k].tag != BLOCK_AIR) {
                         continue;
                     }
-                    if (face == 5 && j != CHUNK_RADIX-1 && c->blocks[i][j+1][k].tag != BLOCK_AIR) {
+                    if (face == 5 && j != CHUNK_RADIX-1 && c->blocks->blocks[i][j+1][k].tag != BLOCK_AIR) {
                         continue;
                     }
                     
@@ -199,23 +187,19 @@ void mesh_chunk(chunk *c) {
                         vertices[vertex_idx++] = current_vert[5]; // normal z
                         vertices[vertex_idx++] = current_vert[6]; // normal u
                         vertices[vertex_idx++] = current_vert[7]; // normal 
-                        vertices[vertex_idx++] = c->blocks[i][j][k].tag - 1.0; // block type 
+                        vertices[vertex_idx++] = c->blocks->blocks[i][j][k].tag - 1.0; // block type 
                     }
                 }
             }
         }
     }
 
-    c->num_triangles = vertex_idx / (VERT_STRIDE+1) / 3;
-    printf("meshed chunk, %d triangles\n", c->num_triangles);
+    int num_triangles = vertex_idx / (VERT_STRIDE+1) / 3;
+    printf("meshed chunk, %d triangles\n", num_triangles);
 
     // now just bind the vao
     // how to clean up this stuff when i want to? good question
 
-
-    
-    unsigned int vao = c->vao;
-    unsigned int vbo = c->vbo;
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -239,34 +223,40 @@ void mesh_chunk(chunk *c) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-}
-
-void draw_chunk(chunk *ch, context *c) {
-    mat4s model = GLMS_MAT4_IDENTITY_INIT;
-    //float ox = 0.5 * signum(ch->x);
-    //float oy = 0.5 * signum(ch->y);
-    //float oz = 0.5 * signum(ch->z);
-    float ox = 0.5;
-    float oy = 0.5;
-    float oz = 0.5;
-    model = glms_translate(model, (vec3s){ch->x*CHUNK_RADIX + ox, ch->y*CHUNK_RADIX + oy, ch->z*CHUNK_RADIX + oz});
-    glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, model.raw[0]);
-
-    glBindVertexArray(ch->vao);
-    glDrawArrays(GL_TRIANGLES, 0, ch->num_triangles * 3);
-    
+    return num_triangles;
 }
 
 void draw_chunks(chunk_manager *cm, context *c) {
+    float ox = 0.5;
+    float oy = 0.5;
+    float oz = 0.5;
+
     glBindTexture(GL_TEXTURE_2D, c->atlas);
     glUseProgram(c->chunk_program);
 
 
     for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
-        draw_chunk(cm->chunk_pointers[i], c);
+        mat4s model = GLMS_MAT4_IDENTITY_INIT;
+        chunk_slot *slot = &cm->chunk_slots[i];
+        chunk *chunk = &slot->c;
+        model = glms_translate(model, (vec3s){chunk->x*CHUNK_RADIX + ox, chunk->y*CHUNK_RADIX + oy, chunk->z*CHUNK_RADIX + oz});
+        glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, model.raw[0]);
+
+        glBindVertexArray(slot->vao);
+        glDrawArrays(GL_TRIANGLES, 0, slot->num_triangles * 3);
     }
 }
 
+// coords in chunk manager and coords of chunk
+// idk if a better way to streamline this
+// in fact initing vs hinting will be a separate thing
+void init_chunk_slot(chunk_manager *cm, int x, int y, int z, int cx, int cy, int cz) {
+    chunk_slot *cs = &cm->chunk_slots[MAX_CHUNKS_SS * x + MAX_CHUNKS_S * y + z];
+    glGenVertexArrays(1, &cs->vao);
+    glGenBuffers(1, &cs->vbo);
+    generate_chunk(&cs->c, cx, cy, cz);
+    cs->num_triangles = mesh_chunk(&cs->c, cs->vao, cs->vbo);
+}
 
 void chunk_manager_position_hint(chunk_manager *cm, vec3s pos) {
     int bottom_corner_x = pos.x/CHUNK_RADIX - MAX_CHUNKS_S/2;
@@ -275,10 +265,7 @@ void chunk_manager_position_hint(chunk_manager *cm, vec3s pos) {
     for (int x = 0; x < MAX_CHUNKS_S; x++) {
         for (int y = 0; y < MAX_CHUNKS_S; y++) {
             for (int z = 0; z < MAX_CHUNKS_S; z++) {
-                chunk *new_chunk = calloc(1, sizeof(chunk));
-                generate_chunk(new_chunk, x + bottom_corner_x, y + bottom_corner_y, z + bottom_corner_z);
-                mesh_chunk(new_chunk);
-                cm->chunk_pointers[MAX_CHUNKS_SS * x + MAX_CHUNKS_S * y + z] = new_chunk;
+                init_chunk_slot(cm, x, y, z, x + bottom_corner_x, y + bottom_corner_y, z + bottom_corner_z);
             }
         }
     }
@@ -317,10 +304,14 @@ block get_block(chunk_manager *cm, vec3l pos) {
 
 
     for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
-        chunk *cpi = cm->chunk_pointers[i];
+        chunk *cpi = &cm->chunk_slots[i].c;
+        if (cpi->empty) {
+            return (block) {BLOCK_AIR};
+        }
+
         if (cpi->x == chunk_coords.x && cpi->y == chunk_coords.y && cpi->z == chunk_coords.z) {
             // its this chunk
-            return cpi->blocks[block_coords.x][block_coords.y][block_coords.z];
+            return cpi->blocks->blocks[block_coords.x][block_coords.y][block_coords.z];
         }
     }
 
@@ -338,11 +329,19 @@ void set_block(chunk_manager *cm, vec3l pos, block b) {
 
 
     for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
-        chunk *cpi = cm->chunk_pointers[i];
+        chunk *cpi = &cm->chunk_slots[i].c;
+
         if (cpi->x == chunk_coords.x && cpi->y == chunk_coords.y && cpi->z == chunk_coords.z) {
             // its this chunk
-            cpi->blocks[block_coords.x][block_coords.y][block_coords.z] = b;
-            mesh_chunk(cpi);
+            if (cpi->empty) {
+                printf("empty\n");
+                // not empty and allocate memory
+                cpi->empty = false;
+                cpi->blocks = calloc(sizeof(block), CHUNK_RADIX*CHUNK_RADIX*CHUNK_RADIX);
+            }
+
+            cpi->blocks->blocks[block_coords.x][block_coords.y][block_coords.z] = b;
+            mesh_chunk(cpi, cm->chunk_slots[i].vao, cm->chunk_slots[i].vbo);
             return;
         }
     }

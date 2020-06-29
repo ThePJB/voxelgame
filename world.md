@@ -39,3 +39,37 @@ ok that was easy enough. now we can load and unload chunks
 for now dont worry about the disk just delete them
 
 if we keep track of slot indexes we can just delete that one and make the new one like a 3d treadmill
+
+Sun 28 Jun
+----------
+
+World treadmill time
+
+walk: unload back and load front
+
+vs.
+
+update: figger out and load
+
+update necessary for teleportation, load save etc
+
+
+could maybe store chunks in some kind of contiguous thing instead of having to do a linear search of chunks. but linear search of chunks might be FA idk
+does locality matter much at chunk scales? 4kb?
+
+could make chunks wider too as a way to bias it toward loading wide
+
+
+Mon 29 Jun
+----------
+with empty air chunks
+vram 1809
+ram  1168
+
+without empty air chunks
+maybe like 500mb of extra ram
+
+a lot of it was the vertex buffer
+
+picking broke again oof
+probably should set up some kind of automated test with like full on inputs and stuff
