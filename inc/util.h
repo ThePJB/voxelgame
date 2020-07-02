@@ -27,6 +27,7 @@ void assert_bool(char *desc, bool a, bool b);
 
 bool fequals(float a, float b);
 
+unsigned long int get_ram_usage();
 
 void test_util();
 

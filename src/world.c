@@ -193,15 +193,14 @@ void set_block(chunk_manager *cm, vec3l pos, block b) {
     world_to_block_and_chunk(&chunk_coords, &block_coords, pos);
     chunk_slot *cs = get_chunk_slot(cm, chunk_coords);
     if (cs) {
-        chunk c = cs->chunk;
-        check_chunk_invariants(c);
-        if (c.empty) {
+        check_chunk_invariants(cs->chunk);
+        if (cs->chunk.empty) {
             debugf("empty set\n");
             // not empty and allocate memory
-            c.empty = false;
-            c.blocks = calloc(sizeof(chunk_blocks), 1);
+            cs->chunk.empty = false;
+            cs->chunk.blocks = calloc(sizeof(chunk_blocks), 1);
         }
-        c.blocks->blocks[arr_3d_to_1d(block_coords)] = b;
+        cs->chunk.blocks->blocks[arr_3d_to_1d(block_coords)] = b;
         mesh_chunk_slot(cs);
     } else {
         // didnt find
@@ -239,10 +238,7 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
 
     float max_squared = max_distance*max_distance;
 
-    // error on direction 0,0,0
-
     int n = 0;
-    // accX*accX + accY*accY + accZ*accZ <= max_squared
     while (accX*accX + accY*accY + accZ*accZ <= max_squared) {
         n++;
         block_tag t = get_block(world, ret.coords).tag;

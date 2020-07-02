@@ -11,7 +11,6 @@
 #include "graphics.h"
 #include "world.h"
 #include "text.h"
-#include "ram_usage.h"
 #include "window.h"
 
 chunk_manager cm = {0};

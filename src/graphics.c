@@ -27,6 +27,8 @@ graphics_context *graphics_init(int *w, int *h, camera *cam) {
     
     glViewport(0,0,*w,*h);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LINE_SMOOTH);
+    glLineWidth(3);
 
     gc.mesh_program = make_shader_program("shaders/vertex.glsl", "shaders/fragment.glsl");
     gc.chunk_program = make_shader_program("shaders/chunk.vert", "shaders/chunk.frag");
