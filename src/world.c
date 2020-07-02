@@ -40,18 +40,18 @@ vec3l nearest_block_pos(vec3s pos) {
 
 
 //#define MESHING_BUF_SIZE 819200
-#define MESHING_BUF_SIZE 1600000
+#define MESHING_BUF_SIZE 409600 * 5
 void mesh_chunk_slot(chunk_slot *cs) {
     float vertices[MESHING_BUF_SIZE] = {0};
 
-    int num_triangles = get_chunk_vertex_data(cs->chunk, vertices);
+    int num_triangles = get_chunk_vertex_data(cs->chunk, vertices, MESHING_BUF_SIZE);
     cs->num_triangles = num_triangles;
     printf("meshed chunk, %d triangles\n", num_triangles);
 
     // bind vao and vertix attribs
     glBindVertexArray(cs->vao);
     glBindBuffer(GL_ARRAY_BUFFER, cs->vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, num_triangles * 3 * 9 * sizeof(float), vertices, GL_STATIC_DRAW); // sizeof vertices u retard
 
     // position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
@@ -74,14 +74,14 @@ void mesh_chunk_slot(chunk_slot *cs) {
 }
 
 void draw_chunks(chunk_manager *cm, graphics_context *c) {
-    float ox = 0.5;
-    float oy = 0.5;
-    float oz = 0.5;
+    double ox = 0.5;
+    double oy = 0.5;
+    double oz = 0.5;
 
     glBindTexture(GL_TEXTURE_2D, c->atlas);
     glUseProgram(c->chunk_program);
 
-    for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
+    for (int i = 0; i < MAX_CHUNKS_SYS; i++) {
         chunk_slot *slot = &cm->chunk_slots[i];
         chunk *chunk = &slot->chunk;
 
@@ -105,12 +105,12 @@ void init_chunk_slot(chunk_manager *cm, int idx) {
 }
 
 void gen_chunk_slot(chunk_manager *cm, struct osn_context *noise, int x, int y, int z, int cx, int cy, int cz) {
-        cm->chunk_slots[MAX_CHUNKS_SS * x + MAX_CHUNKS_S * y + z].chunk = generate_chunk(noise, cx, cy, cz);
-        mesh_chunk_slot(&cm->chunk_slots[MAX_CHUNKS_SS * x + MAX_CHUNKS_S * y + z]);
+        cm->chunk_slots[MAX_CHUNKS_SS * y + MAX_CHUNKS_S * x + z].chunk = generate_chunk(noise, cx, cy, cz);
+        mesh_chunk_slot(&cm->chunk_slots[MAX_CHUNKS_SS * y + MAX_CHUNKS_S * x + z]);
 }
 
 chunk_slot *get_chunk_slot(chunk_manager *cm, vec3i chunk_coords) {
-    for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
+    for (int i = 0; i < MAX_CHUNKS_SYS; i++) {
         chunk_slot *cpi = &cm->chunk_slots[i];
         if (cpi->chunk.x == chunk_coords.x && cpi->chunk.y == chunk_coords.y && cpi->chunk.z == chunk_coords.z) {
             return cpi;
@@ -121,17 +121,17 @@ chunk_slot *get_chunk_slot(chunk_manager *cm, vec3i chunk_coords) {
 
 void init_chunk_manager(chunk_manager *cm, int seed) {
     open_simplex_noise(123456789, &cm->noise_context);
-    for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
+    for (int i = 0; i < MAX_CHUNKS_SYS; i++) {
         init_chunk_slot(cm, i);
     }
 }
 
 void chunk_manager_position_hint(chunk_manager *cm, vec3s pos) {
     int bottom_corner_x = pos.x/CHUNK_RADIX - MAX_CHUNKS_S/2;
-    int bottom_corner_y = pos.y/CHUNK_RADIX - MAX_CHUNKS_S/2;
+    int bottom_corner_y = pos.y/CHUNK_RADIX - MAX_CHUNKS_Y/2;
     int bottom_corner_z = pos.z/CHUNK_RADIX - MAX_CHUNKS_S/2;
     for (int x = 0; x < MAX_CHUNKS_S; x++) {
-        for (int y = 0; y < MAX_CHUNKS_S; y++) {
+        for (int y = 0; y < MAX_CHUNKS_Y; y++) {
             for (int z = 0; z < MAX_CHUNKS_S; z++) {
                 gen_chunk_slot(cm, cm->noise_context, x, y, z, x + bottom_corner_x, y + bottom_corner_y, z + bottom_corner_z);
             }
@@ -362,6 +362,8 @@ void test_world() {
     assert_float_equal("intbound 7", intbound(1.5, 1), 0.5);
     assert_float_equal("intbound 8", intbound(1.6, 1), 0.4);
     assert_float_equal("intbound 9", intbound(1.6, 0.5), 0.8);
+
+    //assert_floatequal("intbound 10", intbound())
 
     // etc
 

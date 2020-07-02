@@ -44,7 +44,7 @@ void check_chunk_invariants(chunk c);
 chunk generate_chunk(struct osn_context *ctx, int x, int y, int z);
 
 // put vertex data into buffer and return number of triangles
-int get_chunk_vertex_data(chunk c, float *buf);
+int get_chunk_vertex_data(chunk c, float *buf, int buflen);
 
 int arr_3d_to_1d(vec3i pos);
 vec3i arr_1d_to_3d(int idx);

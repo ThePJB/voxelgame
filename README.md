@@ -210,3 +210,31 @@ so intbound is wrong? or args to it are wrong? or theres some offset? is it iden
 seems biased towards +x
 
 its biased towards + in all directions
+
+4 gb vram 3.2gb ram
+
+i think like 2.5 and 1.6 on the old one. so not sure what i did to double the memory usage but anyway.
+
+the bug actually did exist then. maybe im just drawing everything a bit off instead of the problem being with picking.
+
+its distance dependent, like 1/16th block at max reach, very small if u get up close
+
+could maybe try some very granular intbound tests
+
+maybe my reticle is slightly off center lol.
+how to actually draw one? render stuff to screen w/ orthographic
+
+just draw a square on the screen and have a texture probably. and text program -> 2d program
+
+also how to position the 2d stuff properly when screen is move
+
+oh is it just meshing buf size's fault? how does it increase vram? forgettting geometry?
+
+a suspicious amount have 3072, oh maybe thats full chunk since theres no greedy meshing.
+
+9 floats per triangle, 4000 triangles = 36 000 * 3 floats
+
+696 triangles: 18792 floats
+696 * 3 * 9 =  yep
+
+so 10800 should be pretty ok

@@ -145,7 +145,7 @@ chunk generate_chunk(struct osn_context *ctx, int x, int y, int z) {
 
 #define VERT_STRIDE 8
 
-int get_chunk_vertex_data(chunk c, float *buf) {
+int get_chunk_vertex_data(chunk c, float *buf, int buflen) {
     check_chunk_invariants(c);
     if (c.empty) {
         return 0;
@@ -197,6 +197,7 @@ int get_chunk_vertex_data(chunk c, float *buf) {
             }
         }
     }
+    printf("vertex idx: %d / %d\n", vertex_idx, buflen);
     return vertex_idx / (VERT_STRIDE+1) / 3;
 }
 

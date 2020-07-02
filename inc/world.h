@@ -47,12 +47,15 @@ pls update all the chunks
 so it needs an allocator for chunks
 could use malloc atm, maybe arena allocator later
 */
-#define MAX_CHUNKS_S 8
+#define MAX_CHUNKS_S 32
 #define MAX_CHUNKS_SS (MAX_CHUNKS_S*MAX_CHUNKS_S)
-#define MAX_CHUNKS_SSS (MAX_CHUNKS_S*MAX_CHUNKS_SS)
+
+#define MAX_CHUNKS_Y 8
+#define MAX_CHUNKS_SYS (MAX_CHUNKS_SS * MAX_CHUNKS_Y)
+
 typedef struct {
     struct osn_context *noise_context;
-    chunk_slot chunk_slots[MAX_CHUNKS_SSS];
+    chunk_slot chunk_slots[MAX_CHUNKS_SYS];
 } chunk_manager;
 
 
