@@ -16,7 +16,7 @@ unsigned int text_shader;
 unsigned int text_vao;
 unsigned int text_vbo;
 
-void text_init(context *c) {
+void text_init(graphics_context *c) {
     FT_Library ft;
     FT_Face face;
     if (FT_Init_FreeType(&ft))
@@ -73,7 +73,7 @@ void text_init(context *c) {
 
     text_shader = make_shader_program("shaders/text.vert", "shaders/text.frag");
 
-    mat4s projection = glms_ortho(0, c->w, 0, c->h, 0,100);
+    mat4s projection = glms_ortho(0, *c->w, 0, *c->h, 0,100);
     // upload the uniform as well
     glUseProgram(text_shader);
     glUniformMatrix4fv(glGetUniformLocation(text_shader, "projection"), 1, GL_FALSE, projection.raw[0]);

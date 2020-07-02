@@ -73,7 +73,7 @@ void mesh_chunk_slot(chunk_slot *cs) {
     glBindVertexArray(0);
 }
 
-void draw_chunks(chunk_manager *cm, context *c) {
+void draw_chunks(chunk_manager *cm, graphics_context *c) {
     float ox = 0.5;
     float oy = 0.5;
     float oz = 0.5;

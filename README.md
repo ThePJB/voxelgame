@@ -180,5 +180,24 @@ closing remarks: testing good, refactoring good when its sensible. I like struct
 
 up next, do the block highlighting to help debug picking
 
+Thu 2 Jul
+----------
+highlighting works, picking is off by just a little bit
+
 the dependency graph is actually the main thing that determines what should go in files
 I basically need "graphics primitive" and "graphics depends on world as well" files
+
+the split is going alright.
+I think there should be a "graphics context" and a "window context"
+some stuff is like shared which is a bit annoying.
+could keep that in main and pass it as a pointer. is that ok? seems fine
+
+window context is going to end up having everything
+what does that mean is actually in graphics context? textures and shaders
+
+dereference stuff makes it easier to refactor
+like pass iti nto a function or at least just cam = c->someothershit->stupidcontianer->camera
+and then cam->x, cam->lookat etc
+
+
+picking range is dogshit vertical but fine horizontal

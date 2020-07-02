@@ -12,10 +12,11 @@
 #include "world.h"
 #include "text.h"
 #include "ram_usage.h"
+#include "window.h"
 
 chunk_manager cm = {0};
 
-void draw_lookat_cube(chunk_manager *cm, vec3s cam_pos, vec3s cam_front, context *c) {
+void draw_lookat_cube(chunk_manager *cm, vec3s cam_pos, vec3s cam_front, graphics_context *c) {
     pick_info p = pick_block(cm, cam_pos, cam_front, 9);
     if (p.success) {
         glDepthFunc(GL_LEQUAL);
@@ -30,59 +31,60 @@ void draw_lookat_cube(chunk_manager *cm, vec3s cam_pos, vec3s cam_front, context
 }
 
 int main(int argc, char** argv) {
+    int w = 2560;
+    int h = 1440;
+    camera cam = fly_camera();
     //test_chunk();
     //test_world();
     //exit(0);
 
+    window_context *wc = window_init("sick game", &w, &h, &cam);
+    graphics_context *gc = graphics_init(&w, &h, &cam);
 
-
-    context *c = graphics_init();
-    text_init(c);
+    text_init(gc);
     init_chunk_manager(&cm, 123456789);
     chunk_manager_position_hint(&cm, (vec3s){0,0,0}); // generates and meshes chunks
 
-    c->cam.pos = (vec3s) {0, 16, 0};
-    c->cam.front = (vec3s) {0, 0, -1};
+    cam.pos = (vec3s) {0, 16, 0};
+    cam.front = (vec3s) {0, 0, -1};
 
     float last = 0;
     float dt = 0;
     
-    while (!glfwWindowShouldClose(c->window)) {
-        if (glfwGetKey(c->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-            glfwSetWindowShouldClose(c->window, true);
+    while (!glfwWindowShouldClose(wc->window)) {
+        if (glfwGetKey(wc->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+            glfwSetWindowShouldClose(wc->window, true);
         }
         float time = glfwGetTime();
         dt = time - last;
-        c->dt = dt;
+        wc->dt = dt;
         last = time;
 
-        camera new_cam = update_camera(c->window, c->cam, dt);
+        cam = update_camera(wc->window, cam, dt);
 
-        c->cam = new_cam;
-
-        begin_draw(c);
+        pre_draw(gc);
         
-        draw_chunks(&cm, c);
+        draw_chunks(&cm, gc);
         
-        draw_lookat_cube(&cm, c->cam.pos, c->cam.front, c);
+        draw_lookat_cube(&cm, cam.pos, cam.front, gc);
         //draw_mesh(c, c->cube); 
 
-        if (c->show_info) {
+        if (wc->show_info) {
             char buf[64] = {0};
             const text_style debug_text = (text_style) {
                 .scale = 1,
                 .colour = (vec3s) {1,1,1},
             };
             int y = 10;
-            sprintf(buf, "%.2f fps", 1.0 / c->dt);
+            sprintf(buf, "%.2f fps", 1.0 / wc->dt);
             draw_text(buf, 10, y, debug_text);
             y += 100;
 
-            sprintf(buf, "Facing {%.2f, %.2f, %.2f}", c->cam.front.x, c->cam.front.y, c->cam.front.z);
+            sprintf(buf, "Facing {%.2f, %.2f, %.2f}", cam.front.x, cam.front.y, cam.front.z);
             draw_text(buf, 10, y, debug_text);
             y += 100;
 
-            sprintf(buf, "Pos {%.2f, %.2f, %.2f}", c->cam.pos.x, c->cam.pos.y, c->cam.pos.z);
+            sprintf(buf, "Pos {%.2f, %.2f, %.2f}", cam.pos.x, cam.pos.y, cam.pos.z);
             draw_text(buf, 10, y, debug_text);
             y += 100;            
             
@@ -95,7 +97,7 @@ int main(int argc, char** argv) {
             y += 100;
 
             // block coords
-            vec3l bc = (vec3l) {c->cam.pos.x, c->cam.pos.y, c->cam.pos.z};
+            vec3l bc = (vec3l) {cam.pos.x, cam.pos.y, cam.pos.z};
 
             vec3i block_coords = {0};
             vec3i chunk_coords = {0};
@@ -133,13 +135,16 @@ int main(int argc, char** argv) {
             .colour = (vec3s) {1,1,1},
         };
         // reticle lol
-        draw_text("+", c->w/2 - 24, c->h/2 - 24, debug_text);
+        draw_text("+", w/2 - 24, h/2 - 24, debug_text);
 
-        
-        end_draw(c);
+        // end draw
+        glBindVertexArray(0);
+        glUseProgram(0);
+        glfwSwapBuffers(wc->window);
+        glfwPollEvents();        
     }
 
-    graphics_teardown();
+    glfwTerminate();
 
     return 0;
 }

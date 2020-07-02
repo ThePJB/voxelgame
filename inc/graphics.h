@@ -26,19 +26,11 @@ typedef struct {
 } mesh;
 
 typedef struct {
-    int w;
-    int h;
-    GLFWwindow *window;
-    camera cam;
+    // shared with window
+    int *w;
+    int *h;
+    camera *cam;
     
-    double mouse_lastx;
-    double mouse_lasty;
-
-    float dt;
-
-    bool wireframe;
-    bool show_info;
-
     unsigned int mesh_program;
     unsigned int chunk_program;
 
@@ -48,16 +40,13 @@ typedef struct {
     unsigned int tromp;
     unsigned int spoderman;
     unsigned int atlas;
-} context;
+} graphics_context;
 
-context *graphics_init();
+graphics_context *graphics_init(int *w, int *h, camera *cam);
 
-void graphics_teardown();
+void pre_draw(graphics_context *c);
 
-void begin_draw(context *c);
-void end_draw(context *c);
-
-void draw_mesh(context *c, mesh m, vec3s translate, vec3s rotate_axis, float rotate_amt);
+void draw_mesh(graphics_context *c, mesh m, vec3s translate, vec3s rotate_axis, float rotate_amt);
 unsigned long int get_vram_usage();
 
 

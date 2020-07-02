@@ -58,7 +58,7 @@ typedef struct {
 
 void init_chunk_manager(chunk_manager *cm, int seed);
 
-void draw_chunk(chunk *ch, context *c);
+void draw_chunk(chunk *ch, graphics_context *c);
 chunk_slot *get_chunk_slot(chunk_manager *cm, vec3i chunk_coords);
 
 // basically gets it to update and load chunks
@@ -66,7 +66,7 @@ void chunk_manager_position_hint(chunk_manager *cm, vec3s pos);
 block get_block(chunk_manager *cm, vec3l pos);
 void set_block(chunk_manager *cm, vec3l pos, block b);
 
-void draw_chunks(chunk_manager *cm, context *c);
+void draw_chunks(chunk_manager *cm, graphics_context *c);
 void init_world_noise();
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance);
 

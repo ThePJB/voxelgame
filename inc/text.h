@@ -20,7 +20,7 @@ typedef struct {
 } text_style;
 // maybe font
 
-void text_init(context *c);
+void text_init(graphics_context *c);
 void draw_text(const char* text, float x, float y, text_style style);
 
 #endif
