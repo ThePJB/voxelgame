@@ -82,10 +82,16 @@ void draw_chunks(chunk_manager *cm, context *c) {
     glUseProgram(c->chunk_program);
 
     for (int i = 0; i < MAX_CHUNKS_SSS; i++) {
-        mat4s model = GLMS_MAT4_IDENTITY_INIT;
         chunk_slot *slot = &cm->chunk_slots[i];
         chunk *chunk = &slot->chunk;
-        model = glms_translate(model, (vec3s){chunk->x*CHUNK_RADIX + ox, chunk->y*CHUNK_RADIX + oy, chunk->z*CHUNK_RADIX + oz});
+
+        mat4s model = GLMS_MAT4_IDENTITY_INIT;
+        model = glms_translate(model, (vec3s){
+            chunk->x*CHUNK_RADIX + ox, 
+            chunk->y*CHUNK_RADIX + oy, 
+            chunk->z*CHUNK_RADIX + oz,
+        });
+
         glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, model.raw[0]);
         glBindVertexArray(slot->vao);
         glDrawArrays(GL_TRIANGLES, 0, slot->num_triangles * 3);
@@ -204,20 +210,6 @@ void set_block(chunk_manager *cm, vec3l pos, block b) {
 }
 
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance) {
-/*
-    printf("%.2f\n", intbound(-1.5, 1));
-    printf("%.2f\n", intbound(-1.6, 1));
-    printf("%.2f\n", intbound(-1.6, 0.5));
-
-    printf("%.2f\n", intbound(1.5, -1));
-    printf("%.2f\n", intbound(1.6, -1));
-    printf("%.2f\n", intbound(1.6, -0.5));
-
-    printf("%.2f\n", intbound(1.5, 1));
-    printf("%.2f\n", intbound(1.6, 1));
-    printf("%.2f\n", intbound(1.6, 0.5));
-    */
-
     printf("facing %.2f, %.2f, %.2f\n", facing.x, facing.y, facing.z);
 
     pick_info ret = {0};
@@ -308,3 +300,67 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
     
 }
 
+
+void test_world() {
+    // nearest block
+    vec3l np;
+
+    np = nearest_block_pos((vec3s){0.1, 0.9, -0.1});
+    assert_int_equal("np x 0.1", np.x, 0);
+    assert_int_equal("np y 0.9", np.y, 0);
+    assert_int_equal("np z -0.1", np.z, -1);
+    
+    // wtbc
+    int chunk_ord = 0;
+    int block_ord = 0;
+
+    single_w_t_bc(&chunk_ord, &block_ord, 0);
+    assert_int_equal("0 chunk", chunk_ord, 0);
+    assert_int_equal("0 block", block_ord, 0);
+
+    single_w_t_bc(&chunk_ord, &block_ord, 1);
+    assert_int_equal("1 chunk", chunk_ord, 0);
+    assert_int_equal("1 block", block_ord, 1);
+
+    single_w_t_bc(&chunk_ord, &block_ord, -1);
+    assert_int_equal("-1 chunk", chunk_ord, -1);
+    assert_int_equal("-1 block", block_ord, 15);
+
+    single_w_t_bc(&chunk_ord, &block_ord, 15);
+    assert_int_equal("15 chunk", chunk_ord, 0);
+    assert_int_equal("15 block", block_ord, 15);
+
+    single_w_t_bc(&chunk_ord, &block_ord, 16);
+    assert_int_equal("16 chunk", chunk_ord, 1);
+    assert_int_equal("16 block", block_ord, 0);
+
+    single_w_t_bc(&chunk_ord, &block_ord, -15);
+    assert_int_equal("-15 chunk", chunk_ord, -1);
+    assert_int_equal("-15 block", block_ord, 1);
+
+    single_w_t_bc(&chunk_ord, &block_ord, -16);
+    assert_int_equal("-16 chunk", chunk_ord, -1);
+    assert_int_equal("-16 block", block_ord, 0);
+
+    single_w_t_bc(&chunk_ord, &block_ord, -17);
+    assert_int_equal("-17 chunk", chunk_ord, -2);
+    assert_int_equal("-17 block", block_ord, 15);
+
+
+
+    // intbound
+    assert_float_equal("intbound 1", intbound(-1.5, 1), 0.5);
+    assert_float_equal("intbound 2", intbound(-1.6, 1), 0.6);
+    assert_float_equal("intbound 3", intbound(-1.6, 0.5), 1.2);
+
+    assert_float_equal("intbound 4", intbound(1.5, -1), 0.5);
+    assert_float_equal("intbound 5", intbound(-1.6, -1), 0.4);
+    assert_float_equal("intbound 6", intbound(-1.6, -0.5), 0.8);
+
+    assert_float_equal("intbound 7", intbound(1.5, 1), 0.5);
+    assert_float_equal("intbound 8", intbound(1.6, 1), 0.4);
+    assert_float_equal("intbound 9", intbound(1.6, 0.5), 0.8);
+
+    // etc
+
+}

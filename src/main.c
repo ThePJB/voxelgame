@@ -15,9 +15,26 @@
 
 chunk_manager cm = {0};
 
+void draw_lookat_cube(chunk_manager *cm, vec3s cam_pos, vec3s cam_front, context *c) {
+    pick_info p = pick_block(cm, cam_pos, cam_front, 9);
+    if (p.success) {
+        glDepthFunc(GL_LEQUAL);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        draw_mesh(c,  c->cube, (vec3s) {p.coords.x + 0.5, p.coords.y + 0.5, p.coords.z + 0.5}, (vec3s){0}, 0);
+
+        glDepthFunc(GL_LESS);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    }
+}
+
 int main(int argc, char** argv) {
     //test_chunk();
+    //test_world();
     //exit(0);
+
+
 
     context *c = graphics_init();
     text_init(c);
@@ -44,8 +61,11 @@ int main(int argc, char** argv) {
         c->cam = new_cam;
 
         begin_draw(c);
-        draw_mesh(c, c->cube); 
+        
         draw_chunks(&cm, c);
+        
+        draw_lookat_cube(&cm, c->cam.pos, c->cam.front, c);
+        //draw_mesh(c, c->cube); 
 
         if (c->show_info) {
             char buf[64] = {0};

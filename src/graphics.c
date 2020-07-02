@@ -10,12 +10,9 @@
 #include "shader.h"
 #include "texture.h"
 #include "world.h"
+#include "util.h"
 
 context c = {0};
-
-
-float min(float a, float b) { return a < b? a : b; }
-float max(float a, float b) { return a > b? a : b; }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height); 
@@ -145,25 +142,20 @@ void begin_draw(context *c) {
     glUniform3fv(glGetUniformLocation(c->chunk_program, "light"), 1, light.raw);
 }
 
-
-void draw_mesh(context *c, mesh m) {
+void draw_mesh(context *c, mesh m, vec3s translate, vec3s rotate_axis, float rotate_amt) {
     glUseProgram(c->mesh_program);
 
-    //printf("draw cube texture %u vao %u num tris %u\n", m.texture, m.vao, m.num_triangles);
-    // for now just do this here
     mat4s model = GLMS_MAT4_IDENTITY_INIT;
-    model = glms_translate(model, (vec3s) {m.x, m.y, m.z});
-    model = glms_rotate(model, glfwGetTime(), (vec3s){1,1,1});
+    model = glms_translate(model, translate);
+    model = glms_rotate(model, rotate_amt, rotate_axis);
     m.transform = model;
 
     // upload mesh transform
     glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, m.transform.raw[0]);
-
     glBindTexture(GL_TEXTURE_2D, m.texture);
     glBindVertexArray(m.vao);
     glDrawArrays(GL_TRIANGLES, 0, m.num_triangles * 3);
 }
-
 
 void end_draw(context *c) {
     glfwSwapBuffers(c->window);

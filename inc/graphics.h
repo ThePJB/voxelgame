@@ -57,7 +57,7 @@ void graphics_teardown();
 void begin_draw(context *c);
 void end_draw(context *c);
 
-void draw_mesh(context *c, mesh m);
+void draw_mesh(context *c, mesh m, vec3s translate, vec3s rotate_axis, float rotate_amt);
 unsigned long int get_vram_usage();
 
 

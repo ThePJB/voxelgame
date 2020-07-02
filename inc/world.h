@@ -71,6 +71,6 @@ void init_world_noise();
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance);
 
 void world_to_block_and_chunk(vec3i *chunk, vec3i *block, vec3l block_global);
-void test_wtbc();
+void test_world();
 
 #endif

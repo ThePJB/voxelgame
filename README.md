@@ -175,3 +175,10 @@ should clean up the readme / world.md situation
 closing remarks: testing good, refactoring good when its sensible. I like structy APIs and not crazy levels of pointers and stuff everywhere when its not necessary. Maybe some of the stuff thats handled automatically in other langs like receiver types, mutable vs immutable etc isnt so dumb because its kind of annoying in C as a baseline.
 
 1D arrays are better. mybe union is superior
+
+
+
+up next, do the block highlighting to help debug picking
+
+the dependency graph is actually the main thing that determines what should go in files
+I basically need "graphics primitive" and "graphics depends on world as well" files
