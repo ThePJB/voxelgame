@@ -33,6 +33,10 @@ typedef struct {
     
     unsigned int mesh_program;
     unsigned int chunk_program;
+    
+    unsigned int pgm_2d;
+    unsigned int vao_2d;
+    unsigned int vbo_2d;
 
     // test cube
     mesh cube;
@@ -40,12 +44,13 @@ typedef struct {
     unsigned int tromp;
     unsigned int spoderman;
     unsigned int atlas;
+    unsigned int reticle;
 } graphics_context;
 
 graphics_context *graphics_init(int *w, int *h, camera *cam);
 
 void pre_draw(graphics_context *c);
-
+void draw_2d_image(graphics_context *gc, unsigned int texture, int x, int y, int w, int h);
 void draw_mesh(graphics_context *c, mesh m, vec3s translate, vec3s rotate_axis, float rotate_amt);
 unsigned long int get_vram_usage();
 

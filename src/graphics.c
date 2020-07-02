@@ -30,6 +30,7 @@ graphics_context *graphics_init(int *w, int *h, camera *cam) {
 
     gc.mesh_program = make_shader_program("shaders/vertex.glsl", "shaders/fragment.glsl");
     gc.chunk_program = make_shader_program("shaders/chunk.vert", "shaders/chunk.frag");
+    gc.pgm_2d = make_shader_program("shaders/2d.vert", "shaders/2d.frag");
 
     // make cube
    float vertices[] =
@@ -69,6 +70,24 @@ graphics_context *graphics_init(int *w, int *h, camera *cam) {
     gc.tromp = load_texture("assets/tromp.jpg");
     gc.spoderman = load_texture("assets/spoderman.jpg");
     gc.atlas = load_texture("assets/atlas.png");
+    gc.reticle = load_texture_rgba("assets/reticle.png");
+
+    // vbo and vao for 2d stuff
+    mat4s projection = glms_ortho(0, *gc.w, 0, *gc.h, 0,100);
+    // upload the uniform as well
+    // probably this should get updated when viewport size changes @todo
+    glUseProgram(gc.pgm_2d);
+    glUniformMatrix4fv(glGetUniformLocation(gc.pgm_2d, "projection"), 1, GL_FALSE, projection.raw[0]);
+
+    glGenVertexArrays(1, &gc.vao_2d);
+    glGenBuffers(1, &gc.vbo_2d);
+    glBindVertexArray(gc.vao_2d);
+    glBindBuffer(GL_ARRAY_BUFFER, gc.vbo_2d);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
     return &gc;
 }
@@ -130,3 +149,25 @@ unsigned long int get_vram_usage() {
     return total_mem_kb - cur_avail_mem_kb;                
 }
 
+// pixels or screen %? this can be pixels
+void draw_2d_image(graphics_context *gc, unsigned int texture, int x, int y, int w, int h) {
+    float vertices[6][4] = {
+        {x, y + h, 0, 0},
+        {x, y, 0, 1},
+        {x + w, y, 1, 1},
+
+        {x, y + h, 0, 0},
+        {x + w, y, 1, 1},
+        {x + w, y + h, 1, 0}
+    };
+    glUseProgram(gc->pgm_2d);
+    glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(gc->vao_2d);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glBindBuffer(GL_ARRAY_BUFFER, gc->vbo_2d);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}

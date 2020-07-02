@@ -123,21 +123,16 @@ int main(int argc, char** argv) {
             draw_text(buf, 10, y, debug_text);
             y += 100;
 
-            //set_block(&cm, bc, (block){.tag = BLOCK_DIRT});
-            //printf("setting %ld %ld %ld\n", bc.x, bc.y, bc.z);
-            //c->cube.x = c->cam.pos.x + c->cam.front.x * 10;
-            //c->cube.y = c->cam.pos.y + c->cam.front.y * 10;
-            //c->cube.z = c->cam.pos.z + c->cam.front.z * 10;
-
-            
         }
 
         const text_style debug_text = (text_style) {
             .scale = 1,
             .colour = (vec3s) {1,1,1},
         };
-        // reticle lol
-        draw_text("+", w/2 - 24, h/2 - 24, debug_text);
+
+        // good reticle
+        const int rscale = 4;
+        draw_2d_image(gc, gc->reticle, w/2 - 5*rscale, h/2 - 5*rscale, 10*rscale, 10*rscale);
 
         // end draw
         glBindVertexArray(0);

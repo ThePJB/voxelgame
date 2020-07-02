@@ -127,9 +127,9 @@ chunk generate_chunk(struct osn_context *ctx, int x, int y, int z) {
     if (c.empty) {
         free(c.blocks);
         c.blocks = NULL;
-        printf("generated empty chunk at %d %d %d\n", x, y, z);
+        //printf("generated empty chunk at %d %d %d\n", x, y, z);
     } else {
-        printf("generated chunk at %d %d %d\n", x, y, z);
+        //printf("generated chunk at %d %d %d\n", x, y, z);
     }
 
     check_chunk_invariants(c);

@@ -238,3 +238,7 @@ a suspicious amount have 3072, oh maybe thats full chunk since theres no greedy 
 696 * 3 * 9 =  yep
 
 so 10800 should be pretty ok
+
+how to sample rgba texture?
+
+how to turn off vsync lol
