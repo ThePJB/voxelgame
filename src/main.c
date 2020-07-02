@@ -30,6 +30,8 @@ void draw_lookat_cube(chunk_manager *cm, vec3s cam_pos, vec3s cam_front, graphic
     }
 }
 
+bool enable_debug = false;
+
 int main(int argc, char** argv) {
     int w = 2560;
     int h = 1440;

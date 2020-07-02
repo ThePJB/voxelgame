@@ -16,7 +16,7 @@
 window_context wc = {0};
 
 /*
-The separation here is that this is mostly GLFW and messier stuff
+The separation here is that this is mostly GLFW and input stuff
 graphics will be kept a bit cleaner
 most stuff doesnt depend on this but does on graphics
 this depends on most stuff for input handling i think 
@@ -90,6 +90,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
+
+        enable_debug = true;
+
         printf("lmb\n");
         pick_info p = pick_block(&cm, wc.cam->pos, wc.cam->front, 9);
         printf("success %d block %d coords %ld %ld %ld normal %d %d %d\n", p.success, get_block(&cm, p.coords).tag, p.coords.x, p.coords.y, p.coords.z, p.normal_x, p.normal_y, p.normal_z);
@@ -99,6 +102,9 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             .z = p.coords.z + p.normal_z,
         };
         if (p.success) set_block(&cm, new_coords, (block){.tag = place_block});
+        
+        enable_debug = false;
+
     } else if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS) {
         printf("rmb\n");
         pick_info p = pick_block(&cm, wc.cam->pos, wc.cam->front, 9);

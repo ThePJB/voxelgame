@@ -174,13 +174,13 @@ block get_block(chunk_manager *cm, vec3l pos) {
         chunk c = cs->chunk;
         check_chunk_invariants(c);
         if (c.empty) {
-            printf("empty get\n");
+            debugf("empty get\n");
             return (block) {BLOCK_AIR};
         }
         return c.blocks->blocks[arr_3d_to_1d(block_coords)];
     } else {
         // didnt find
-        printf("didnt find %ld %ld %ld\n", pos.x, pos.y, pos.z);
+        debugf("didnt find %ld %ld %ld\n", pos.x, pos.y, pos.z);
         return (block) {
             .tag = BLOCK_AIR, // todo make this separate to air so player dosnt fall lol
         };
@@ -196,7 +196,7 @@ void set_block(chunk_manager *cm, vec3l pos, block b) {
         chunk c = cs->chunk;
         check_chunk_invariants(c);
         if (c.empty) {
-            printf("empty set\n");
+            debugf("empty set\n");
             // not empty and allocate memory
             c.empty = false;
             c.blocks = calloc(sizeof(chunk_blocks), 1);
@@ -205,12 +205,13 @@ void set_block(chunk_manager *cm, vec3l pos, block b) {
         mesh_chunk_slot(cs);
     } else {
         // didnt find
-        printf("didnt find %ld %ld %ld\n", pos.x, pos.y, pos.z);
+        debugf("didnt find %ld %ld %ld\n", pos.x, pos.y, pos.z);
     }
 }
 
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance) {
-    printf("facing %.2f, %.2f, %.2f\n", facing.x, facing.y, facing.z);
+    debugf("facing %.2f, %.2f, %.2f\n", facing.x, facing.y, facing.z);
+    debugf("at %.2f, %.2f, %.2f\n", pos.x, pos.y, pos.z);
 
     pick_info ret = {0};
     ret.success = true;
@@ -225,8 +226,8 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
     float tMaxY = intbound(pos.y, facing.y);
     float tMaxZ = intbound(pos.z, facing.z);
 
-    //printf("initial tmx: %.2f, tmy: %.2f, tmz: %.2f\n", tMaxX, tMaxY, tMaxZ);
-    printf("sx %d sy %d sz %d\n", sx, sy, sz);
+    debugf("initial tmx: %f, tmy: %.2f, tmz: %f\n", tMaxX, tMaxY, tMaxZ);
+    //debugf("sx %d sy %d sz %d\n", sx, sy, sz);
 
     float accX = 0;
     float accY = 0;
@@ -245,10 +246,11 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
     while (accX*accX + accY*accY + accZ*accZ <= max_squared) {
         n++;
         block_tag t = get_block(world, ret.coords).tag;
-        printf("x: %ld y: %ld z: %ld, t: %d\n", ret.coords.x, ret.coords.y, ret.coords.z, t);
+        debugf("x: %ld y: %ld z: %ld, t: %d\n", ret.coords.x, ret.coords.y, ret.coords.z, t);
+        debugf("x dist: %.3f, y dist: %.3f, z dist: %.3f\n", accX, accY, accZ);
         //printf("tmx: %.2f, tmy: %.2f, tmz: %.2f\n", tMaxX, tMaxY, tMaxZ);
         if (t != BLOCK_AIR) {
-            printf("found block\n");
+            debugf("found block\n");
             ret.success=true;
             return ret;
         }
@@ -275,7 +277,7 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
             if (tMaxY < tMaxZ) {
                 // Y min
                 ret.coords.y += sy;
-                accY += tMaxY;
+                accY = tMaxY;
                 tMaxY += tDeltaY;
                 ret.normal_x = 0;
                 ret.normal_y = -sy;
@@ -283,7 +285,7 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
             } else {
                 // Z min (again)
                 ret.coords.z += sz;
-                accZ += tMaxZ;
+                accZ = tMaxZ;
                 tMaxZ += tDeltaZ;
                 ret.normal_x = 0;
                 ret.normal_y = 0;
@@ -293,7 +295,7 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
 
     }
     ret.success = false;
-    printf("didnt find anything after n iters %d\n", n);
+    debugf("didnt find anything after n iters %d\n", n);
     //printf("bailed with accx: %.2f, accy: %.2f, accz: %.2f\n", accX, accY, accZ);
 
     return ret;

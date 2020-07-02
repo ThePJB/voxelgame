@@ -196,8 +196,17 @@ window context is going to end up having everything
 what does that mean is actually in graphics context? textures and shaders
 
 dereference stuff makes it easier to refactor
-like pass iti nto a function or at least just cam = c->someothershit->stupidcontianer->camera
+like pass it into a function or at least just cam = c->someothershit->stupidcontianer->camera
 and then cam->x, cam->lookat etc
 
+ok fixed the weirdness in the picking range now its about what it should be
 
-picking range is dogshit vertical but fine horizontal
+what if its not perspective correct?
+but its center of screen so perspective shouldn't really be an issue
+
+yeah so it looks correct when it selects the wrong block, in that it occurs when tmz > tmx it goes zward
+so intbound is wrong? or args to it are wrong? or theres some offset? is it identical from other angles?
+
+seems biased towards +x
+
+its biased towards + in all directions

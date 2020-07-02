@@ -1,6 +1,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <stdbool.h>
+
 typedef struct {
     long int x;
     long int y;
@@ -27,5 +29,9 @@ bool fequals(float a, float b);
 
 
 void test_util();
+
+extern bool enable_debug;
+
+#define debugf(...) if(enable_debug) {printf(__VA_ARGS__);}
 
 #endif
