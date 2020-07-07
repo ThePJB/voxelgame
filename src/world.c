@@ -107,12 +107,9 @@ void init_chunk_slot(chunk_manager *cm, int idx) {
 
 void free_chunk_slot(chunk_slot *cs) {
     chunk_blocks *blocks_ptr = cs->chunk.blocks;
-    printf("freeing %p\n", blocks_ptr);
     if (blocks_ptr != NULL) {
         if (cs->chunk.empty) {
-            printf("chunk should not be empty\n");
         }
-        printf("freeing it anyway for some reason\n");
         free(blocks_ptr);
     }
 }
@@ -177,8 +174,6 @@ void cm_abc(int x, int y, int z) {
 
 void chunk_treadmill(chunk_manager *cm, direction direction) {
     vec3i bottom_corner = {-MAX_CHUNKS_S/2, -MAX_CHUNKS_Y/2, -MAX_CHUNKS_S/2};
-
-    printf("treadmil noise: %p\n", cm->world_noise.osn);
     if (direction == DIR_PX) {
         
         //int offset_low = mod(cm->offsets.x - (MAX_CHUNKS_S/2), MAX_CHUNKS_S);
@@ -187,33 +182,88 @@ void chunk_treadmill(chunk_manager *cm, direction direction) {
         for (int k = 0; k < MAX_CHUNKS_S; k++) {
             for (int j = 0; j < MAX_CHUNKS_Y; j++) {
                 vec3i chunk_slot_pos = {i, j, k};
-                vec3i old_chunk_world_pos = vec3i_add(chunk_slot_pos, vec3i_add(bottom_corner, cm->offsets));
-                //vec3i old_chunk_world_pos = vec3i_add(chunk_slot_pos, bottom_corner);
+                vec3i old_chunk_world_pos = vec3i_add(cm->offsets, bottom_corner);
+                old_chunk_world_pos = vec3i_add(old_chunk_world_pos, (vec3i) {0, j, k});
                 vec3i new_chunk_world_pos = old_chunk_world_pos;
                 new_chunk_world_pos.x += MAX_CHUNKS_S;
 
-                printf("at chunk slot pos:"); print_vec3i(chunk_slot_pos);
-                printf("\nunloading chunk "); print_vec3i(old_chunk_world_pos);
-                printf("\nreplacing with chunk "); print_vec3i(new_chunk_world_pos); printf("\n");
-
-                // not 100% sure about adding offsets to the world pos
-                //printf("chunk slot %d %d %d\n", i, j, k);
-
                 cm_abc(spread(chunk_slot_pos));
                 int idx = cm_3d_to_1d(spread(chunk_slot_pos));
-                // free_chunk_slot(&cm->chunk_slots[idx]);
+                free_chunk_slot(&cm->chunk_slots[idx]);
 
-                printf("generating\n");
-                
-
-                //cm->chunk_slots[idx].chunk = generate_chunk(cm->noise_context, cm->offsets.x + MAX_CHUNKS_S/2, j + cm->offsets.y, k + cm->offsets.z);
-                printf("meshing\n");
-                //mesh_chunk_slot(&cm->chunk_slots[idx]);
+                cm->chunk_slots[idx].chunk = generate_chunk(&cm->world_noise, spread(new_chunk_world_pos));
+                mesh_chunk_slot(&cm->chunk_slots[idx]);
             }
         }
 
         cm->offsets.x++;
 
+    } else if (direction == DIR_MX) {
+        int i = mod(cm->offsets.x-1, MAX_CHUNKS_S);
+
+        for (int k = 0; k < MAX_CHUNKS_S; k++) {
+            for (int j = 0; j < MAX_CHUNKS_Y; j++) {
+                vec3i chunk_slot_pos = {i, j, k};
+                vec3i old_chunk_world_pos = vec3i_add(cm->offsets, bottom_corner);
+                old_chunk_world_pos = vec3i_add(old_chunk_world_pos, (vec3i) {MAX_CHUNKS_S, j, k});
+                vec3i new_chunk_world_pos = old_chunk_world_pos;
+                new_chunk_world_pos.x -= MAX_CHUNKS_S;
+
+                cm_abc(spread(chunk_slot_pos));
+                int idx = cm_3d_to_1d(spread(chunk_slot_pos));
+                free_chunk_slot(&cm->chunk_slots[idx]);
+
+                cm->chunk_slots[idx].chunk = generate_chunk(&cm->world_noise, spread(new_chunk_world_pos));
+                mesh_chunk_slot(&cm->chunk_slots[idx]);
+            }
+        }
+
+        cm->offsets.x--;
+
+    } else if (direction == DIR_PZ) {
+                
+        int k = mod(cm->offsets.z, MAX_CHUNKS_S);
+
+        for (int i = 0; i < MAX_CHUNKS_S; i++) {
+            for (int j = 0; j < MAX_CHUNKS_Y; j++) {
+                vec3i chunk_slot_pos = {i, j, k};
+                vec3i old_chunk_world_pos = vec3i_add(cm->offsets, bottom_corner);
+                old_chunk_world_pos = vec3i_add(old_chunk_world_pos, (vec3i) {i, j, 0});
+                vec3i new_chunk_world_pos = old_chunk_world_pos;
+                new_chunk_world_pos.z += MAX_CHUNKS_S;
+
+                cm_abc(spread(chunk_slot_pos));
+                int idx = cm_3d_to_1d(spread(chunk_slot_pos));
+                free_chunk_slot(&cm->chunk_slots[idx]);
+
+                cm->chunk_slots[idx].chunk = generate_chunk(&cm->world_noise, spread(new_chunk_world_pos));
+                mesh_chunk_slot(&cm->chunk_slots[idx]);
+            }
+        }
+
+        cm->offsets.z++;
+    } else if (direction == DIR_MZ) {
+                
+        int k = mod(cm->offsets.z, MAX_CHUNKS_S);
+
+        for (int i = 0; i < MAX_CHUNKS_S; i++) {
+            for (int j = 0; j < MAX_CHUNKS_Y; j++) {
+                vec3i chunk_slot_pos = {i, j, k};
+                vec3i old_chunk_world_pos = vec3i_add(cm->offsets, bottom_corner);
+                old_chunk_world_pos = vec3i_add(old_chunk_world_pos, (vec3i) {i, j, MAX_CHUNKS_S});
+                vec3i new_chunk_world_pos = old_chunk_world_pos;
+                new_chunk_world_pos.z -= MAX_CHUNKS_S;
+
+                cm_abc(spread(chunk_slot_pos));
+                int idx = cm_3d_to_1d(spread(chunk_slot_pos));
+                free_chunk_slot(&cm->chunk_slots[idx]);
+
+                cm->chunk_slots[idx].chunk = generate_chunk(&cm->world_noise, spread(new_chunk_world_pos));
+                mesh_chunk_slot(&cm->chunk_slots[idx]);
+            }
+        }
+
+        cm->offsets.z--;
     }
 }
 

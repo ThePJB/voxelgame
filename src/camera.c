@@ -36,24 +36,29 @@ camera fly_camera() {
 
 #define CHUNK_RADIX 16
 
-extern chunk_manager *cm;
+extern chunk_manager *cmp;
 
 void move(vec3s *pos, vec3s amount) {
     vec3s old_pos = *pos;
     *pos = glms_vec3_add(*pos, amount);
     if ((pos->x > 0 && old_pos.x < 0) || (long int)old_pos.x / CHUNK_RADIX < (long int)pos->x / CHUNK_RADIX) {
-        chunk_treadmill(cm, DIR_PX);
         printf("+x chunk boundary\n");
+        chunk_treadmill(cmp, DIR_PX);
     } else if ((pos->x < 0 && old_pos.x > 0) || (long int)old_pos.x / CHUNK_RADIX > (long int)pos->x / CHUNK_RADIX) {
         printf("-x chunk boundary\n");
+        chunk_treadmill(cmp, DIR_MX);
     } else if ((pos->y > 0 && old_pos.y < 0) || (long int)old_pos.y / CHUNK_RADIX < (long int)pos->y / CHUNK_RADIX) {
         printf("+y chunk boundary\n");
+        chunk_treadmill(cmp, DIR_PY);
     } else if ((pos->y < 0 && old_pos.y > 0) || (long int)old_pos.y / CHUNK_RADIX > (long int)pos->y / CHUNK_RADIX) {
         printf("-y chunk boundary\n");
+        chunk_treadmill(cmp, DIR_MY);
     } else if ((pos->z > 0 && old_pos.z < 0) || (long int)old_pos.z / CHUNK_RADIX < (long int)pos->z / CHUNK_RADIX) {
         printf("+z chunk boundary\n");
+        chunk_treadmill(cmp, DIR_PZ);
     } else if ((pos->z < 0 && old_pos.z > 0) || (long int)old_pos.z / CHUNK_RADIX > (long int)pos->z / CHUNK_RADIX) {
         printf("-z chunk boundary\n");
+        chunk_treadmill(cmp, DIR_MZ);
     }
 
 

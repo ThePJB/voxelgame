@@ -228,3 +228,31 @@ probably needs a big refactor of the chunk manager code. So start the player in 
  and also the osn ptr keeps changing. maybe i should be using it with an extra level of indirection.
 
 doing noise refactoring now. Possibly I want to split the nosie params from the context? or maybe i dont. theres a few layers to pass it through down to the chunks. but oh well
+
+this run we have treadmil noise = nil and unloading chunks y 8 billion. like wtf
+
+maybe cm is fucked up and 
+
+maybe extern chunk manager cm is the problem lol. cause all the values in cm were cooked
+how?
+
+yeah cause I want camera to be a leaf node since its depended upon by graphics.
+The more logical game state stuff should be elsewhere
+
+maybe player? and then physics and stuff would go there as well
+i could have extern chunk manager *cmp and cmp = &cm
+
+but later when i can be fucked I'll do something about that camera
+
+there is some interesting structure to what should include what
+maybe it turns into layers
+
+when improving this just have a buffer or something that holds preloaded chunks. u can still move them in early. and then every frame preload like N chunks
+
+yeah its a decent hitch when you go over so definitely gonna need to preload some stuff
+
+now to make it work in all directions
+
+not sure about the deditated wam usage
+
+how about the holes. is that a bug or is that just how its going to work with what ive done. I feel like its a bug, the model should be fine

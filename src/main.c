@@ -14,6 +14,7 @@
 #include "window.h"
 
 chunk_manager cm = {0};
+chunk_manager *cmp = &cm;
 
 void draw_lookat_cube(chunk_manager *cm, vec3s cam_pos, vec3s cam_front, graphics_context *c) {
     pick_info p = pick_block(cm, cam_pos, cam_front, 9);
@@ -47,8 +48,6 @@ int main(int argc, char** argv) {
     init_chunk_manager(&cm, 123456789);
     //chunk_manager_position_hint(&cm, (vec3s){0,0,0}); // generates and meshes chunks
     generate_initial(&cm, (vec3s){0,0,0}); // generates and meshes chunks
-
-    print_world(&cm);
 
     cam.pos = (vec3s) {0, 16, 0};
     cam.front = (vec3s) {0, 0, -1};

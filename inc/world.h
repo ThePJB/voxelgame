@@ -43,10 +43,10 @@ pls update all the chunks
 so it needs an allocator for chunks
 could use malloc atm, maybe arena allocator later
 */
-#define MAX_CHUNKS_S 8
+#define MAX_CHUNKS_S 16
 #define MAX_CHUNKS_SS (MAX_CHUNKS_S*MAX_CHUNKS_S)
 
-#define MAX_CHUNKS_Y 4
+#define MAX_CHUNKS_Y 8
 #define MAX_CHUNKS_SYS (MAX_CHUNKS_SS * MAX_CHUNKS_Y)
 
 typedef struct {
