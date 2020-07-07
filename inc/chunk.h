@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "simplex.h"
+#include "noise.h"
 #include "block.h"
 #include "util.h"
 
@@ -41,7 +42,9 @@ void check_chunk_invariants(chunk c);
 // is an edge
 
 // return the chunk generated
-chunk generate_chunk(struct osn_context *ctx, int x, int y, int z);
+chunk generate_chunk(noise2d *noise, int x, int y, int z);
+
+void print_chunk(chunk c);
 
 // put vertex data into buffer and return number of triangles
 int get_chunk_vertex_data(chunk c, float *buf, int buflen);

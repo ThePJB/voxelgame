@@ -46,7 +46,7 @@ void mesh_chunk_slot(chunk_slot *cs) {
 
     int num_triangles = get_chunk_vertex_data(cs->chunk, vertices, MESHING_BUF_SIZE);
     cs->num_triangles = num_triangles;
-    printf("meshed chunk, %d triangles\n", num_triangles);
+    //printf("meshed chunk, %d triangles\n", num_triangles);
 
     // bind vao and vertix attribs
     glBindVertexArray(cs->vao);
@@ -99,14 +99,22 @@ void draw_chunks(chunk_manager *cm, graphics_context *c) {
 }
 
 void init_chunk_slot(chunk_manager *cm, int idx) {
-    chunk_slot *cs = &cm->chunk_slots[idx];
-    glGenVertexArrays(1, &cs->vao);
-    glGenBuffers(1, &cs->vbo);
+    printf("initing chunk slot %d", idx);
+    glGenVertexArrays(1, &cm->chunk_slots[idx].vao);
+    glGenBuffers(1, &cm->chunk_slots[idx].vbo);
+    printf("vao: %u, vbo: %u\n", cm->chunk_slots[idx].vao, cm->chunk_slots[idx].vbo);
 }
 
-void gen_chunk_slot(chunk_manager *cm, struct osn_context *noise, int x, int y, int z, int cx, int cy, int cz) {
-        cm->chunk_slots[MAX_CHUNKS_SS * y + MAX_CHUNKS_S * x + z].chunk = generate_chunk(noise, cx, cy, cz);
-        mesh_chunk_slot(&cm->chunk_slots[MAX_CHUNKS_SS * y + MAX_CHUNKS_S * x + z]);
+void free_chunk_slot(chunk_slot *cs) {
+    chunk_blocks *blocks_ptr = cs->chunk.blocks;
+    printf("freeing %p\n", blocks_ptr);
+    if (blocks_ptr != NULL) {
+        if (cs->chunk.empty) {
+            printf("chunk should not be empty\n");
+        }
+        printf("freeing it anyway for some reason\n");
+        free(blocks_ptr);
+    }
 }
 
 chunk_slot *get_chunk_slot(chunk_manager *cm, vec3i chunk_coords) {
@@ -119,33 +127,94 @@ chunk_slot *get_chunk_slot(chunk_manager *cm, vec3i chunk_coords) {
     return NULL;
 }
 
-void init_chunk_manager(chunk_manager *cm, int seed) {
-    open_simplex_noise(123456789, &cm->noise_context);
+int cm_3d_to_1d(int x, int y, int z) {
+    return MAX_CHUNKS_SS * y + MAX_CHUNKS_S * x + z;
+}
+
+#define cm_3d_to_1d_vec(X) cm_3d_to_1d(X.x, X.y, X.z)
+
+vec3i cm_1d_to_3d(int idx) {
+    return (vec3i) {
+        .z = idx % MAX_CHUNKS_S,
+        .y = idx / (MAX_CHUNKS_S*MAX_CHUNKS_S),
+        .x = (idx / MAX_CHUNKS_S) % MAX_CHUNKS_S,
+    };
+}
+
+void init_chunk_manager(chunk_manager *cm, int64_t seed) {
+    cm->world_noise = create_noise2d(seed, 5, 0.01, 2, 50, 0.5);
     for (int i = 0; i < MAX_CHUNKS_SYS; i++) {
         init_chunk_slot(cm, i);
     }
 }
 
-void chunk_manager_position_hint(chunk_manager *cm, vec3s pos) {
-    int bottom_corner_x = pos.x/CHUNK_RADIX - MAX_CHUNKS_S/2;
-    int bottom_corner_y = pos.y/CHUNK_RADIX - MAX_CHUNKS_Y/2;
-    int bottom_corner_z = pos.z/CHUNK_RADIX - MAX_CHUNKS_S/2;
-    for (int x = 0; x < MAX_CHUNKS_S; x++) {
-        for (int y = 0; y < MAX_CHUNKS_Y; y++) {
-            for (int z = 0; z < MAX_CHUNKS_S; z++) {
-                gen_chunk_slot(cm, cm->noise_context, x, y, z, x + bottom_corner_x, y + bottom_corner_y, z + bottom_corner_z);
-            }
-        }
+void generate_initial(chunk_manager *cm, vec3s pos) {
+    printf("gen initial noise: %p\n", cm->world_noise.osn);
+    vec3i chunk_array_dimensions = {MAX_CHUNKS_S, MAX_CHUNKS_Y, MAX_CHUNKS_S};
+
+    // chunk that pos is in
+    vec3i in_chunk = from_vec3s(glms_vec3_divs(pos, CHUNK_RADIX));
+
+    // chunk that the bottom right maximum loaded chunk would contain
+    vec3i chunk_offset = vec3i_sub(in_chunk, vec3i_div(chunk_array_dimensions, 2));
+
+    for (int idx = 0; idx < MAX_CHUNKS_SYS; idx++) {
+        // world chunk position
+        vec3i chunk_pos = vec3i_add(cm_1d_to_3d(idx), chunk_offset);
+        //vec3i chunk_pos = cm_1d_to_3d(idx);
+
+        cm->chunk_slots[idx].chunk = generate_chunk(&cm->world_noise, spread(chunk_pos));
+        mesh_chunk_slot(&cm->chunk_slots[idx]);
     }
 }
 
-void test_wtbc(int x, int y, int z) {
-    vec3i chunk_coords;
-    vec3i block_coords;
-    world_to_block_and_chunk(&chunk_coords, &block_coords, (vec3l) {x,y,z});
-    printf("%d %d %d lands in chunk %d %d %d and block %d %d %d\n",
-        x, y, z, chunk_coords.x, chunk_coords.y, chunk_coords.z,
-        block_coords.x, block_coords.y, block_coords.z);
+void cm_abc(int x, int y, int z) {
+    if (x < 0 || x >= MAX_CHUNKS_S || y < 0 || y >= MAX_CHUNKS_Y || z < 0 || z >= MAX_CHUNKS_S) {
+        printf("ABC failed %d %d %d\n", x, y, z);
+        exit(1);
+    }
+}
+
+void chunk_treadmill(chunk_manager *cm, direction direction) {
+    vec3i bottom_corner = {-MAX_CHUNKS_S/2, -MAX_CHUNKS_Y/2, -MAX_CHUNKS_S/2};
+
+    printf("treadmil noise: %p\n", cm->world_noise.osn);
+    if (direction == DIR_PX) {
+        
+        //int offset_low = mod(cm->offsets.x - (MAX_CHUNKS_S/2), MAX_CHUNKS_S);
+        int i = mod(cm->offsets.x, MAX_CHUNKS_S);
+
+        for (int k = 0; k < MAX_CHUNKS_S; k++) {
+            for (int j = 0; j < MAX_CHUNKS_Y; j++) {
+                vec3i chunk_slot_pos = {i, j, k};
+                vec3i old_chunk_world_pos = vec3i_add(chunk_slot_pos, vec3i_add(bottom_corner, cm->offsets));
+                //vec3i old_chunk_world_pos = vec3i_add(chunk_slot_pos, bottom_corner);
+                vec3i new_chunk_world_pos = old_chunk_world_pos;
+                new_chunk_world_pos.x += MAX_CHUNKS_S;
+
+                printf("at chunk slot pos:"); print_vec3i(chunk_slot_pos);
+                printf("\nunloading chunk "); print_vec3i(old_chunk_world_pos);
+                printf("\nreplacing with chunk "); print_vec3i(new_chunk_world_pos); printf("\n");
+
+                // not 100% sure about adding offsets to the world pos
+                //printf("chunk slot %d %d %d\n", i, j, k);
+
+                cm_abc(spread(chunk_slot_pos));
+                int idx = cm_3d_to_1d(spread(chunk_slot_pos));
+                // free_chunk_slot(&cm->chunk_slots[idx]);
+
+                printf("generating\n");
+                
+
+                //cm->chunk_slots[idx].chunk = generate_chunk(cm->noise_context, cm->offsets.x + MAX_CHUNKS_S/2, j + cm->offsets.y, k + cm->offsets.z);
+                printf("meshing\n");
+                //mesh_chunk_slot(&cm->chunk_slots[idx]);
+            }
+        }
+
+        cm->offsets.x++;
+
+    }
 }
 
 void single_w_t_bc(int *c, int *b, int g) {
@@ -298,6 +367,25 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
     
 }
 
+void print_chunk_slot(chunk_slot *cs) {
+    printf("vao: %u vbo: %u num_tris: %d chunk: ", cs->vao, cs->vbo, cs->num_triangles);
+    print_chunk(cs->chunk);
+}
+
+void print_world(chunk_manager *cm) {
+    for (int x = 0; x < MAX_CHUNKS_S; x++) {
+        for (int y = 0; y < MAX_CHUNKS_Y; y++) {
+            for (int z = 0; z < MAX_CHUNKS_S; z++) {
+                //printf("x: %d y: %d z: %d cs: ", x, y, z);
+                int idx = MAX_CHUNKS_SS * y + MAX_CHUNKS_S * x + z;
+                printf("blocks ptr: %p\n", cm->chunk_slots[idx].chunk.blocks);
+                //print_chunk_slot(&cm->chunk_slots[idx]);
+                //cm->chunk_slots[idx] = gen_chunk_slot(cm->noise_context, x + bottom_corner_x, y + bottom_corner_y, z + bottom_corner_z);
+            }
+        }
+    }
+    printf("osn ptr: %p\n", cm->world_noise.osn);
+}
 
 void test_world() {
     // nearest block
@@ -358,6 +446,23 @@ void test_world() {
     assert_float_equal("intbound 7", intbound(1.5, 1), 0.5);
     assert_float_equal("intbound 8", intbound(1.6, 1), 0.4);
     assert_float_equal("intbound 9", intbound(1.6, 0.5), 0.8);
+
+    // 3d to 1d
+    assert_int_equal("unit z", cm_3d_to_1d(0, 0, 1), 1);
+    assert_int_equal("unit x", cm_3d_to_1d(1, 0, 0), MAX_CHUNKS_S);
+    assert_int_equal("unit y", cm_3d_to_1d(0, 1, 0), MAX_CHUNKS_SS);
+    assert_int_equal("unit xyz", cm_3d_to_1d(1, 1, 1), MAX_CHUNKS_SS + MAX_CHUNKS_S + 1);
+    
+    // 1d to 3d
+    assert_vec3i_equal("unit z", cm_1d_to_3d(1), 0, 0, 1);
+    assert_vec3i_equal("unit x", cm_1d_to_3d(MAX_CHUNKS_S), 1, 0, 0);
+    assert_vec3i_equal("unit y", cm_1d_to_3d(MAX_CHUNKS_SS), 0, 1, 0);
+
+    // 3d to 1d and back
+    assert_int_equal("3d 1d and back 10", cm_3d_to_1d_vec(cm_1d_to_3d(10)), 10);
+    assert_int_equal("3d 1d and back -10", cm_3d_to_1d_vec(cm_1d_to_3d(-10)), -10);
+    assert_int_equal("3d 1d and back 0", cm_3d_to_1d_vec(cm_1d_to_3d(0)), 0);
+    assert_int_equal("3d 1d and back 64", cm_3d_to_1d_vec(cm_1d_to_3d(64)), 64);
 
     //assert_floatequal("intbound 10", intbound())
 

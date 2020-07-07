@@ -2,6 +2,9 @@
 #include <stdbool.h>
 #include <math.h>
 #include <stdlib.h>
+#include <cglm/struct.h>
+
+#include "util.h"
 
 int signum(float x) {
     if (x > 0) {
@@ -13,6 +16,28 @@ int signum(float x) {
 
 float min(float a, float b) { return a < b? a : b; }
 float max(float a, float b) { return a > b? a : b; }
+
+void print_vec3i(vec3i a) {
+    printf("{%d %d %d}", spread(a));
+}
+
+vec3i from_vec3s(vec3s a) {
+    return (vec3i) {
+        (int)a.x,
+        (int)a.y,
+        (int)a.z,
+    };
+}
+
+#define vec3i_binary_op(OP) .x = a.x OP b.x, .y = a.y OP b.y, .z = a.z OP b.z,
+
+vec3i vec3i_add(vec3i a, vec3i b) { return (vec3i) {vec3i_binary_op(+)}; }
+vec3i vec3i_sub(vec3i a, vec3i b) { return (vec3i) {vec3i_binary_op(-)}; }
+
+#define vec3i_num_binary_op(OP) .x = a.x OP b, .y = a.y OP b, .z = a.z OP b,
+
+vec3i vec3i_mul(vec3i a, int b) { return (vec3i) {vec3i_num_binary_op(*)}; }
+vec3i vec3i_div(vec3i a, int b) { return (vec3i) {vec3i_num_binary_op(/)}; }
 
 int mod(int val, int modulus) {
     // ok i think this is because its fake modulus (divisor)
@@ -56,6 +81,21 @@ void assert_int_equal(char *desc, int a, int b) {
         printf("%d == %d \t -- \t pass", a, b);
     } else {
         printf("%d != %d \t -- \t fail", a, b);
+    }
+    printf("\n\033[037m");
+}
+
+void assert_vec3i_equal(char *desc, vec3i a, int bx, int by, int bz) {
+    if (a.x == bx && a.y == by && a.z == bz) {
+        printf("\033[032m");
+    } else {
+        printf("\033[031m");
+    }
+    printf("%s \t", desc);
+    if (a.x == bx && a.y == by && a.z == bz) {
+        printf("{%d %d %d} == {%d %d %d}\t -- \t pass", a.x, a.y, a.z, bx, by, bz);
+    } else {
+        printf("{%d %d %d} != {%d %d %d}\t -- \t pass", a.x, a.y, a.z, bx, by, bz);        
     }
     printf("\n\033[037m");
 }
@@ -114,4 +154,10 @@ void test_util() {
     assert_bool("feq 0.8 0.8", fequals(0.8, 0.8), true);
     assert_bool("feq 0.8 big", fequals(0.8, 123098.34234), false);
     assert_bool("feq 0.81 0.8", fequals(0.81, 0.8), false);    
+
+    // vec3i
+    assert_vec3i_equal("123 + 456 = 579", vec3i_add((vec3i){1,2,3}, (vec3i){4,5,6}), 5,7,9);
+    assert_vec3i_equal("123 - 456 = -3-3-3", vec3i_sub((vec3i){1,2,3}, (vec3i){4,5,6}), -3,-3,-3);
+    assert_vec3i_equal("123 * 2 = 246", vec3i_mul((vec3i){1,2,3}, 2), 2,4,6);
+    assert_vec3i_equal("123 / 2 = 011", vec3i_div((vec3i){1,2,3}, 2), 0,1,1);
 }

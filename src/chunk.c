@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "simplex.h"
+#include "noise.h"
 #include "chunk.h"
 #include "util.h"
 
@@ -61,7 +62,7 @@ bool neighbour_exists(vec3i pos, int direction) {
     return false; // shouldnt happen
 }
 
-chunk generate_chunk(struct osn_context *ctx, int x, int y, int z) {
+chunk generate_chunk(noise2d *noise, int x, int y, int z) {
     chunk_blocks *blocks = calloc(sizeof(chunk_blocks), 1);
     chunk c = {0};
     c.blocks = blocks;
@@ -75,25 +76,15 @@ chunk generate_chunk(struct osn_context *ctx, int x, int y, int z) {
     float chunk_y = y*CHUNK_RADIX;
     float chunk_z = z*CHUNK_RADIX;
 
-    const double amplitude = 50;
-    const double scale = 0.01;
-    const double v = 539847;
-
+    //printf("a\n");
     for (int idx = 0; idx < CHUNK_RADIX_3; idx++) {
         vec3i block_pos = arr_1d_to_3d(idx);
-        int i = idx / CHUNK_RADIX_2;
-        int j = (idx % CHUNK_RADIX_2) / CHUNK_RADIX;
-        int k = (idx % CHUNK_RADIX);
 
         double block_x = chunk_x + block_pos.x;
         double block_y = chunk_y + block_pos.y;
         double block_z = chunk_z + block_pos.z;
 
-        float height = 
-            amplitude * open_simplex_noise2(ctx, scale*block_x, scale*block_z) +
-            amplitude/2 * open_simplex_noise2(ctx, v+2*scale*block_x, v+2*scale*block_z) +
-            amplitude/4 * open_simplex_noise2(ctx, 2*v+4*scale*block_x, 2*v+4*scale*block_z) +
-            amplitude/8 * open_simplex_noise2(ctx, 3*v+8*scale*block_x, 3*v+8*scale*block_z);
+        float height = sample(noise, block_x, block_z);
 
         // grass and stuff
         if (block_y < height - 4) {
@@ -127,9 +118,6 @@ chunk generate_chunk(struct osn_context *ctx, int x, int y, int z) {
     if (c.empty) {
         free(c.blocks);
         c.blocks = NULL;
-        //printf("generated empty chunk at %d %d %d\n", x, y, z);
-    } else {
-        //printf("generated chunk at %d %d %d\n", x, y, z);
     }
 
     check_chunk_invariants(c);
@@ -162,8 +150,6 @@ int get_chunk_vertex_data(chunk c, float *buf, int buflen) {
         vec3i coords = arr_1d_to_3d(idx);
 
         for (int face = 0; face < 6; face++) {
-
-            
             // Skip occluded faces
             if (face == FACE_PLUS_X && neighbour_exists(coords, PLUS_X) && c.blocks->blocks[idx + PLUS_X].tag != BLOCK_AIR) {
                 continue;
@@ -197,7 +183,7 @@ int get_chunk_vertex_data(chunk c, float *buf, int buflen) {
             }
         }
     }
-    printf("vertex idx: %d / %d\n", vertex_idx, buflen);
+    //printf("vertex idx: %d / %d\n", vertex_idx, buflen);
     return vertex_idx / (VERT_STRIDE+1) / 3;
 }
 

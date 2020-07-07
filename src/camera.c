@@ -1,6 +1,23 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <math.h>
+
+#include "glad.h"
+#include <GLFW/glfw3.h>
+#include <cglm/struct.h>
+#include "shader.h"
+
+#include "graphics.h"
+#include "world.h"
+#include "text.h"
+#include "window.h"
+
+/*
 #include "camera.h"
 #include "util.h"
-
+#include "world.h"
+*/
 // maybe camera and controls cause they are pretty tightly coupled
 
 camera fly_camera() {
@@ -19,11 +36,13 @@ camera fly_camera() {
 
 #define CHUNK_RADIX 16
 
+extern chunk_manager *cm;
 
 void move(vec3s *pos, vec3s amount) {
     vec3s old_pos = *pos;
     *pos = glms_vec3_add(*pos, amount);
     if ((pos->x > 0 && old_pos.x < 0) || (long int)old_pos.x / CHUNK_RADIX < (long int)pos->x / CHUNK_RADIX) {
+        chunk_treadmill(cm, DIR_PX);
         printf("+x chunk boundary\n");
     } else if ((pos->x < 0 && old_pos.x > 0) || (long int)old_pos.x / CHUNK_RADIX > (long int)pos->x / CHUNK_RADIX) {
         printf("-x chunk boundary\n");

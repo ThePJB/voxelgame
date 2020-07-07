@@ -37,6 +37,7 @@ int main(int argc, char** argv) {
     camera cam = fly_camera();
     //test_chunk();
     //test_world();
+    //test_util();
     //exit(0);
 
     window_context *wc = window_init("sick game", &w, &h, &cam);
@@ -44,7 +45,10 @@ int main(int argc, char** argv) {
 
     text_init(gc);
     init_chunk_manager(&cm, 123456789);
-    chunk_manager_position_hint(&cm, (vec3s){0,0,0}); // generates and meshes chunks
+    //chunk_manager_position_hint(&cm, (vec3s){0,0,0}); // generates and meshes chunks
+    generate_initial(&cm, (vec3s){0,0,0}); // generates and meshes chunks
+
+    print_world(&cm);
 
     cam.pos = (vec3s) {0, 16, 0};
     cam.front = (vec3s) {0, 0, -1};
