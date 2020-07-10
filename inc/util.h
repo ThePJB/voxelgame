@@ -55,6 +55,6 @@ void print_vec3i(vec3i a);
 
 extern bool enable_debug;
 
-#define debugf(...) if(enable_debug) {printf(__VA_ARGS__);}
+#define debugf(...) if(enable_debug) {printf("%s:%d:",__FILE__,__LINE__); printf(__VA_ARGS__);}
 
 #endif

@@ -12,6 +12,8 @@
 #include "world.h"
 #include "text.h"
 #include "window.h"
+#include "stb_ds.h"
+
 
 chunk_manager cm = {0};
 chunk_manager *cmp = &cm;
@@ -45,17 +47,20 @@ int main(int argc, char** argv) {
     graphics_context *gc = graphics_init(&w, &h, &cam);
 
     text_init(gc);
-    init_chunk_manager(&cm, 123456789);
-    //chunk_manager_position_hint(&cm, (vec3s){0,0,0}); // generates and meshes chunks
-    generate_initial(&cm, (vec3s){0,0,0}); // generates and meshes chunks
+    cm.world_noise = create_noise2d(123456789, 5, 0.01, 2, 50, 0.5);
+    cm.loaded_dimensions = (vec3i) {32,16,32};
 
     cam.pos = (vec3s) {0, 16, 0};
+
     cam.front = (vec3s) {0, 0, -1};
+
+    cm_update(&cm, cam.pos); // generates and meshes chunks
 
     float last = 0;
     float dt = 0;
     
     while (!glfwWindowShouldClose(wc->window)) {
+        cm_load_n(&cm, 20);
         if (glfwGetKey(wc->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(wc->window, true);
         }
@@ -107,8 +112,10 @@ int main(int argc, char** argv) {
             vec3i chunk_coords = {0};
     
             world_to_block_and_chunk(&chunk_coords, &block_coords, bc);
-            chunk_slot *cs = get_chunk_slot(&cm, chunk_coords);
-            if (cs) {
+            int idx = hmgeti(cm.chunk_slots, chunk_coords);
+            
+            if (idx > -1) {
+                chunk_slot *cs = &cm.chunk_slots[idx].value;
                 chunk *c = &cs->chunk;
                 sprintf(buf, "In chunk %d %d %d, empty: %d, block coords %d %d %d", 
                     chunk_coords.x, chunk_coords.y, chunk_coords.z,

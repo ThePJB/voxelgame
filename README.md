@@ -256,3 +256,61 @@ now to make it work in all directions
 not sure about the deditated wam usage
 
 how about the holes. is that a bug or is that just how its going to work with what ive done. I feel like its a bug, the model should be fine
+
+
+Tue 7 Jul Signoff
+-----------------
+Fix the holes in the world
+Make world loading asynchronous or cap it at like 5 chunks per frame or something
+then some fun with world generation may be in order. 3d perlin noise etc
+
+im going to do it in a less efficient way that will hopefully work
+
+
+how is get slot_of_chunk useful for this?
+fucking algorithms
+
+valgrind 
++x chunk boundary
+==3343== Invalid read of size 1
+==3343==    at 0x11C866: get_block (world.c:366)
+==3343==    by 0x11CCD2: pick_block (world.c:430)
+==3343==    by 0x127A19: draw_lookat_cube (main.c:20)
+==3343==    by 0x10A9D9: main (main.c:73)
+==3343==  Address 0x1fcd1cf7 is 1,095 bytes inside an unallocated block of size 4,176 in arena "client"
+
+theres a lot of memeory bugs
+am i loading chunk properly?
+
+
+Fri 10 Jul
+----------
+
+ok im onto something way less cooked with the chunk manager. load function, unload function, and update function. thass all. Using hashmap.
+so next up just modify cm update to use the new hashmap
+
+then hopefully that will work
+
+then we can defer loading so it only loads like 3 per frame or something
+and even have preloading 
+
+probably could just roll chunk slot and chunk together now theres not really a concept of a permanent chunk slot
+
+ok its getting there. i think draw is cooked
+it still may or may not be loading the right chunks but it looks improved at least
+
+
+
+ok it doesnt seem to be crashing any more.  
+ - only loads when u enter the chunk (not 1 before)
+ - unloads the chunk u enter not the proper one
+
+ i think just have a dynamic array for the load list hey to defer it
+
+
+ -----
+ it mostly works but if u go really far it leaks memory for some reason. maybe if u free before the chunk is loaded? though I wouldn't think 
+
+ o its double add
+
+ todo: load list could be like a hashset so it wouldnt waste heaps of time adding a million chunks when u zoom around

@@ -5,7 +5,8 @@ src = $(wildcard src/*.c)
 obj = $(src:src/%.c=obj/%.o)
 headers = $(wildcard inc/*.h)
 
-CFLAGS = -O2 -g -Wall -Werror=implicit-int -Werror=int-conversion -Werror=incompatible-pointer-types -Wno-missing-braces -Wno-unused-variable -Wno-unused-but-set-variable -std=c11 -Iinc -I/usr/include/freetype2
+# -std=c11 was not happy with stb ds
+CFLAGS = -O2 -g -Wall -Werror=implicit-int -Werror=int-conversion -Werror=incompatible-pointer-types -Wno-missing-braces -Wno-unused-variable -Wno-unused-but-set-variable -Iinc -I/usr/include/freetype2
 LDFLAGS = -lGL -lglfw -ldl -lm -lfreetype
 
 # obj depends on corresponding c and all headers
