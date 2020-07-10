@@ -39,6 +39,10 @@ void assert_bool(char *desc, bool a, bool b);
 
 bool fequals(float a, float b);
 
+float lerp(float a, float b, float t);
+float unlerp(float a, float b, float t);
+float remap(float prev_lower, float prev_upper, float new_lower, float new_upper, float a);
+
 unsigned long int get_ram_usage();
 
 void test_util();

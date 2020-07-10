@@ -17,7 +17,7 @@ void cm_load_chunk(chunk_manager *cm, int x, int y, int z) {
     glGenVertexArrays(1, &cs.vao);
     glGenBuffers(1, &cs.vbo);
     cs.status = CS_LOADED;
-    cs.chunk = generate_chunk(&cm->world_noise, x, y, z);
+    cs.chunk = generate_chunk(cm->world_noise, x, y, z);
     mesh_chunk_slot(&cs);
     hmput(cm->chunk_slots, ((vec3i){x,y,z}), cs);
 }
@@ -97,13 +97,20 @@ void cm_update(chunk_manager *cm, vec3s pos) {
 
 // todo priority queue and some heuristic
 // or maybe hashmap
-void cm_load_n(chunk_manager *cm, int n) {
+void cm_load_n(chunk_manager *cm, vec3s pos, int n) {
+    vec3i in_chunk = pos_to_chunk(pos);
+    vec3i load_min = vec3i_sub(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
+    vec3i load_max = vec3i_add(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
+
     int i = 0;
     int amt_actually_loaded = 0;
     // does it load n per frame or n-1
     while (arrlen(cm->load_list) > 0 && amt_actually_loaded < n) {
         vec3i k = cm->load_list[i];
-        if (hmgeti(cm->chunk_slots, k) < 0) {
+
+        // check that it hasnt been loaded yet and that we still want it loaded
+        // (meaning its still in the loading volume)
+        if (hmgeti(cm->chunk_slots, k) < 0 && bounded(load_max, load_min, in_chunk)) {
             cm_load_chunk(cm, spread(k));
             amt_actually_loaded++;
         }

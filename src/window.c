@@ -76,7 +76,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         wc.show_info = !wc.show_info;
     }
     if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
-        reseed(&cm.world_noise, rand());
+        n2d_reseed(&cm.world_noise.noise_lf_heightmap, rand());
+        n2d_reseed(&cm.world_noise.noise_hf_heightmap, rand());
+        n3d_reseed(&cm.world_noise.noise_cliff_carver, rand());
         cm_update(&cm, (vec3s){0,0,0});
     }
     if (key == GLFW_KEY_Q && action == GLFW_PRESS) {

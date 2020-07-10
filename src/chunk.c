@@ -28,6 +28,15 @@ void check_chunk_invariants(chunk c) {
 #define MINUS_Y -PLUS_Y
 #define MINUS_Z -PLUS_Z
 
+chunk_rngs chunk_rngs_init(int64_t seed) {
+    const int vec = 987234;
+    return (chunk_rngs) {
+        .noise_lf_heightmap = n2d_create(seed, 2, 0.01, 2, 50, 0.5),
+        .noise_hf_heightmap = n2d_create(seed*vec, 3, 0.04, 2, 12.5, 0.5),
+        .noise_cliff_carver = n3d_create(seed*vec*vec, 3, 0.03, 2, 20, 0.5),
+        .noise_cave_carver = n3d_create(seed*vec*vec*vec, 4, 0.05, 2, 10, 0.7),
+    };
+}
 
 vec3i arr_1d_to_3d(int idx) {
     vec3i ret;
@@ -62,7 +71,7 @@ bool neighbour_exists(vec3i pos, int direction) {
     return false; // shouldnt happen
 }
 
-chunk generate_chunk(noise2d *noise, int x, int y, int z) {
+chunk generate_chunk(chunk_rngs noise, int x, int y, int z) {
     chunk_blocks *blocks = calloc(sizeof(chunk_blocks), 1);
     chunk c = {0};
     c.blocks = blocks;
@@ -84,7 +93,24 @@ chunk generate_chunk(noise2d *noise, int x, int y, int z) {
         double block_y = chunk_y + block_pos.y;
         double block_z = chunk_z + block_pos.z;
 
-        float height = sample(noise, block_x, block_z);
+        float height_low = n2d_sample(&noise.noise_lf_heightmap, block_x, block_z);
+        float height_high = n2d_sample(&noise.noise_hf_heightmap, block_x, block_z);
+        float cliff_carve_density = n3d_sample(&noise.noise_cliff_carver, block_x, block_y, block_z);
+        float cave_carve_density = n3d_sample(&noise.noise_cliff_carver, block_x, block_y, block_z);
+
+        float cave_cutoff = remap(64, -80, -10, 2, block_y);
+
+        if (cave_carve_density < cave_cutoff) {
+            blocks->blocks[idx] = (block) {BLOCK_AIR};
+            continue;
+        }
+
+        float height;
+        if (cliff_carve_density < 1) {
+            height = height_low;
+        } else {
+            height = height_low + height_high;
+        }
 
         // grass and stuff
         if (block_y < height - 4) {
@@ -108,6 +134,72 @@ chunk generate_chunk(noise2d *noise, int x, int y, int z) {
         } else {
             blocks->blocks[idx] = (block) {BLOCK_AIR};
         }
+
+
+
+        // check empty
+        if (blocks->blocks[idx].tag != BLOCK_AIR) {
+            c.empty = false;
+        }
+    }
+
+    if (c.empty) {
+        free(c.blocks);
+        c.blocks = NULL;
+    }
+
+    check_chunk_invariants(c);
+    return c;
+}
+
+chunk generate_chunk_old(noise2d *noise, int x, int y, int z) {
+    chunk_blocks *blocks = calloc(sizeof(chunk_blocks), 1);
+    chunk c = {0};
+    c.blocks = blocks;
+    c.empty = true;
+
+    c.x = x;
+    c.y = y;
+    c.z = z;
+
+    float chunk_x = x*CHUNK_RADIX;
+    float chunk_y = y*CHUNK_RADIX;
+    float chunk_z = z*CHUNK_RADIX;
+
+    //printf("a\n");
+    for (int idx = 0; idx < CHUNK_RADIX_3; idx++) {
+        vec3i block_pos = arr_1d_to_3d(idx);
+
+        double block_x = chunk_x + block_pos.x;
+        double block_y = chunk_y + block_pos.y;
+        double block_z = chunk_z + block_pos.z;
+
+        float height = n2d_sample(noise, block_x, block_z);
+
+        // grass and stuff
+        if (block_y < height - 4) {
+            blocks->blocks[idx] = (block) {BLOCK_STONE};
+        } else if (block_y < height - 0.5) {
+            // not stone layers
+            if (height > -25) {
+                blocks->blocks[idx] = (block) {BLOCK_DIRT};
+            } else {
+                blocks->blocks[idx] = (block) {BLOCK_SAND};
+            }
+        } else if (block_y < height + 0.5) {
+            // top layer
+            if (height > 40) {
+                blocks->blocks[idx] = (block) {BLOCK_SNOW};    
+            } else if (height > -25) {
+                blocks->blocks[idx] = (block) {BLOCK_GRASS};
+            } else {
+                blocks->blocks[idx] = (block) {BLOCK_SAND};
+            }
+        } else {
+            blocks->blocks[idx] = (block) {BLOCK_AIR};
+        }
+
+        
 
         // check empty
         if (blocks->blocks[idx].tag != BLOCK_AIR) {

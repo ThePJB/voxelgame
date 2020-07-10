@@ -147,6 +147,18 @@ unsigned long int get_ram_usage() {
     return PAGESIZE * res.size;
 }
 
+float lerp(float a, float b, float t) {
+    return a*1-t + b*t;
+}
+
+float unlerp(float a, float b, float t) {
+    return (t - a) / (b - a);
+}
+
+float remap(float prev_lower, float prev_upper, float new_lower, float new_upper, float a) {
+    return lerp(new_lower, new_upper, unlerp(prev_lower, prev_upper, a));
+}
+
 void test_util() {
     // fequals
     assert_bool("feq 0.4 0.4", fequals(0.4, 0.4), true);

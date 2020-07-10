@@ -22,18 +22,15 @@ typedef struct {
 } chunk_slot;
 
 typedef struct {
-    noise2d world_noise;
+    chunk_rngs world_noise;
     struct {vec3i key; chunk_slot value; } *chunk_slots;
     vec3i loaded_dimensions;
     vec3i *load_list;
 } chunk_manager;
 
-void init_chunk_manager(chunk_manager *cm, int64_t seed, int x, int y, int z);
 void cm_update(chunk_manager *cm, vec3s pos);
 
-void chunk_treadmill(chunk_manager *cm, direction direction);
-
-void cm_load_n(chunk_manager *cm, int n);
+void cm_load_n(chunk_manager *cm, vec3s pos, int n);
 
 
 #endif

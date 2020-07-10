@@ -47,8 +47,8 @@ int main(int argc, char** argv) {
     graphics_context *gc = graphics_init(&w, &h, &cam);
 
     text_init(gc);
-    cm.world_noise = create_noise2d(123456789, 5, 0.01, 2, 50, 0.5);
-    cm.loaded_dimensions = (vec3i) {32,16,32};
+    cm.world_noise = chunk_rngs_init(123456789);
+    cm.loaded_dimensions = (vec3i) {16,12,16};
 
     cam.pos = (vec3s) {0, 16, 0};
 
@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
     float dt = 0;
     
     while (!glfwWindowShouldClose(wc->window)) {
-        cm_load_n(&cm, 20);
+        cm_load_n(&cm, cam.pos, 20);
         if (glfwGetKey(wc->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(wc->window, true);
         }

@@ -1,6 +1,7 @@
 #ifndef CHUNK_H
 #define CHUNK_H
 
+#include <stdint.h>
 #include <stdbool.h>
 #include "simplex.h"
 #include "noise.h"
@@ -21,6 +22,14 @@
 #define CHUNK_MAX_2 (CHUNK_RADIX * CHUNK_MAX)
 #define CHUNK_MAX_3 (CHUNK_RADIX * CHUNK_MAX_2)
 
+typedef struct {
+    noise2d noise_lf_heightmap;
+    noise2d noise_hf_heightmap;
+    noise3d noise_cliff_carver;
+    noise3d noise_cave_carver;
+} chunk_rngs;
+
+chunk_rngs chunk_rngs_init(int64_t seed);
 
 // The big block of data
 typedef struct {
@@ -42,7 +51,7 @@ void check_chunk_invariants(chunk c);
 // is an edge
 
 // return the chunk generated
-chunk generate_chunk(noise2d *noise, int x, int y, int z);
+chunk generate_chunk(chunk_rngs noise, int x, int y, int z);
 
 void print_chunk(chunk c);
 
