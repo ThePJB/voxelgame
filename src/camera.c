@@ -9,16 +9,10 @@
 #include "shader.h"
 
 #include "graphics.h"
-#include "world.h"
 #include "text.h"
 #include "window.h"
 
-/*
-#include "camera.h"
-#include "util.h"
-#include "world.h"
-*/
-// maybe camera and controls cause they are pretty tightly coupled
+#include "chunk_common.h"
 
 camera fly_camera() {
     camera cam;

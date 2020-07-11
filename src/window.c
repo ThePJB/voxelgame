@@ -9,10 +9,11 @@
 #include <cglm/struct.h>
 #include "shader.h"
 #include "texture.h"
-#include "world.h"
 #include "util.h"
 #include "window.h"
 #include "noise.h"
+
+#include "chunk_common.h"
 
 window_context wc = {0};
 
@@ -98,20 +99,20 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
         printf("lmb\n");
         pick_info p = pick_block(&cm, wc.cam->pos, wc.cam->front, 9);
-        printf("success %d block %d coords %ld %ld %ld normal %d %d %d\n", p.success, get_block(&cm, p.coords).tag, p.coords.x, p.coords.y, p.coords.z, p.normal_x, p.normal_y, p.normal_z);
+        printf("success %d block %d coords %ld %ld %ld normal %d %d %d\n", p.success, world_get_block(&cm, p.coords).tag, p.coords.x, p.coords.y, p.coords.z, p.normal_x, p.normal_y, p.normal_z);
         vec3l new_coords = {
             .x = p.coords.x + p.normal_x,
             .y = p.coords.y + p.normal_y,
             .z = p.coords.z + p.normal_z,
         };
-        if (p.success) set_block(&cm, new_coords, (block){.tag = place_block});
+        if (p.success) world_set_block(&cm, new_coords, (block){.tag = place_block});
         
         //enable_debug = false;
 
     } else if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS) {
         printf("rmb\n");
         pick_info p = pick_block(&cm, wc.cam->pos, wc.cam->front, 9);
-        if (p.success) set_block(&cm, p.coords, (block){.tag = BLOCK_AIR});
+        if (p.success) world_set_block(&cm, p.coords, (block){.tag = BLOCK_AIR});
     }
 }
 

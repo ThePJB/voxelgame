@@ -9,9 +9,13 @@
 #include "shader.h"
 
 #include "graphics.h"
-#include "world.h"
 #include "text.h"
 #include "window.h"
+#include "stb_ds.h"
+
+#include "chunk_common.h"
+
+#define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
 
 
@@ -38,8 +42,8 @@ int main(int argc, char** argv) {
     int w = 2560;
     int h = 1440;
     camera cam = fly_camera();
-    //test_chunk();
-    //test_world();
+    //chunk_test();
+    //world_test();
     //test_util();
     //exit(0);
 
@@ -73,7 +77,7 @@ int main(int argc, char** argv) {
 
         pre_draw(gc);
         
-        draw_chunks(&cm, gc);
+        world_draw(&cm, gc);
         
         draw_lookat_cube(&cm, cam.pos, cam.front, gc);
         //draw_mesh(c, c->cube); 
@@ -111,7 +115,7 @@ int main(int argc, char** argv) {
             vec3i block_coords = {0};
             vec3i chunk_coords = {0};
     
-            world_to_block_and_chunk(&chunk_coords, &block_coords, bc);
+            world_global_to_block_chunk(&chunk_coords, &block_coords, bc);
             int idx = hmgeti(cm.chunk_slots, chunk_coords);
             
             if (idx > -1) {
@@ -129,7 +133,7 @@ int main(int argc, char** argv) {
             draw_text(buf, 10, y, debug_text);
             y += 100;
 
-            sprintf(buf, "Block ur in: %d", get_block(&cm, bc).tag);
+            sprintf(buf, "Block ur in: %d", world_get_block(&cm, bc).tag);
             draw_text(buf, 10, y, debug_text);
             y += 100;
 
