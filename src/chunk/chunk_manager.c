@@ -1,4 +1,3 @@
-
 #include "chunk_common.h"
 
 void cm_load_chunk(chunk_manager *cm, int x, int y, int z) {

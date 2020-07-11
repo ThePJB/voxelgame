@@ -15,26 +15,6 @@ float intbound(float s, float ds) {
     }
 }
 
-vec3l world_pos_to_block_pos(vec3s pos) {
-    vec3l ret;
-    if (pos.x > 0) {
-        ret.x = pos.x;
-    } else {
-        ret.x = pos.x - 1;
-    }
-    if (pos.y > 0) {
-        ret.y = pos.y;
-    } else {
-        ret.y = pos.y - 1;
-    }
-    if (pos.z > 0) {
-        ret.z = pos.z;
-    } else {
-        ret.z = pos.z - 1;
-    }
-    return ret;
-}
-
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance) {
     debugf("facing %.2f, %.2f, %.2f\n", facing.x, facing.y, facing.z);
     debugf("at %.2f, %.2f, %.2f\n", pos.x, pos.y, pos.z);

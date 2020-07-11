@@ -9,7 +9,6 @@
 #include <cglm/struct.h>
 #include "shader.h"
 #include "texture.h"
-#include "world.h"
 #include "util.h"
 
 graphics_context gc = {0};

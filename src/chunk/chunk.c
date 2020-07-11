@@ -1,4 +1,3 @@
-
 #include "chunk_common.h"
 
 void chunk_print(chunk c) {
@@ -127,7 +126,6 @@ chunk chunk_generate(chunk_rngs noise, int x, int y, int z) {
         c.blocks = NULL;
     }
 
-    check_chunk_invariants(c);
     return c;
 }
 
@@ -191,7 +189,6 @@ chunk chunk_generate_old(noise2d *noise, int x, int y, int z) {
         c.blocks = NULL;
     }
 
-    check_chunk_invariants(c);
     return c;
 }
 
