@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 
     text_init(gc);
     cm.world_noise = chunk_rngs_init(123456789);
-    cm.loaded_dimensions = (vec3i) {16,12,16};
+    cm.loaded_dimensions = (vec3i) {8,8,8};
 
     cam.pos = (vec3s) {0, 16, 0};
 
@@ -117,10 +117,11 @@ int main(int argc, char** argv) {
             if (idx > -1) {
                 chunk_slot *cs = &cm.chunk_slots[idx].value;
                 chunk *c = &cs->chunk;
-                sprintf(buf, "In chunk %d %d %d, empty: %d, block coords %d %d %d", 
+                sprintf(buf, "In chunk %d %d %d, empty: %d, block coords %d %d %d, 4conn: %d", 
                     chunk_coords.x, chunk_coords.y, chunk_coords.z,
                     c->empty,
-                    block_coords.x, block_coords.y, block_coords.z);
+                    block_coords.x, block_coords.y, block_coords.z,
+                    c->loaded_4con_neighbours);
             } else {
                 sprintf(buf, "not in chunk");
             }

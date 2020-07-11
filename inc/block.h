@@ -1,6 +1,9 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
+#include <stdbool.h>
+#include <stdint.h>
+
 typedef enum __attribute__ ((__packed__)) {
     BLOCK_AIR,
     BLOCK_GRASS,
@@ -19,6 +22,11 @@ typedef enum __attribute__ ((__packed__)) {
 typedef struct {
     block_tag tag;
 } block;
+
+typedef struct {
+    bool opaque;
+    uint8_t luminance;
+} block_definition;
 
 
 

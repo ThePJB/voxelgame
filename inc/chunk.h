@@ -36,6 +36,10 @@ typedef struct {
     block blocks[CHUNK_RADIX_3];
 } chunk_blocks;
 
+typedef struct {
+    uint8_t level[CHUNK_RADIX_3];
+} lightmap;
+
 // Information that the chunk cares about (would be saved)
 typedef struct {
     int x;
@@ -43,6 +47,12 @@ typedef struct {
     int z;
     bool empty; // also all_one_block is a possibility, not sure how applicable that is
     chunk_blocks *blocks;
+    lightmap *block_light;
+    lightmap *sky_light;
+    
+    bool needs_remesh;
+    int loaded_4con_neighbours;
+    
 } chunk;
 
 void check_chunk_invariants(chunk c);

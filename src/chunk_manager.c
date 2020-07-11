@@ -18,7 +18,55 @@ void cm_load_chunk(chunk_manager *cm, int x, int y, int z) {
     glGenBuffers(1, &cs.vbo);
     cs.status = CS_LOADED;
     cs.chunk = generate_chunk(cm->world_noise, x, y, z);
-    mesh_chunk_slot(&cs);
+    if (!cs.chunk.empty) {
+        cs.chunk.block_light = calloc(CHUNK_RADIX_3, sizeof(uint8_t));
+    }
+
+    int neighbour_idx;
+    if (neighbour_idx = hmgeti(cm->chunk_slots, ((vec3i){x+1, y, z})) > 0) {
+        printf("4con before %d\n", cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours);
+        int nn = cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours++;
+        printf("4con after %d\n", nn);
+        if (nn == 6) {
+            cm_mesh_chunk(cm, x+1, y, z);
+        }
+    }
+    if (neighbour_idx = hmgeti(cm->chunk_slots, ((vec3i){x-1, y, z})) > 0) {
+        cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours++;
+        cs.chunk.loaded_4con_neighbours++;
+        if (cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours == 6) {
+            cm_mesh_chunk(cm, x-1, y, z);
+        }
+    }
+    if (neighbour_idx = hmgeti(cm->chunk_slots, ((vec3i){x, y+1, z})) > 0) {
+        cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours++;
+        cs.chunk.loaded_4con_neighbours++;
+        if (cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours == 6) {
+            cm_mesh_chunk(cm, x, y+1, z);
+        }
+    }
+    if (neighbour_idx = hmgeti(cm->chunk_slots, ((vec3i){x-1, y-1, z})) > 0) {
+        cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours++;
+        cs.chunk.loaded_4con_neighbours++;
+        if (cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours == 6) {
+            cm_mesh_chunk(cm, x, y-1, z);
+        }
+    }
+    if (neighbour_idx = hmgeti(cm->chunk_slots, ((vec3i){x, y, z+1})) > 0) {
+        cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours++;
+        cs.chunk.loaded_4con_neighbours++;
+        if (cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours == 6) {
+            cm_mesh_chunk(cm, x, y, z + 1);
+        }
+    }
+    if (neighbour_idx = hmgeti(cm->chunk_slots, ((vec3i){x, y, z-1})) > 0) {
+        cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours++;
+        cs.chunk.loaded_4con_neighbours++;
+        if (cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours == 6) {
+            cm_mesh_chunk(cm, x, y, z - 1);
+        }
+    }
+
     hmput(cm->chunk_slots, ((vec3i){x,y,z}), cs);
 }
 
@@ -30,7 +78,28 @@ void cm_unload_chunk(chunk_manager *cm, int x, int y, int z) {
     glDeleteVertexArrays(1, &cs.vao);
     if (cs.chunk.blocks != NULL) {
         free(cs.chunk.blocks);
+        free(cs.chunk.block_light);
     }
+    int neighbour_idx;
+    if (neighbour_idx = hmgeti(cm->chunk_slots, ((vec3i){x+1, y, z})) > 0) {
+        cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours--;
+    }
+    if (neighbour_idx = hmgeti(cm->chunk_slots, ((vec3i){x-1, y, z})) > 0) {
+        cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours--;
+    }
+    if (neighbour_idx = hmgeti(cm->chunk_slots, ((vec3i){x, y+1, z})) > 0) {
+        cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours--;
+    }
+    if (neighbour_idx = hmgeti(cm->chunk_slots, ((vec3i){x-1, y-1, z})) > 0) {
+        cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours--;
+    }
+    if (neighbour_idx = hmgeti(cm->chunk_slots, ((vec3i){x, y, z+1})) > 0) {
+        cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours--;
+    }
+    if (neighbour_idx = hmgeti(cm->chunk_slots, ((vec3i){x, y, z-1})) > 0) {
+        cm->chunk_slots[neighbour_idx].value.chunk.loaded_4con_neighbours--;
+    }
+
     hmdel(cm->chunk_slots, ((vec3i){x,y,z}));
 }
 

@@ -35,9 +35,10 @@ void init_world_noise();
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance);
 
 void world_to_block_and_chunk(vec3i *chunk, vec3i *block, vec3l block_global);
+vec3l block_and_chunk_to_world(vec3i block, vec3i chunk);
 
 void test_world();
 
-void mesh_chunk_slot(chunk_slot *cs);
-
+void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z);
+void cm_add_light(chunk_manager *cm, uint8_t luminance, long x, long y, long z);
 #endif

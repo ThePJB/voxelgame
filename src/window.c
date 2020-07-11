@@ -94,7 +94,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
 
-        enable_debug = true;
+        //enable_debug = true;
 
         printf("lmb\n");
         pick_info p = pick_block(&cm, wc.cam->pos, wc.cam->front, 9);
@@ -106,7 +106,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         };
         if (p.success) set_block(&cm, new_coords, (block){.tag = place_block});
         
-        enable_debug = false;
+        //enable_debug = false;
 
     } else if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS) {
         printf("rmb\n");

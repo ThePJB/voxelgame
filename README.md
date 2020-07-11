@@ -100,6 +100,7 @@ Up next:
 
  you could have the cave coefficient change with depth obviously to encourage more cave action
 
+
  Sat 11 Jul
  ----------
  Caves and cliffs are in. its cool
@@ -111,3 +112,61 @@ Up next:
  vegetation
  potential optimization, RLE chunks in ram? worthwhile? well then length would be quite variable. well chunks are individually allocated after all. but you would have to serial access them. maybe that wouldnt matter so much. most time spent doing On stuff like meshing
  multithreaded world loading would be nice
+
+ O ao is gonna depend on the neighbouring chunks as well
+
+
+ So heres what im gonna do.
+ Add vertex attribs for shading amt and put some random values in
+ add lighting map to chunks (maybe use a byte for it)
+
+
+ load chunks proportional to urgency, and maybe preload at lower urgency?
+
+ ok so the light belongs to the opaque block
+
+ bfs uses a queue, maybe use ring buffer
+ might have to roll one made from stb ds
+
+block emission table
+block opacity
+
+
+janitor work:
+  get rid of block struct
+  get rid of chunk slot
+  separate world, chunk manager
+
+-----
+thoughts on light
+
+actually lets just do it at the world level of abstraction hey. for block light it seems straightforward ish.
+
+queues could just be a macro tbh
+
+-----
+man my frame rate is not too good.
+
+so light is kinda working. 
+something wrong with queues where at 384? it has a length suddenly of -3713
+and glitches at chunk borders which is fair enough, maybe the side that isnt loaded yet
+but also when u place its dark
+
+Light todos:
+------------
+ - get the infinity other cases working
+  - remove light
+  - place/remove block
+  - skylight
+ - gamma it so theres a nice long and smoooth falloff like IRL
+ - its really a pest that chunks are interdependent
+
+ only allow meshing after neighbours are loaded?
+ it seems that telling the other guy that u were loaded doesnt apply
+
+ alright idk why one of the chunks is trying to mesh but anyway
+ maybe it was the last to load out of its group though that seems unlikely
+
+ my 4con value is trash. i dont really know why. i think up next ill do a big refactor
+ and put things in files like meshing, lighting, etc
+ so i can find stuff easier, and pick some better names. itll save time in the long run.

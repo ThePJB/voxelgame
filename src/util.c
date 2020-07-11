@@ -159,6 +159,46 @@ float remap(float prev_lower, float prev_upper, float new_lower, float new_upper
     return lerp(new_lower, new_upper, unlerp(prev_lower, prev_upper, a));
 }
 
+void vec3i_queue_push(vec3i_queue *vq, vec3i item) {
+    vq->items[vq->end] = item;
+    vq->end = (vq->end + 1) % vq->size;
+}
+
+vec3i vec3i_queue_pop(vec3i_queue *vq) {
+    vec3i item = vq->items[vq->start];
+    vq->start = (vq->start + 1) % vq->size;
+    return item;
+}
+
+int vec3i_queue_len(vec3i_queue *vq) {
+    int size_tentative = vq->end - vq->start;
+    if (size_tentative >= 0) {
+        return size_tentative;
+    } else {
+        return size_tentative + vq->size;
+    }
+}
+
+void vec3l_queue_push(vec3l_queue *vq, vec3l item) {
+    vq->items[vq->end] = item;
+    vq->end = (vq->end + 1) % vq->size;
+}
+
+vec3l vec3l_queue_pop(vec3l_queue *vq) {
+    vec3l item = vq->items[vq->start];
+    vq->start = (vq->start + 1) % vq->size;
+    return item;
+}
+
+int vec3l_queue_len(vec3l_queue *vq) {
+    int size_tentative = vq->end - vq->start;
+    if (size_tentative >= 0) {
+        return size_tentative;
+    } else {
+        return size_tentative + vq->size;
+    }
+}
+
 void test_util() {
     // fequals
     assert_bool("feq 0.4 0.4", fequals(0.4, 0.4), true);
@@ -172,4 +212,38 @@ void test_util() {
     assert_vec3i_equal("123 - 456 = -3-3-3", vec3i_sub((vec3i){1,2,3}, (vec3i){4,5,6}), -3,-3,-3);
     assert_vec3i_equal("123 * 2 = 246", vec3i_mul((vec3i){1,2,3}, 2), 2,4,6);
     assert_vec3i_equal("123 / 2 = 011", vec3i_div((vec3i){1,2,3}, 2), 0,1,1);
+
+    // vec3l queue
+    vec3l buf[400];
+    vec3l_queue vq = {
+        .size = 400,
+        .items = buf,
+        .start = 0,
+        .end = 0,
+    };
+    assert_int_equal("empty queue len", 0, vec3l_queue_len(&vq));
+    vec3l_queue_push(&vq, (vec3l){1,0,0});
+    assert_int_equal("1item queue len", 1, vec3l_queue_len(&vq));
+    assert_int_equal("1item start", 0, vq.start);
+    assert_int_equal("1item end", 1, vq.end);
+    vec3l a = vec3l_queue_pop(&vq);
+    assert_int_equal("empty queue len again", 0, vec3l_queue_len(&vq));
+    assert_int_equal("emptyagain start", 1, vq.start);
+    assert_int_equal("emptyagain end", 1, vq.end);
+
+    for (int i = 0; i < 390; i++) {
+        vec3l_queue_push(&vq, (vec3l){i,0,i});
+    }
+    assert_int_equal("390 queue len", 390, vec3l_queue_len(&vq));
+
+    for (int i = 0; i < 270; i++) {
+        vec3l_queue_pop(&vq);
+    }
+    assert_int_equal("120 queue len", 120, vec3l_queue_len(&vq));
+
+    for (int i = 0; i < 200; i++) {
+        vec3l_queue_push(&vq, (vec3l) {0, i, 0});
+    }
+    assert_int_equal("320 queue len", 320, vec3l_queue_len(&vq));
+
 }

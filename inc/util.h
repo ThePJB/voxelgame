@@ -61,4 +61,26 @@ extern bool enable_debug;
 
 #define debugf(...) if(enable_debug) {printf("%s:%d:",__FILE__,__LINE__); printf(__VA_ARGS__);}
 
+typedef struct {
+    vec3i *items;
+    unsigned int start;
+    unsigned int end;
+    unsigned int size;
+} vec3i_queue;
+
+void vec3i_queue_push(vec3i_queue *vq, vec3i item);
+vec3i vec3i_queue_pop(vec3i_queue *vq);
+int vec3i_queue_len(vec3i_queue *vq);
+
+typedef struct {
+    vec3l *items;
+    unsigned long int start;
+    unsigned long int end;
+    unsigned long int size;
+} vec3l_queue;
+
+void vec3l_queue_push(vec3l_queue *vq, vec3l item);
+vec3l vec3l_queue_pop(vec3l_queue *vq);
+int vec3l_queue_len(vec3l_queue *vq);
+
 #endif
