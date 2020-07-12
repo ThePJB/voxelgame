@@ -12,6 +12,7 @@
 #include "util.h"
 #include "window.h"
 #include "noise.h"
+#include "camera.h"
 
 #include "chunk_common.h"
 
@@ -62,7 +63,7 @@ window_context *window_init(char *title, int *w, int *h, camera *cam) {
 }
 
 block_tag place_block = 0;
-extern chunk_manager cm;
+extern chunk_manager *cmp;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
@@ -77,10 +78,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         wc.show_info = !wc.show_info;
     }
     if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
-        n2d_reseed(&cm.world_noise.noise_lf_heightmap, rand());
-        n2d_reseed(&cm.world_noise.noise_hf_heightmap, rand());
-        n3d_reseed(&cm.world_noise.noise_cliff_carver, rand());
-        cm_update(&cm, (vec3s){0,0,0});
+        n2d_reseed(&cmp->world_noise.noise_lf_heightmap, rand());
+        n2d_reseed(&cmp->world_noise.noise_hf_heightmap, rand());
+        n3d_reseed(&cmp->world_noise.noise_cliff_carver, rand());
+        cm_update(cmp, (vec3s){0,0,0});
+    }
+    if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
+        printf("meshing\n");
+        vec3i chunk_pos = world_pos_to_chunk_pos(wc.cam->pos);
+        cm_mesh_chunk(cmp, spread(chunk_pos));
     }
     if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
         place_block = (place_block + (NUM_BLOCKS - 1)) % NUM_BLOCKS;
@@ -98,21 +104,21 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         //enable_debug = true;
 
         printf("lmb\n");
-        pick_info p = pick_block(&cm, wc.cam->pos, wc.cam->front, 9);
-        printf("success %d block %d coords %ld %ld %ld normal %d %d %d\n", p.success, world_get_block(&cm, p.coords).tag, p.coords.x, p.coords.y, p.coords.z, p.normal_x, p.normal_y, p.normal_z);
+        pick_info p = pick_block(cmp, wc.cam->pos, wc.cam->front, 9);
+        printf("success %d block %d coords %ld %ld %ld normal %d %d %d\n", p.success, world_get_block(cmp, p.coords), p.coords.x, p.coords.y, p.coords.z, p.normal_x, p.normal_y, p.normal_z);
         vec3l new_coords = {
             .x = p.coords.x + p.normal_x,
             .y = p.coords.y + p.normal_y,
             .z = p.coords.z + p.normal_z,
         };
-        if (p.success) world_set_block(&cm, new_coords, (block){.tag = place_block});
+        if (p.success) world_set_block(cmp, new_coords, place_block);
         
         //enable_debug = false;
 
     } else if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS) {
         printf("rmb\n");
-        pick_info p = pick_block(&cm, wc.cam->pos, wc.cam->front, 9);
-        if (p.success) world_set_block(&cm, p.coords, (block){.tag = BLOCK_AIR});
+        pick_info p = pick_block(cmp, wc.cam->pos, wc.cam->front, 9);
+        if (p.success) world_set_block(cmp, p.coords,BLOCK_AIR);
     }
 }
 

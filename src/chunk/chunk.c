@@ -1,10 +1,8 @@
 #include "chunk_common.h"
 
 void chunk_print(chunk c) {
-    printf("x: %d y: %d z: %d\n blocks ptr: %p\n empty: %d\n", c.x, c.y,c.z, c.blocks, c.empty);
+    printf("x: %d y: %d z: %d\n blocks ptr: %p\n empty: %d\n", spread(c.key), c.blocks, c.empty);
 }
-
-
 
 chunk_rngs chunk_rngs_init(int64_t seed) {
     const int vec = 987234;
@@ -50,20 +48,16 @@ bool neighbour_exists(vec3i pos, int direction) {
 }
 
 chunk chunk_generate(chunk_rngs noise, int x, int y, int z) {
-    chunk_blocks *blocks = calloc(sizeof(chunk_blocks), 1);
+    block_tag *blocks = calloc(sizeof(block_tag), CHUNK_RADIX_3);
     chunk c = {0};
     c.blocks = blocks;
     c.empty = true;
-
-    c.x = x;
-    c.y = y;
-    c.z = z;
+    c.key = (vec3i) {x,y,z};
 
     float chunk_x = x*CHUNK_RADIX;
     float chunk_y = y*CHUNK_RADIX;
     float chunk_z = z*CHUNK_RADIX;
 
-    //printf("a\n");
     for (int idx = 0; idx < CHUNK_RADIX_3; idx++) {
         vec3i block_pos = chunk_1d_to_3d(idx);
 
@@ -79,7 +73,7 @@ chunk chunk_generate(chunk_rngs noise, int x, int y, int z) {
         float cave_cutoff = remap(64, -80, -10, 2, block_y);
 
         if (cave_carve_density < cave_cutoff) {
-            blocks->blocks[idx] = (block) {BLOCK_AIR};
+            blocks[idx] = BLOCK_AIR;
             continue;
         }
 
@@ -92,31 +86,31 @@ chunk chunk_generate(chunk_rngs noise, int x, int y, int z) {
 
         // grass and stuff
         if (block_y < height - 4) {
-            blocks->blocks[idx] = (block) {BLOCK_STONE};
+            blocks[idx] = BLOCK_STONE;
         } else if (block_y < height - 0.5) {
             // not stone layers
             if (height > -25) {
-                blocks->blocks[idx] = (block) {BLOCK_DIRT};
+                blocks[idx] = BLOCK_DIRT;
             } else {
-                blocks->blocks[idx] = (block) {BLOCK_SAND};
+                blocks[idx] = BLOCK_SAND;
             }
         } else if (block_y < height + 0.5) {
             // top layer
             if (height > 40) {
-                blocks->blocks[idx] = (block) {BLOCK_SNOW};    
+                blocks[idx] = BLOCK_SNOW;    
             } else if (height > -25) {
-                blocks->blocks[idx] = (block) {BLOCK_GRASS};
+                blocks[idx] = BLOCK_GRASS;
             } else {
-                blocks->blocks[idx] = (block) {BLOCK_SAND};
+                blocks[idx] = BLOCK_SAND;
             }
         } else {
-            blocks->blocks[idx] = (block) {BLOCK_AIR};
+            blocks[idx] = BLOCK_AIR;
         }
 
 
 
         // check empty
-        if (blocks->blocks[idx].tag != BLOCK_AIR) {
+        if (blocks[idx] != BLOCK_AIR) {
             c.empty = false;
         }
     }
@@ -129,15 +123,13 @@ chunk chunk_generate(chunk_rngs noise, int x, int y, int z) {
     return c;
 }
 
+/*
 chunk chunk_generate_old(noise2d *noise, int x, int y, int z) {
     chunk_blocks *blocks = calloc(sizeof(chunk_blocks), 1);
     chunk c = {0};
     c.blocks = blocks;
     c.empty = true;
-
-    c.x = x;
-    c.y = y;
-    c.z = z;
+    c.key = (vec3i){x,y,z};
 
     float chunk_x = x*CHUNK_RADIX;
     float chunk_y = y*CHUNK_RADIX;
@@ -155,31 +147,31 @@ chunk chunk_generate_old(noise2d *noise, int x, int y, int z) {
 
         // grass and stuff
         if (block_y < height - 4) {
-            blocks->blocks[idx] = (block) {BLOCK_STONE};
+            blocks[idx] = (block) {BLOCK_STONE};
         } else if (block_y < height - 0.5) {
             // not stone layers
             if (height > -25) {
-                blocks->blocks[idx] = (block) {BLOCK_DIRT};
+                blocks[idx] = (block) {BLOCK_DIRT};
             } else {
-                blocks->blocks[idx] = (block) {BLOCK_SAND};
+                blocks[idx] = (block) {BLOCK_SAND};
             }
         } else if (block_y < height + 0.5) {
             // top layer
             if (height > 40) {
-                blocks->blocks[idx] = (block) {BLOCK_SNOW};    
+                blocks[idx] = (block) {BLOCK_SNOW};    
             } else if (height > -25) {
-                blocks->blocks[idx] = (block) {BLOCK_GRASS};
+                blocks[idx] = (block) {BLOCK_GRASS};
             } else {
-                blocks->blocks[idx] = (block) {BLOCK_SAND};
+                blocks[idx] = (block) {BLOCK_SAND};
             }
         } else {
-            blocks->blocks[idx] = (block) {BLOCK_AIR};
+            blocks[idx] = (block) {BLOCK_AIR};
         }
 
         
 
         // check empty
-        if (blocks->blocks[idx].tag != BLOCK_AIR) {
+        if (blocks[idx].tag != BLOCK_AIR) {
             c.empty = false;
         }
     }
@@ -191,6 +183,7 @@ chunk chunk_generate_old(noise2d *noise, int x, int y, int z) {
 
     return c;
 }
+*/
 
 void chunk_test() {
     assert_int_equal("0 corner", 0, chunk_3d_to_1d((vec3i){0,0,0}));

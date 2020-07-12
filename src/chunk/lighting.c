@@ -4,9 +4,9 @@ void lighting_process_node(chunk_manager *cm, vec3l_queue *vq,
     uint8_t current_illumination, vec3l target_pos) {
     
     uint8_t illumination_at_target = world_get_illumination(cm, target_pos);
-    block block_at_target = world_get_block(cm, target_pos);
+    block_tag block_at_target = world_get_block(cm, target_pos);
 
-    if (block_defs[block_at_target.tag].opaque) {
+    if (block_defs[block_at_target].opaque) {
         return;
     }
 

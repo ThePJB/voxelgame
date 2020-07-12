@@ -36,7 +36,7 @@ void draw_lookat_cube(chunk_manager *cm, vec3s cam_pos, vec3s cam_front, graphic
     }
 }
 
-bool enable_debug = false;
+bool enable_debug = true;
 
 int main(int argc, char** argv) {
     int w = 2560;
@@ -45,16 +45,17 @@ int main(int argc, char** argv) {
     //chunk_test();
     //world_test();
     //test_util();
-    //exit(0);
+    cm_test();
+    exit(0);
 
     window_context *wc = window_init("sick game", &w, &h, &cam);
     graphics_context *gc = graphics_init(&w, &h, &cam);
 
     text_init(gc);
     cm.world_noise = chunk_rngs_init(123456789);
-    cm.loaded_dimensions = (vec3i) {8,8,8};
+    cm.loaded_dimensions = (vec3i) {4,4,4};
 
-    cam.pos = (vec3s) {0, 16, 0};
+    cam.pos = (vec3s) {0, 0, 0};
 
     cam.front = (vec3s) {0, 0, -1};
 
@@ -80,7 +81,6 @@ int main(int argc, char** argv) {
         world_draw(&cm, gc);
         
         draw_lookat_cube(&cm, cam.pos, cam.front, gc);
-        //draw_mesh(c, c->cube); 
 
         if (wc->show_info) {
             char buf[64] = {0};
@@ -116,16 +116,15 @@ int main(int argc, char** argv) {
             vec3i chunk_coords = {0};
     
             world_global_to_block_chunk(&chunk_coords, &block_coords, bc);
-            int idx = hmgeti(cm.chunk_slots, chunk_coords);
+            int idx = hmgeti(cm.chunk_hm, chunk_coords);
             
             if (idx > -1) {
-                chunk_slot *cs = &cm.chunk_slots[idx].value;
-                chunk *c = &cs->chunk;
+                chunk c = cm.chunk_hm[idx];
                 sprintf(buf, "In chunk %d %d %d, empty: %d, block coords %d %d %d, 4conn: %d", 
                     chunk_coords.x, chunk_coords.y, chunk_coords.z,
-                    c->empty,
+                    c.empty,
                     block_coords.x, block_coords.y, block_coords.z,
-                    c->loaded_4con_neighbours);
+                    c.loaded_4con_neighbours);
             } else {
                 sprintf(buf, "not in chunk");
             }
@@ -133,7 +132,7 @@ int main(int argc, char** argv) {
             draw_text(buf, 10, y, debug_text);
             y += 100;
 
-            sprintf(buf, "Block ur in: %d", world_get_block(&cm, bc).tag);
+            sprintf(buf, "Block ur in: %d", world_get_block(&cm, bc));
             draw_text(buf, 10, y, debug_text);
             y += 100;
 
@@ -145,7 +144,7 @@ int main(int argc, char** argv) {
         };
 
         // good reticle
-        const int rscale = 4;
+        const int rscale = 2;
         draw_2d_image(gc, gc->reticle, w/2 - 5*rscale, h/2 - 5*rscale, 10*rscale, 10*rscale);
 
         // end draw

@@ -18,11 +18,6 @@ typedef enum __attribute__ ((__packed__)) {
     NUM_BLOCKS,
 } block_tag;
 
-// todo pack
-typedef struct {
-    block_tag tag;
-} block;
-
 typedef struct {
     bool opaque;
     uint8_t luminance;

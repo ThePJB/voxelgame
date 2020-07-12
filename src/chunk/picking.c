@@ -48,7 +48,7 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
     int n = 0;
     while (accX*accX + accY*accY + accZ*accZ <= max_squared) {
         n++;
-        block_tag t = world_get_block(world, ret.coords).tag;
+        block_tag t = world_get_block(world, ret.coords);
         debugf("x: %ld y: %ld z: %ld, t: %d\n", ret.coords.x, ret.coords.y, ret.coords.z, t);
         debugf("x dist: %.3f, y dist: %.3f, z dist: %.3f\n", accX, accY, accZ);
         //printf("tmx: %.2f, tmy: %.2f, tmz: %.2f\n", tMaxX, tMaxY, tMaxZ);

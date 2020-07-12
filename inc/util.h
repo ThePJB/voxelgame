@@ -83,4 +83,6 @@ void vec3l_queue_push(vec3l_queue *vq, vec3l item);
 vec3l vec3l_queue_pop(vec3l_queue *vq);
 int vec3l_queue_len(vec3l_queue *vq);
 
+vec3s vec3i_to_vec3s(vec3i a);
+
 #endif

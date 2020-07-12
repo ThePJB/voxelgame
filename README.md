@@ -170,3 +170,30 @@ Light todos:
  my 4con value is trash. i dont really know why. i think up next ill do a big refactor
  and put things in files like meshing, lighting, etc
  so i can find stuff easier, and pick some better names. itll save time in the long run.
+
+ ----
+
+ Signoff Sun 12 jul
+ ------------------
+ maybe have a read through the code to find gross stuff
+
+ unify function signature style, cm_do_stuff(cm, x, y, z)
+ improve naming
+
+ up next get rid of chunk slot and maybe make key the chunk's position
+
+ maybe get rid of block struct too if im feeling spiteful
+
+and do something about the horrid if (each direction) pattern im using atm
+
+ then debug 4con so i can debug meshing
+
+ then do skylights maybe
+
+ then do removing lights
+
+ then do AO and 
+
+ 
+ 
+ I hope hmputs works

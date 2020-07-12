@@ -40,33 +40,28 @@ block_definition block_defs[NUM_BLOCKS] = {
 
 };
 
-void world_draw(chunk_manager *cm, graphics_context *c) {
-    double ox = 0.5;
-    double oy = 0.5;
-    double oz = 0.5;
+void world_draw(chunk_manager *cm, graphics_context *ctx) {
+    glBindTexture(GL_TEXTURE_2D, ctx->atlas);
+    glUseProgram(ctx->chunk_program);
 
-    glBindTexture(GL_TEXTURE_2D, c->atlas);
-    glUseProgram(c->chunk_program);
-
-    for (int idx = 0; idx < hmlen(cm->chunk_slots); idx++) {
-        chunk_slot cs = cm->chunk_slots[idx].value;
-        if (cs.chunk.needs_remesh) {
-            cm_mesh_chunk(cm, spread(cm->chunk_slots[idx].value.chunk));
+    for (int idx = 0; idx < hmlen(cm->chunk_hm); idx++) {
+        chunk *c = &cm->chunk_hm[idx];
+        if (c->needs_remesh) {
+            cm_mesh_chunk(cm, spread(c->key));
         }
 
         mat4s model = GLMS_MAT4_IDENTITY_INIT;
         model = glms_translate(model, (vec3s){
-            cs.chunk.x*CHUNK_RADIX + ox, 
-            cs.chunk.y*CHUNK_RADIX + oy, 
-            cs.chunk.z*CHUNK_RADIX + oz,
+            c->key.x*CHUNK_RADIX + 0.5, 
+            c->key.y*CHUNK_RADIX + 0.5, 
+            c->key.z*CHUNK_RADIX + 0.5,
         });
 
-        glUniformMatrix4fv(glGetUniformLocation(c->mesh_program, "model"), 1, GL_FALSE, model.raw[0]);
-        glBindVertexArray(cs.vao);
-        glDrawArrays(GL_TRIANGLES, 0, cs.num_triangles * 3);
+        glUniformMatrix4fv(glGetUniformLocation(ctx->mesh_program, "model"), 1, GL_FALSE, model.raw[0]);
+        glBindVertexArray(c->vao);
+        glDrawArrays(GL_TRIANGLES, 0, c->num_triangles * 3);
     }
 }
-
 
 // -------------------- world getblock setblock
 long single_bc_t_w(int b, int c) {
@@ -91,6 +86,14 @@ vec3l world_pos_to_block_pos(vec3s pos) {
         floorf(pos.z)};
 }
 
+vec3i world_pos_to_chunk_pos(vec3s pos) {
+    return (vec3i) {
+        floorf(pos.x)/CHUNK_RADIX,
+        floorf(pos.y)/CHUNK_RADIX,
+        floorf(pos.z)/CHUNK_RADIX,
+    };
+}
+
 void world_global_to_block_chunk(vec3i *chunk, vec3i *block, vec3l block_global) {
     single_w_t_bc(&(chunk->x), &(block->x), block_global.x);
     single_w_t_bc(&(chunk->y), &(block->y), block_global.y);
@@ -105,47 +108,45 @@ vec3l world_block_chunk_to_global(vec3i block, vec3i chunk) {
     };
 }
 
-block world_get_block(chunk_manager *cm, vec3l pos) {
+block_tag world_get_block(chunk_manager *cm, vec3l pos) {
     vec3i chunk_coords;
     vec3i block_coords;
     world_global_to_block_chunk(&chunk_coords, &block_coords, pos);
-    int idx = hmgeti(cm->chunk_slots, chunk_coords);
+    int idx = hmgeti(cm->chunk_hm, chunk_coords);
 
     if (idx > -1) {
-        chunk c = cm->chunk_slots[idx].value.chunk;
+        chunk c = cm->chunk_hm[idx];
         if (c.empty) {
             debugf("empty get\n");
-            return (block) {BLOCK_AIR};
+            return BLOCK_AIR;
         }
-        return c.blocks->blocks[chunk_3d_to_1d(block_coords)];
+        return c.blocks[chunk_3d_to_1d(block_coords)];
     } else {
         // didnt find
         debugf("didnt find %ld %ld %ld\n", pos.x, pos.y, pos.z);
-        return (block) {
-            .tag = BLOCK_AIR, // todo make this separate to air so player dosnt fall lol
-        };
+        return BLOCK_AIR;
     }    
 }
 
-void world_set_block(chunk_manager *cm, vec3l pos, block b) {    
+void world_set_block(chunk_manager *cm, vec3l pos, block_tag b) {    
     vec3i chunk_coords;
     vec3i block_coords;
     world_global_to_block_chunk(&chunk_coords, &block_coords, pos);
-    int idx = hmgeti(cm->chunk_slots, chunk_coords);
+    int idx = hmgeti(cm->chunk_hm, chunk_coords);
     
     if (idx > -1) {
-        chunk_slot *cs = &cm->chunk_slots[idx].value;
-        if (cs->chunk.empty) {
+        chunk *c = &cm->chunk_hm[idx];
+        if (c->empty) {
             debugf("empty set\n");
             // not empty and allocate memory
-            cs->chunk.empty = false;
-            cs->chunk.blocks = calloc(sizeof(chunk_blocks), 1);
+            c->empty = false;
+            c->blocks = calloc(sizeof(block_tag), CHUNK_RADIX_3);
         }
-        cs->chunk.blocks->blocks[chunk_3d_to_1d(block_coords)] = b;
-        if (block_defs[b.tag].luminance > 0) {
-            cm_add_light(cm, block_defs[b.tag].luminance, spread(pos));
+        c->blocks[chunk_3d_to_1d(block_coords)] = b;
+        if (block_defs[b].luminance > 0) {
+            cm_add_light(cm, block_defs[b].luminance, spread(pos));
         }
-        cm_mesh_chunk(cm, spread(cm->chunk_slots[idx].value.chunk));
+        cm_mesh_chunk(cm, spread(cm->chunk_hm[idx].key));
     } else {
         // didnt find
         debugf("didnt find %ld %ld %ld\n", pos.x, pos.y, pos.z);
@@ -156,21 +157,20 @@ uint8_t world_get_illumination(chunk_manager *cm, vec3l pos) {
     vec3i chunk_pos;
     vec3i block_pos;
     world_global_to_block_chunk(&chunk_pos, &block_pos, pos);
-    int idx = hmgeti(cm->chunk_slots, chunk_pos);
+    int idx = hmgeti(cm->chunk_hm, chunk_pos);
     
     if (idx < 0) {
         printf("tried getting illumination of an unloaded chunk\n");
         return 255;
     }
 
-    if (cm->chunk_slots[idx].value.chunk.empty) {
+    if (cm->chunk_hm[idx].empty) {
         // later would probably want this to upgrade the chunk from empty
         printf("tried getting illumination of an empty chunk\n");
         return 255;
     }
 
-    chunk c = cm->chunk_slots[idx].value.chunk;
-    return c.block_light->level[chunk_3d_to_1d(block_pos)];
+    return cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(block_pos)];
 }
 
 void world_set_illumination(chunk_manager *cm, vec3l pos, uint8_t illumination) {
@@ -178,30 +178,24 @@ void world_set_illumination(chunk_manager *cm, vec3l pos, uint8_t illumination) 
     vec3i chunk_pos;
     vec3i block_pos;
     world_global_to_block_chunk(&chunk_pos, &block_pos, pos);
-    int idx = hmgeti(cm->chunk_slots, chunk_pos);
+    int idx = hmgeti(cm->chunk_hm, chunk_pos);
     
     if (idx < 0) {
         printf("tried setting illumination of an unloaded chunk\n");
         return;
     }
 
-    if (cm->chunk_slots[idx].value.chunk.empty) {
+    if (cm->chunk_hm[idx].empty) {
         printf("tried setting illumination of an empty chunk\n");
         return;
     }
 
-    chunk c = cm->chunk_slots[idx].value.chunk;
-    c.block_light->level[chunk_3d_to_1d(block_pos)] = illumination;
-    cm->chunk_slots[idx].value.chunk.needs_remesh = true;
+    cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(block_pos)] = illumination;
+    cm->chunk_hm[idx].needs_remesh = true;
 }
 
 
 // ----------- testing
-
-void chunk_print_slot(chunk_slot *cs) {
-    printf("vao: %u vbo: %u num_tris: %d chunk: ", cs->vao, cs->vbo, cs->num_triangles);
-    chunk_print(cs->chunk);
-}
 
 void world_test() {
     // nearest block

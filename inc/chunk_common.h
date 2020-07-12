@@ -39,41 +39,26 @@ typedef struct {
     noise3d noise_cave_carver;
 } chunk_rngs;
 
-
-
-typedef struct {
-    block blocks[CHUNK_RADIX_3];
-} chunk_blocks;
-
-typedef struct {
-    uint8_t level[CHUNK_RADIX_3];
-} lightmap;
-
 // Information that the chunk cares about (would be saved)
 typedef struct {
-    int x;
-    int y;
-    int z;
+    unsigned int vao;
+    unsigned int vbo;
+    int num_triangles;
+    vec3i key;  // chunk pos, for hashtable
     bool empty; // also all_one_block is a possibility, not sure how applicable that is
-    chunk_blocks *blocks;
-    lightmap *block_light;
-    lightmap *sky_light;
+    block_tag *blocks;
+    uint8_t *block_light_levels;
+    uint8_t *sky_light_levels;
     
     bool needs_remesh;
     int loaded_4con_neighbours;
     
 } chunk;
 
-typedef struct {
-    unsigned int vao;
-    unsigned int vbo;
-    int num_triangles;
-    chunk chunk;
-} chunk_slot;
 
 typedef struct {
     chunk_rngs world_noise;
-    struct {vec3i key; chunk_slot value; } *chunk_slots;
+    chunk *chunk_hm;
     vec3i loaded_dimensions;
     vec3i *load_list;
 } chunk_manager;
@@ -99,13 +84,16 @@ void chunk_test();
 // chunk manager
 void cm_update(chunk_manager *cm, vec3s pos);           // queue up chunks to load
 void cm_load_n(chunk_manager *cm, vec3s pos, int n);    // load a limited number of chunks
+void cm_test();
 
 // higher level -- world
 void world_global_to_block_chunk(vec3i *chunk, vec3i *block, vec3l block_global);
 vec3l world_block_chunk_to_global(vec3i block, vec3i chunk);
-block world_get_block(chunk_manager *cm, vec3l pos);
-void world_set_block(chunk_manager *cm, vec3l pos, block b);
+block_tag world_get_block(chunk_manager *cm, vec3l pos);
+void world_set_block(chunk_manager *cm, vec3l pos, block_tag b);
 vec3l world_pos_to_block_pos(vec3s pos);
+vec3i world_pos_to_chunk_pos(vec3s pos);
+
 uint8_t world_get_illumination(chunk_manager *cm, vec3l pos);
 void world_set_illumination(chunk_manager *cm, vec3l pos, uint8_t illumination);
 void world_draw(chunk_manager *cm, graphics_context *c);

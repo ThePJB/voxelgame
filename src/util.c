@@ -179,6 +179,10 @@ int vec3i_queue_len(vec3i_queue *vq) {
     }
 }
 
+vec3s vec3i_to_vec3s(vec3i a) {
+    return (vec3s) {spread(a)};
+}
+
 void vec3l_queue_push(vec3l_queue *vq, vec3l item) {
     vq->items[vq->end] = item;
     vq->end = (vq->end + 1) % vq->size;
