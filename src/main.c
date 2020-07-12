@@ -36,7 +36,7 @@ void draw_lookat_cube(chunk_manager *cm, vec3s cam_pos, vec3s cam_front, graphic
     }
 }
 
-bool enable_debug = true;
+bool enable_debug = false;
 
 int main(int argc, char** argv) {
     int w = 2560;
@@ -45,15 +45,15 @@ int main(int argc, char** argv) {
     //chunk_test();
     //world_test();
     //test_util();
-    cm_test();
-    exit(0);
+    //cm_test();
+    //exit(0);
 
     window_context *wc = window_init("sick game", &w, &h, &cam);
     graphics_context *gc = graphics_init(&w, &h, &cam);
 
     text_init(gc);
     cm.world_noise = chunk_rngs_init(123456789);
-    cm.loaded_dimensions = (vec3i) {4,4,4};
+    cm.loaded_dimensions = (vec3i) {16, 8, 16};
 
     cam.pos = (vec3s) {0, 0, 0};
 

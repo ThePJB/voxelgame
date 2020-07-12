@@ -41,10 +41,10 @@ typedef struct {
 
 // Information that the chunk cares about (would be saved)
 typedef struct {
+    vec3i key; // chunk pos, for hashtable
     unsigned int vao;
     unsigned int vbo;
     int num_triangles;
-    vec3i key;  // chunk pos, for hashtable
     bool empty; // also all_one_block is a possibility, not sure how applicable that is
     block_tag *blocks;
     uint8_t *block_light_levels;

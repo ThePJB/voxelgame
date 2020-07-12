@@ -1,5 +1,25 @@
 #include "chunk_common.h"
 
+void neighbour_handshake(chunk_manager *cm, chunk *this, vec3i neighbour_pos) {
+    chunk *np;
+    int i = hmgeti(cm->chunk_hm, neighbour_pos);
+    if (i == -1) {
+        // neighbour not loaded, return
+        return;
+    }
+    np = &cm->chunk_hm[i];
+    
+    int this_nn = ++(this->loaded_4con_neighbours);
+    int other_nn = ++(np->loaded_4con_neighbours);
+    
+    if (this_nn == 6) {
+        cm_mesh_chunk(cm, spread(this->key));
+    }
+    if (other_nn == 6) {
+        cm_mesh_chunk(cm, spread(neighbour_pos));
+    }
+}
+
 void cm_load_chunk(chunk_manager *cm, int x, int y, int z) {
     debugf("loading chunk %d %d %d\n", x, y, z);
     chunk new_chunk = chunk_generate(cm->world_noise, x, y, z);
@@ -15,50 +35,24 @@ void cm_load_chunk(chunk_manager *cm, int x, int y, int z) {
         c->block_light_levels = calloc(CHUNK_RADIX_3, sizeof(uint8_t));
     }
 
-    int neighbour_idx;
-    if (neighbour_idx = hmgeti(cm->chunk_hm, ((vec3i){x+1, y, z})) > 0) {
-        printf("4con before %d\n", cm->chunk_hm[neighbour_idx].loaded_4con_neighbours);
-        int nn = cm->chunk_hm[neighbour_idx].loaded_4con_neighbours++;
-        printf("4con after %d\n", nn);
-        if (nn == 6) {
-            cm_mesh_chunk(cm, x+1, y, z);
-        }
+    neighbour_handshake(cm, c, (vec3i){x+1, y, z});
+    neighbour_handshake(cm, c, (vec3i){x-1, y, z});
+    neighbour_handshake(cm, c, (vec3i){x, y+1, z});
+    neighbour_handshake(cm, c, (vec3i){x, y-1, z});
+    neighbour_handshake(cm, c, (vec3i){x, y, z+1});
+    neighbour_handshake(cm, c, (vec3i){x, y, z-1});
+
+}
+
+void neighbour_unhandshake(chunk_manager *cm, vec3i neighbour_pos) {
+    chunk *np;
+    int i = hmgeti(cm->chunk_hm, neighbour_pos);
+    if (i == -1) {
+        // neighbour not loaded, return
+        return;
     }
-    if (neighbour_idx = hmgeti(cm->chunk_hm, ((vec3i){x-1, y, z})) > 0) {
-        cm->chunk_hm[neighbour_idx].loaded_4con_neighbours++;
-        c->loaded_4con_neighbours++;
-        if (cm->chunk_hm[neighbour_idx].loaded_4con_neighbours == 6) {
-            cm_mesh_chunk(cm, x-1, y, z);
-        }
-    }
-    if (neighbour_idx = hmgeti(cm->chunk_hm, ((vec3i){x, y+1, z})) > 0) {
-        cm->chunk_hm[neighbour_idx].loaded_4con_neighbours++;
-        c->loaded_4con_neighbours++;
-        if (cm->chunk_hm[neighbour_idx].loaded_4con_neighbours == 6) {
-            cm_mesh_chunk(cm, x, y+1, z);
-        }
-    }
-    if (neighbour_idx = hmgeti(cm->chunk_hm, ((vec3i){x-1, y-1, z})) > 0) {
-        cm->chunk_hm[neighbour_idx].loaded_4con_neighbours++;
-        c->loaded_4con_neighbours++;
-        if (cm->chunk_hm[neighbour_idx].loaded_4con_neighbours == 6) {
-            cm_mesh_chunk(cm, x, y-1, z);
-        }
-    }
-    if (neighbour_idx = hmgeti(cm->chunk_hm, ((vec3i){x, y, z+1})) > 0) {
-        cm->chunk_hm[neighbour_idx].loaded_4con_neighbours++;
-        c->loaded_4con_neighbours++;
-        if (cm->chunk_hm[neighbour_idx].loaded_4con_neighbours == 6) {
-            cm_mesh_chunk(cm, x, y, z + 1);
-        }
-    }
-    if (neighbour_idx = hmgeti(cm->chunk_hm, ((vec3i){x, y, z-1})) > 0) {
-        cm->chunk_hm[neighbour_idx].loaded_4con_neighbours++;
-        c->loaded_4con_neighbours++;
-        if (cm->chunk_hm[neighbour_idx].loaded_4con_neighbours == 6) {
-            cm_mesh_chunk(cm, x, y, z - 1);
-        }
-    }
+    np = &cm->chunk_hm[i];
+    np->loaded_4con_neighbours--; 
 }
 
 void cm_unload_chunk(chunk_manager *cm, int x, int y, int z) {
@@ -72,25 +66,12 @@ void cm_unload_chunk(chunk_manager *cm, int x, int y, int z) {
         free(c->block_light_levels);
         // sky light levels as well
     }
-    int neighbour_idx;
-    if (neighbour_idx = hmgeti(cm->chunk_hm, ((vec3i){x+1, y, z})) > 0) {
-        cm->chunk_hm[neighbour_idx].loaded_4con_neighbours--;
-    }
-    if (neighbour_idx = hmgeti(cm->chunk_hm, ((vec3i){x-1, y, z})) > 0) {
-        cm->chunk_hm[neighbour_idx].loaded_4con_neighbours--;
-    }
-    if (neighbour_idx = hmgeti(cm->chunk_hm, ((vec3i){x, y+1, z})) > 0) {
-        cm->chunk_hm[neighbour_idx].loaded_4con_neighbours--;
-    }
-    if (neighbour_idx = hmgeti(cm->chunk_hm, ((vec3i){x-1, y-1, z})) > 0) {
-        cm->chunk_hm[neighbour_idx].loaded_4con_neighbours--;
-    }
-    if (neighbour_idx = hmgeti(cm->chunk_hm, ((vec3i){x, y, z+1})) > 0) {
-        cm->chunk_hm[neighbour_idx].loaded_4con_neighbours--;
-    }
-    if (neighbour_idx = hmgeti(cm->chunk_hm, ((vec3i){x, y, z-1})) > 0) {
-        cm->chunk_hm[neighbour_idx].loaded_4con_neighbours--;
-    }
+    neighbour_unhandshake(cm, (vec3i){x+1, y, z});
+    neighbour_unhandshake(cm, (vec3i){x-1, y, z});
+    neighbour_unhandshake(cm, (vec3i){x, y+1, z});
+    neighbour_unhandshake(cm, (vec3i){x, y-1, z});
+    neighbour_unhandshake(cm, (vec3i){x, y, z+1});
+    neighbour_unhandshake(cm, (vec3i){x, y, z-1});
 
     hmdel(cm->chunk_hm, ((vec3i){x,y,z}));
 }
@@ -173,18 +154,52 @@ void cm_load_n(chunk_manager *cm, vec3s pos, int n) {
 }
 
 void cm_test() {
-    chunk *hm;
+    vec3i akey = (vec3i){1,2,3};
+    chunk *hm = NULL;
     chunk a = {0};
-    a.key = (vec3i){1,2,3};
+    a.vao = 123;
+    a.key = akey;
     hmputs(hm, a);
+    /*
+    a.vao = 999;
     a.key = (vec3i){4,5,6};
     hmputs(hm, a);
     a.key = (vec3i){7,8,9};
     hmputs(hm, a);
+    */
 
+    printf("km 0 key: %d %d %d\n", spread(hm[0].key));
+    printf("km 1 key: %d %d %d\n", spread(hm[1].key));
+    printf("km 2 key: %d %d %d\n", spread(hm[2].key));
+
+    assert_int_equal("hmgeti 123 0", 0, hmgeti(hm, akey));
+    assert_int_equal("hmgets 123 vao", 123, hmgets(hm, akey).vao);
+
+    /*
+    assert_int_equal("hm len 3", 3, hmlen(hm));
     int idx789 = hmgeti(hm, ((vec3i){7,8,9}));
-    assert_int_equal("hm 789", idx789, 2);
+    assert_int_equal("hmgeti 789", idx789, 2);
     int idx456 = hmgeti(hm, ((vec3i){4,5,6}));
-    assert_int_equal("hm 456", idx456, 1);
+    assert_int_equal("hmgeti 456", idx456, 1);
+    chunk *p123 = hmgetp(hm, ((vec3i){1,2,3}));
+    printf("p: %p\n", p123);
+    assert_int_equal("hmgetp 123 vao", 123, p123->vao);
+    assert_int_equal("hmgetp 123 x", 1, p123->key.x);
+    assert_int_equal("hmgetp 123 y", 2, p123->key.y);
+    assert_int_equal("hmgetp 123 z", 3, p123->key.z);
+    */
+
+    typedef struct {vec3i key; int vao; int vbo} not_a_chunk;
+    chunk *cm = NULL;
+    vec3i aakey = (vec3i){1,2,3};
+    chunk aa = {0};
+    aa.key = aakey;
+    aa.vao = 6;
+    aa.vbo = 8;
+    //not_a_chunk aa = (not_a_chunk){aakey, 6, 8};
+    hmputs(cm, aa);
+    assert_int_equal("not a chunk 1 2 3 1\n", hmgets(cm, ((vec3i){1,2,3})).vao, 6);
+    assert_int_equal("not a chunk 1 2 3 2\n", hmgets(cm, ((vec3i){1,2,3})).vbo, 8);
+
 
 }

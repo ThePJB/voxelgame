@@ -197,3 +197,5 @@ and do something about the horrid if (each direction) pattern im using atm
  
  
  I hope hmputs works
+
+ yesss finally fixed all the bugs i introduced so far. Tomorrow I proceed to implement the rest of the lighting stuff.
