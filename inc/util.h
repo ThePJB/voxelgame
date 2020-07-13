@@ -26,6 +26,11 @@ typedef enum {
     NUM_DIRS,
 } direction;
 
+vec3i unit_vec3i[NUM_DIRS];
+vec3l unit_vec3l[NUM_DIRS];
+vec3s unit_vec3s[NUM_DIRS];
+char *dir_name[NUM_DIRS];
+
 float min(float a, float b);
 float max(float a, float b);
 
@@ -53,6 +58,12 @@ vec3i vec3i_sub(vec3i a, vec3i b);
 vec3i vec3i_mul(vec3i a, int b);
 vec3i vec3i_div(vec3i a, int b);
 void print_vec3i(vec3i a);
+
+vec3l vec3l_add(vec3l a, vec3l b);
+vec3l vec3l_sub(vec3l a, vec3l b);
+vec3l vec3l_mul(vec3l a, int b);
+vec3l vec3l_div(vec3l a, int b);
+void print_vec3l(vec3l a);
 
 // might be a terrible idea
 #define spread(X) X.x, X.y, X.z

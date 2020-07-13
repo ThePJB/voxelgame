@@ -32,6 +32,8 @@
 #define MINUS_Y -PLUS_Y
 #define MINUS_Z -PLUS_Z
 
+#define LIGHT_EMPTY_CHUNK 255
+
 typedef struct {
     noise2d noise_lf_heightmap;
     noise2d noise_hf_heightmap;
@@ -66,9 +68,7 @@ typedef struct {
 typedef struct {
     bool success;
     vec3l coords;
-    int normal_x;
-    int normal_y;
-    int normal_z;
+    direction normal_dir;
 } pick_info;
 
 block_definition block_defs[NUM_BLOCKS];
@@ -84,6 +84,7 @@ void chunk_test();
 // chunk manager
 void cm_update(chunk_manager *cm, vec3s pos);           // queue up chunks to load
 void cm_load_n(chunk_manager *cm, vec3s pos, int n);    // load a limited number of chunks
+bool neighbour_exists(vec3i pos, int direction);
 void cm_test();
 
 // higher level -- world
@@ -105,6 +106,8 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z);
 // lighting
 void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z);
 void cm_add_light(chunk_manager *cm, uint8_t luminance, long x, long y, long z);
+void cm_delete_light(chunk_manager *cm, long x, long y, long z);
+void cm_update_light_for_block_deletion(chunk_manager *cm, long x, long y, long z);
 
 // picking
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance);

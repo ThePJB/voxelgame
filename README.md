@@ -199,3 +199,11 @@ and do something about the horrid if (each direction) pattern im using atm
  I hope hmputs works
 
  yesss finally fixed all the bugs i introduced so far. Tomorrow I proceed to implement the rest of the lighting stuff.
+
+ ok its not actually perfect some chunk boundaries shit, i managed to segfault placing in an empty chunk. i think empty chunk border = white as well
+
+
+
+ you know when this lighting is wrong its wrong on one face which kind of suggests its not the lighting algorithm itself. its got to be the mesh or something
+
+ nice well i got the debug info coming out (handy) and my light calcs are fine, its the meshign thats fucked. who knew.

@@ -1,23 +1,6 @@
 #include "chunk_common.h"
 
-#define FACE_MINUS_Z 0
-#define FACE_PLUS_Z 1
-#define FACE_MINUS_X 2
-#define FACE_PLUS_X 3
-#define FACE_MINUS_Y 4
-#define FACE_PLUS_Y 5
-
 #define VERT_STRIDE 8
-
-// directions for getting neighbours
-#define PLUS_X CHUNK_RADIX_2
-#define PLUS_Y CHUNK_RADIX
-#define PLUS_Z 1
-
-#define MINUS_X -PLUS_X
-#define MINUS_Y -PLUS_Y
-#define MINUS_Z -PLUS_Z
-
 
 #define MESHING_BUF_SIZE 409600 * 5
 void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
@@ -42,19 +25,19 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
 
         vec3i coords = chunk_1d_to_3d(idx);
 
-        for (int face = 0; face < 6; face++) {
+        for (direction face = 0; face < NUM_DIRS; face++) {
             // Skip occluded faces
-            if (face == FACE_PLUS_X && neighbour_exists(coords, PLUS_X) && c->blocks[idx + PLUS_X] != BLOCK_AIR) {
+            if (face == DIR_PX && neighbour_exists(coords, PLUS_X) && c->blocks[idx + PLUS_X] != BLOCK_AIR) {
                 continue;
-            } else if (face == FACE_MINUS_X && neighbour_exists(coords, MINUS_X) && c->blocks[idx + MINUS_X] != BLOCK_AIR) {
+            } else if (face == DIR_MX && neighbour_exists(coords, MINUS_X) && c->blocks[idx + MINUS_X] != BLOCK_AIR) {
                 continue;
-            } else if (face == FACE_PLUS_Y && neighbour_exists(coords, PLUS_Y) && c->blocks[idx + PLUS_Y] != BLOCK_AIR) {
+            } else if (face == DIR_PY && neighbour_exists(coords, PLUS_Y) && c->blocks[idx + PLUS_Y] != BLOCK_AIR) {
                 continue;
-            } else if (face == FACE_MINUS_Y && neighbour_exists(coords, MINUS_Y) && c->blocks[idx + MINUS_Y] != BLOCK_AIR) {
+            } else if (face == DIR_MY && neighbour_exists(coords, MINUS_Y) && c->blocks[idx + MINUS_Y] != BLOCK_AIR) {
                 continue;
-            } else if (face == FACE_PLUS_Z && neighbour_exists(coords, PLUS_Z) && c->blocks[idx + PLUS_Z] != BLOCK_AIR) {
+            } else if (face == DIR_PZ && neighbour_exists(coords, PLUS_Z) && c->blocks[idx + PLUS_Z] != BLOCK_AIR) {
                 continue;
-            } else if (face == FACE_MINUS_Z && neighbour_exists(coords, MINUS_Z) && c->blocks[idx + MINUS_Z] != BLOCK_AIR) {
+            } else if (face == DIR_MZ && neighbour_exists(coords, MINUS_Z) && c->blocks[idx + MINUS_Z] != BLOCK_AIR) {
                 continue;
             }
 
@@ -78,46 +61,8 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
 
                 vec3i block_pos = chunk_1d_to_3d(idx);
                 vec3l pos = world_block_chunk_to_global(block_pos, c->key);
-                if (face == FACE_PLUS_X) {
-                    pos.x++;
-                    buf[vertex_idx++] = unlerp(0, light_max, world_get_illumination(cm, pos));
-                } else if (face == FACE_MINUS_X) {
-                    pos.x--;
-                    buf[vertex_idx++] = unlerp(0, light_max, world_get_illumination(cm, pos));                    
-                } else if (face == FACE_PLUS_Y) {
-                    pos.y++;
-                    buf[vertex_idx++] = unlerp(0, light_max, world_get_illumination(cm, pos));                    
-                } else if (face == FACE_MINUS_Y) {
-                    pos.y--;
-                    buf[vertex_idx++] = unlerp(0, light_max, world_get_illumination(cm, pos));                    
-                } else if (face == FACE_PLUS_Z) {
-                    pos.z++;
-                    buf[vertex_idx++] = unlerp(0, light_max, world_get_illumination(cm, pos));                    
-                } else if (face == FACE_MINUS_Z) {
-                    pos.z--;
-                    buf[vertex_idx++] = unlerp(0, light_max, world_get_illumination(cm, pos));                    
-                }
-
-                /*
-                if (face == FACE_PLUS_X) {
-                    if (neighbour_exists(coords, PLUS_X)) {
-                        buf[vertex_idx++] = unlerp(0, light_max, (float)c.block_light->level[idx + PLUS_X]);
-                    } else {
-                        pos.x++;
-                        buf[vertex_idx++] = unlerp(0, light_max, world_get_illumination(cm, pos));
-                    }
-                } else if (face == FACE_MINUS_X) {
-                    buf[vertex_idx++] = unlerp(0, light_max, (float)c.block_light->level[idx + MINUS_X]);
-                } else if (face == FACE_PLUS_Y) {
-                    buf[vertex_idx++] = unlerp(0, light_max, (float)c.block_light->level[idx + PLUS_Y]);
-                } else if (face == FACE_MINUS_Y) {
-                    buf[vertex_idx++] = unlerp(0, light_max, (float)c.block_light->level[idx + MINUS_Y]);
-                } else if (face == FACE_PLUS_Z) {
-                    buf[vertex_idx++] = unlerp(0, light_max, (float)c.block_light->level[idx + PLUS_Z]);
-                } else if (face == FACE_MINUS_Z) {
-                    buf[vertex_idx++] = unlerp(0, light_max, (float)c.block_light->level[idx + MINUS_Z]);
-                }
-                */
+                vec3l face_neighbour_pos = vec3l_add(pos, unit_vec3l[face]);
+                buf[vertex_idx++] = unlerp(0, light_max, world_get_illumination(cm, face_neighbour_pos));
             }
         }
     }

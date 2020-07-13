@@ -35,7 +35,7 @@ block_definition block_defs[NUM_BLOCKS] = {
     },
     {
         .opaque = true,
-        .luminance = 16,
+        .luminance = 8,
     },
 
 };
@@ -142,10 +142,25 @@ void world_set_block(chunk_manager *cm, vec3l pos, block_tag b) {
             c->empty = false;
             c->blocks = calloc(sizeof(block_tag), CHUNK_RADIX_3);
         }
+        // note the old block
+        block_tag preexisting_block = c->blocks[chunk_3d_to_1d(block_coords)];
+
+        //set block first
         c->blocks[chunk_3d_to_1d(block_coords)] = b;
         if (block_defs[b].luminance > 0) {
             cm_add_light(cm, block_defs[b].luminance, spread(pos));
         }
+
+        // fix lighting
+        world_set_illumination(cm, pos, block_defs[b].luminance);
+
+        if (block_defs[preexisting_block].luminance != 0) {
+            cm_delete_light(cm, spread(pos));
+        } else if (block_defs[preexisting_block].opaque) {
+            cm_update_light_for_block_deletion(cm, spread(pos));
+        }
+
+        // remesh chunk
         cm_mesh_chunk(cm, spread(cm->chunk_hm[idx].key));
     } else {
         // didnt find

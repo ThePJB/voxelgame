@@ -103,14 +103,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
         //enable_debug = true;
 
-        printf("lmb\n");
         pick_info p = pick_block(cmp, wc.cam->pos, wc.cam->front, 9);
-        printf("success %d block %d coords %ld %ld %ld normal %d %d %d\n", p.success, world_get_block(cmp, p.coords), p.coords.x, p.coords.y, p.coords.z, p.normal_x, p.normal_y, p.normal_z);
-        vec3l new_coords = {
-            .x = p.coords.x + p.normal_x,
-            .y = p.coords.y + p.normal_y,
-            .z = p.coords.z + p.normal_z,
-        };
+        vec3l new_coords = vec3l_add(p.coords, unit_vec3l[p.normal_dir]);
         if (p.success) world_set_block(cmp, new_coords, place_block);
         
         //enable_debug = false;

@@ -22,8 +22,7 @@
 chunk_manager cm = {0};
 chunk_manager *cmp = &cm;
 
-void draw_lookat_cube(chunk_manager *cm, vec3s cam_pos, vec3s cam_front, graphics_context *c) {
-    pick_info p = pick_block(cm, cam_pos, cam_front, 9);
+void draw_lookat_cube(vec3s cam_pos, vec3s cam_front, graphics_context *c, pick_info p) {
     if (p.success) {
         glDepthFunc(GL_LEQUAL);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -53,7 +52,7 @@ int main(int argc, char** argv) {
 
     text_init(gc);
     cm.world_noise = chunk_rngs_init(123456789);
-    cm.loaded_dimensions = (vec3i) {16, 8, 16};
+    cm.loaded_dimensions = (vec3i) {8, 4, 8};
 
     cam.pos = (vec3s) {0, 0, 0};
 
@@ -79,8 +78,9 @@ int main(int argc, char** argv) {
         pre_draw(gc);
         
         world_draw(&cm, gc);
-        
-        draw_lookat_cube(&cm, cam.pos, cam.front, gc);
+
+        pick_info lookat = pick_block(&cm, cam.pos, cam.front, 9);
+        draw_lookat_cube(cam.pos, cam.front, gc, lookat);
 
         if (wc->show_info) {
             char buf[64] = {0};
@@ -97,17 +97,32 @@ int main(int argc, char** argv) {
             draw_text(buf, 10, y, debug_text);
             y += 100;
 
+            if (lookat.success) {
+                sprintf(buf, "Lookat block: {%d %d %d}, type: %d", spread(lookat.coords), world_get_block(&cm, lookat.coords));
+                draw_text(buf, 10, y, debug_text);
+                y += 100;
+                
+                vec3l neighbour_block_pos = vec3l_add(lookat.coords, unit_vec3l[lookat.normal_dir]);
+                sprintf(buf, "Lookat face: %s, light: %u", dir_name[lookat.normal_dir], world_get_illumination(&cm, neighbour_block_pos));
+                draw_text(buf, 10, y, debug_text);
+                y += 100;
+            } else {
+                sprintf(buf, "Lookat block: none");
+                draw_text(buf, 10, y, debug_text);
+                y += 100;
+
+                sprintf(buf, "Lookat face: none");
+                draw_text(buf, 10, y, debug_text);
+                y += 100;
+            }
+
             sprintf(buf, "Pos {%.2f, %.2f, %.2f}", cam.pos.x, cam.pos.y, cam.pos.z);
             draw_text(buf, 10, y, debug_text);
             y += 100;            
             
-            sprintf(buf, "RAM: %lu MB", get_ram_usage()/ (1024*1024));
+            sprintf(buf, "RAM: %lu VRAM: %lu MB, ", get_ram_usage()/ (1024*1024), get_vram_usage()/ (1024));
             draw_text(buf, 10, y, debug_text);
             y += 100;        
-
-            sprintf(buf, "VRAM: %lu MB (remember this is total)", get_vram_usage()/ (1024));
-            draw_text(buf, 10, y, debug_text);
-            y += 100;
 
             // block coords
             vec3l bc = (vec3l) {cam.pos.x, cam.pos.y, cam.pos.z};

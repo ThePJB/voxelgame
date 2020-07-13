@@ -6,6 +6,42 @@
 
 #include "util.h"
 
+vec3i unit_vec3i[NUM_DIRS] = {
+    (vec3i) {1,0,0},
+    (vec3i) {-1,0,0},
+    (vec3i) {0,1,0},
+    (vec3i) {0,-1,0},
+    (vec3i) {0,0,1},
+    (vec3i) {0,0,-1},
+};
+
+vec3l unit_vec3l[NUM_DIRS] = {
+    (vec3l) {1,0,0},
+    (vec3l) {-1,0,0},
+    (vec3l) {0,1,0},
+    (vec3l) {0,-1,0},
+    (vec3l) {0,0,1},
+    (vec3l) {0,0,-1},
+};
+
+vec3s unit_vec3s[NUM_DIRS] = {
+    (vec3s) {1,0,0},
+    (vec3s) {-1,0,0},
+    (vec3s) {0,1,0},
+    (vec3s) {0,-1,0},
+    (vec3s) {0,0,1},
+    (vec3s) {0,0,-1},
+};
+
+char *dir_name[NUM_DIRS] = {
+    "+X",
+    "-X",
+    "+Y",
+    "-Y",
+    "+Z",
+    "-Z",
+};
+
 int signum(float x) {
     if (x > 0) {
         return 1;
@@ -38,6 +74,16 @@ vec3i vec3i_sub(vec3i a, vec3i b) { return (vec3i) {vec3i_binary_op(-)}; }
 
 vec3i vec3i_mul(vec3i a, int b) { return (vec3i) {vec3i_num_binary_op(*)}; }
 vec3i vec3i_div(vec3i a, int b) { return (vec3i) {vec3i_num_binary_op(/)}; }
+
+#define vec3l_binary_op(OP) .x = a.x OP b.x, .y = a.y OP b.y, .z = a.z OP b.z,
+
+vec3l vec3l_add(vec3l a, vec3l b) { return (vec3l) {vec3l_binary_op(+)}; }
+vec3l vec3l_sub(vec3l a, vec3l b) { return (vec3l) {vec3l_binary_op(-)}; }
+
+#define vec3l_num_binary_op(OP) .x = a.x OP b, .y = a.y OP b, .z = a.z OP b,
+
+vec3l vec3l_mul(vec3l a, int b) { return (vec3l) {vec3l_num_binary_op(*)}; }
+vec3l vec3l_div(vec3l a, int b) { return (vec3l) {vec3l_num_binary_op(/)}; }
 
 int mod(int val, int modulus) {
     // ok i think this is because its fake modulus (divisor)

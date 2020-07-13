@@ -64,35 +64,28 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
                 ret.coords.x += sx;
                 accX = tMaxX;
                 tMaxX += tDeltaX;
-                ret.normal_x = -sx;
-                ret.normal_y = 0;
-                ret.normal_z = 0;
+                ret.normal_dir = sx < 0 ? DIR_PX : DIR_MX;
             } else {
                 // Z min
                 ret.coords.z += sz;
                 accZ = tMaxZ;
                 tMaxZ += tDeltaZ;
-                ret.normal_x = 0;
-                ret.normal_y = 0;
-                ret.normal_z = -sz;
+                ret.normal_dir = sz < 0 ? DIR_PZ : DIR_MZ;
             }
-        } else {
+         } else {
             if (tMaxY < tMaxZ) {
                 // Y min
                 ret.coords.y += sy;
                 accY = tMaxY;
                 tMaxY += tDeltaY;
-                ret.normal_x = 0;
-                ret.normal_y = -sy;
-                ret.normal_z = 0;
+                ret.normal_dir = sy < 0 ? DIR_PY : DIR_MY;
             } else {
                 // Z min (again)
                 ret.coords.z += sz;
                 accZ = tMaxZ;
                 tMaxZ += tDeltaZ;
-                ret.normal_x = 0;
-                ret.normal_y = 0;
-                ret.normal_z = -sz;
+                ret.normal_dir = sz < 0 ? DIR_PZ : DIR_MZ;
+
             }
         }
 
