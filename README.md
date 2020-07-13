@@ -207,3 +207,22 @@ and do something about the horrid if (each direction) pattern im using atm
  you know when this lighting is wrong its wrong on one face which kind of suggests its not the lighting algorithm itself. its got to be the mesh or something
 
  nice well i got the debug info coming out (handy) and my light calcs are fine, its the meshign thats fucked. who knew.
+
+ Tue 14 Jul Signoff
+ ------------------
+ well lighting is sort of working for some of the cases
+ for those wehree it isnt i suspect its a peculiarity of meshing because logically the light levels behave
+
+ only remaining case is block placed. might be identical to deleted
+ add light should technically include it in case you blocked some really bright light with an opaque emitter of very minor amount of light
+
+ sus of the world_place block function, its cooked af
+
+
+ hey in t he witching hour can we like divide all light levels by 4 or something
+ could probably do that in shader with a uniform tbh
+
+ start tomorrow by refactoring place_block in world.
+
+ maybe some more macro fun with PAIR types
+ its really easy to make simple types with the macro system. its actually good what. I guess it just lacks when it comes to debug messages

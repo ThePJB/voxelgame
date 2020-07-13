@@ -90,6 +90,11 @@ typedef struct {
     unsigned long int size;
 } vec3l_queue;
 
+#define QUEUE_STRUCT(T) typedef struct {T *items; unsigned int start; unsigned int end; unsigned int size;} T##_queue;
+
+QUEUE_STRUCT(uint8_t)
+
+
 void vec3l_queue_push(vec3l_queue *vq, vec3l item);
 vec3l vec3l_queue_pop(vec3l_queue *vq);
 int vec3l_queue_len(vec3l_queue *vq);

@@ -205,6 +205,27 @@ float remap(float prev_lower, float prev_upper, float new_lower, float new_upper
     return lerp(new_lower, new_upper, unlerp(prev_lower, prev_upper, a));
 }
 
+#define PUSHFN(T) void T##_queue_push(T##_queue *q, T item) {\
+    q->items[q->end] = item;\
+    q->end = (q->end + 1) % q->size;}
+
+#define POPFN(T) T T##_queue_pop(T##_queue *q) {\
+    T item = q ->items[q->start];\
+    q->start = (q->start + 1) % q->size;\
+    return item;}
+
+#define LENFN(T) unsigned int T##_queue_len(T##_queue *q) {\
+    return (q->end - q->start) + q->size * (q->end < q->start);}
+
+#define DEFINE_QUEUE(T) QUEUE_STRUCT(T) PUSHFN(T) POPFN(T) LENFN(T)
+
+//QUEUE_STRUCT(uint8_t)
+PUSHFN(uint8_t)
+POPFN(uint8_t)
+LENFN(uint8_t)
+//DEFINE_QUEUE(uint8_t)
+
+
 void vec3i_queue_push(vec3i_queue *vq, vec3i item) {
     vq->items[vq->end] = item;
     vq->end = (vq->end + 1) % vq->size;

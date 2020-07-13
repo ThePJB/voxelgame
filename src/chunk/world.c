@@ -145,19 +145,38 @@ void world_set_block(chunk_manager *cm, vec3l pos, block_tag b) {
         // note the old block
         block_tag preexisting_block = c->blocks[chunk_3d_to_1d(block_coords)];
 
+
+        // fix lighting first?
+        world_set_illumination(cm, pos, block_defs[preexisting_block].luminance);
+
         //set block first
         c->blocks[chunk_3d_to_1d(block_coords)] = b;
         if (block_defs[b].luminance > 0) {
             cm_add_light(cm, block_defs[b].luminance, spread(pos));
         }
 
-        // fix lighting
-        world_set_illumination(cm, pos, block_defs[b].luminance);
+/* breaks it?
+        if (block_defs[preexisting_block].luminance != 0) {
+            cm_delete_light(cm, spread(pos));
+        } else if (block_defs[preexisting_block].opaque ) {
+            cm_update_light_for_block_deletion(cm, spread(pos));
+
+            // specifically adding this branch does
+            // I wanna know how that works hey.
+            // 
+        } else if (!block_defs[preexisting_block].opaque && block_defs[b].opaque) {
+            cm_update_light_for_block_placement(cm, spread(pos));
+        }
+        */
 
         if (block_defs[preexisting_block].luminance != 0) {
             cm_delete_light(cm, spread(pos));
-        } else if (block_defs[preexisting_block].opaque) {
+        } else if (block_defs[preexisting_block].opaque && !block_defs[b].opaque) {
             cm_update_light_for_block_deletion(cm, spread(pos));
+
+            // this branch breaks placing lights which baffles me because its not in the placing lights branch
+        } else if (!block_defs[preexisting_block].opaque && block_defs[b].opaque) {
+            cm_update_light_for_block_placement(cm, spread(pos));
         }
 
         // remesh chunk
