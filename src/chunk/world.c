@@ -114,14 +114,6 @@ void world_set_block(chunk_manager *cm, vec3l pos, block_tag new_block) {
     bool old_opaque = block_defs[old_block].opaque;
     
 
-
-    // first make sure block luminance is set to correct value
-    // (bit nasty) should be unnecessary
-
-    // the line that makes light deletion work and the other shit break
-    //world_set_illumination(cm, pos, block_defs[old_block].luminance);
-
-
     // now for the light update cases
 
     if (new_luminance > 0 && old_luminance == 0) {
