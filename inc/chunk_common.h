@@ -88,12 +88,11 @@ bool neighbour_exists(vec3i pos, int direction);
 void cm_test();
 
 // higher level -- world
-void world_global_to_block_chunk(vec3i *chunk, vec3i *block, vec3l block_global);
+vec3i_pair world_posl_to_block_chunk(vec3l block_global);
 vec3l world_block_chunk_to_global(vec3i block, vec3i chunk);
 block_tag world_get_block(chunk_manager *cm, vec3l pos);
 void world_set_block(chunk_manager *cm, vec3l pos, block_tag b);
-vec3l world_pos_to_block_pos(vec3s pos);
-vec3i world_pos_to_chunk_pos(vec3s pos);
+vec3i world_posl_to_chunk(vec3l pos);
 
 uint8_t world_get_illumination(chunk_manager *cm, vec3l pos);
 void world_set_illumination(chunk_manager *cm, vec3l pos, uint8_t illumination);
@@ -104,11 +103,11 @@ void world_test();
 void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z);
 
 // lighting
-void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z);
 void cm_add_light(chunk_manager *cm, uint8_t luminance, long x, long y, long z);
 void cm_delete_light(chunk_manager *cm, long x, long y, long z);
 void cm_update_light_for_block_deletion(chunk_manager *cm, long x, long y, long z);
-
+void cm_update_light_for_block_placement(chunk_manager *cm, long x, long y, long z);
+void cm_lighting_touch_block(chunk_manager *cm, vec3l pos);
 // picking
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance);
 

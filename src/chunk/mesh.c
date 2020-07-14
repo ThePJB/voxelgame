@@ -60,7 +60,11 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
                 int light_max = 16;
 
                 vec3i block_pos = chunk_1d_to_3d(idx);
-                vec3l pos = world_block_chunk_to_global(block_pos, c->key);
+                vec3l pos = {
+                    CHUNK_RADIX * x + block_pos.x,
+                    CHUNK_RADIX * y + block_pos.y,
+                    CHUNK_RADIX * z + block_pos.z,
+                };
                 vec3l face_neighbour_pos = vec3l_add(pos, unit_vec3l[face]);
                 buf[vertex_idx++] = unlerp(0, light_max, world_get_illumination(cm, face_neighbour_pos));
             }

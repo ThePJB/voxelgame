@@ -22,7 +22,7 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
     pick_info ret = {0};
     ret.success = true;
 
-    ret.coords = world_pos_to_block_pos(pos);
+    ret.coords = vec3s_to_vec3l(pos);
 
     int sx = signum(facing.x);
     int sy = signum(facing.y);

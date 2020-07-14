@@ -85,7 +85,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
     if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
         printf("meshing\n");
-        vec3i chunk_pos = world_pos_to_chunk_pos(wc.cam->pos);
+        vec3i chunk_pos = world_posl_to_chunk(vec3s_to_vec3l(wc.cam->pos));
         cm_mesh_chunk(cmp, spread(chunk_pos));
     }
     if (key == GLFW_KEY_Q && action == GLFW_PRESS) {

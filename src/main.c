@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
             y += 100;
 
             if (lookat.success) {
-                sprintf(buf, "Lookat block: {%d %d %d}, type: %d", spread(lookat.coords), world_get_block(&cm, lookat.coords));
+                sprintf(buf, "Lookat block: {%ld %ld %ld}, type: %d light: %u", spread(lookat.coords), world_get_block(&cm, lookat.coords), world_get_illumination(&cm, lookat.coords));
                 draw_text(buf, 10, y, debug_text);
                 y += 100;
                 
@@ -127,18 +127,15 @@ int main(int argc, char** argv) {
             // block coords
             vec3l bc = (vec3l) {cam.pos.x, cam.pos.y, cam.pos.z};
 
-            vec3i block_coords = {0};
-            vec3i chunk_coords = {0};
-    
-            world_global_to_block_chunk(&chunk_coords, &block_coords, bc);
-            int idx = hmgeti(cm.chunk_hm, chunk_coords);
+            vec3i_pair coords = world_posl_to_block_chunk(bc);
+            int idx = hmgeti(cm.chunk_hm, coords.r);
             
             if (idx > -1) {
                 chunk c = cm.chunk_hm[idx];
                 sprintf(buf, "In chunk %d %d %d, empty: %d, block coords %d %d %d, 4conn: %d", 
-                    chunk_coords.x, chunk_coords.y, chunk_coords.z,
+                    coords.r.x, coords.r.y, coords.r.z,
                     c.empty,
-                    block_coords.x, block_coords.y, block_coords.z,
+                    coords.l.x, coords.l.y, coords.l.z,
                     c.loaded_4con_neighbours);
             } else {
                 sprintf(buf, "not in chunk");

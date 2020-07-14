@@ -42,7 +42,21 @@ char *dir_name[NUM_DIRS] = {
     "-Z",
 };
 
+int floor_div(int a, int b) {
+    int d = a / b;
+    return d * b == a ? d : d - ((a < 0) ^ (b < 0));
+}
+
+long int fast_floorf(float x) {
+    return (int)x - (x < (int)x);
+}
+
+long int fast_floord(double x) {
+    return (int)x - (x < (int)x);
+}
+
 int signum(float x) {
+    // return 2*(x>0)-1
     if (x > 0) {
         return 1;
     } else {
@@ -55,14 +69,6 @@ float max(float a, float b) { return a > b? a : b; }
 
 void print_vec3i(vec3i a) {
     printf("{%d %d %d}", spread(a));
-}
-
-vec3i from_vec3s(vec3s a) {
-    return (vec3i) {
-        (int)a.x,
-        (int)a.y,
-        (int)a.z,
-    };
 }
 
 #define vec3i_binary_op(OP) .x = a.x OP b.x, .y = a.y OP b.y, .z = a.z OP b.z,
@@ -248,6 +254,14 @@ int vec3i_queue_len(vec3i_queue *vq) {
 
 vec3s vec3i_to_vec3s(vec3i a) {
     return (vec3s) {spread(a)};
+}
+
+vec3l vec3s_to_vec3l(vec3s a) {
+    return (vec3l) {
+        fast_floorf(a.x),
+        fast_floorf(a.y),
+        fast_floorf(a.z),
+    };
 }
 
 void vec3l_queue_push(vec3l_queue *vq, vec3l item) {
