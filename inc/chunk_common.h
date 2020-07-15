@@ -32,7 +32,8 @@
 #define MINUS_Y -PLUS_Y
 #define MINUS_Z -PLUS_Z
 
-#define LIGHT_EMPTY_CHUNK 255
+
+#define SKY_LIGHT_FULL 16
 
 typedef struct {
     noise2d noise_lf_heightmap;
@@ -47,7 +48,6 @@ typedef struct {
     unsigned int vao;
     unsigned int vbo;
     int num_triangles;
-    bool empty; // also all_one_block is a possibility, not sure how applicable that is
     block_tag *blocks;
     uint8_t *block_light_levels;
     uint8_t *sky_light_levels;
@@ -88,6 +88,7 @@ bool neighbour_exists(vec3i pos, int direction);
 void cm_test();
 
 // higher level -- world
+// the job of this is to wrap all of the chunk nasties and present a nice interface, getblock, setblock, getlight, setlight, etc.
 vec3i_pair world_posl_to_block_chunk(vec3l block_global);
 vec3l world_block_chunk_to_global(vec3i block, vec3i chunk);
 block_tag world_get_block(chunk_manager *cm, vec3l pos);
@@ -108,6 +109,7 @@ void cm_delete_light(chunk_manager *cm, long x, long y, long z);
 void cm_update_light_for_block_deletion(chunk_manager *cm, long x, long y, long z);
 void cm_update_light_for_block_placement(chunk_manager *cm, long x, long y, long z);
 void cm_lighting_touch_block(chunk_manager *cm, vec3l pos);
+
 // picking
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance);
 

@@ -76,11 +76,6 @@ block_tag world_get_block(chunk_manager *cm, vec3l pos) {
         return BLOCK_AIR;
     }
 
-    if (cm->chunk_hm[idx].empty) {
-        // empty chunk
-        return BLOCK_AIR;
-    }
-
     return cm->chunk_hm[idx].blocks[chunk_3d_to_1d(coords.l)];  
 }
 
@@ -97,12 +92,6 @@ void world_set_block(chunk_manager *cm, vec3l pos, block_tag new_block) {
     }
 
     chunk *c = &cm->chunk_hm[chunk_idx];
-
-    if (c->empty) {
-        // its an empty chunk, we must upgrade it
-        // todo
-        // clear empty flag, allocate arrays etc
-    }
 
     block_tag old_block = c->blocks[block_idx];
     c->blocks[block_idx] = new_block;
@@ -143,21 +132,23 @@ uint8_t world_get_illumination(chunk_manager *cm, vec3l pos) {
     
     if (idx < 0) {
         printf("tried getting illumination of an unloaded chunk %d %d %d\n", spread(coords.r));
-        return LIGHT_EMPTY_CHUNK;
-    }
-
-    if (cm->chunk_hm[idx].empty) {
-        // later would probably want this to upgrade the chunk from empty
-        printf("tried getting illumination of an empty chunk\n");
         return 255;
     }
 
     return cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(coords.l)];
 }
 
+uint8_t world_get_sunlight(chunk_manager *cm, vec3l pos) {
+    vec3i_pair coords = world_posl_to_block_chunk(pos);
+    int idx = hmgeti(cm->chunk_hm, coords.r);
+    
+    if (idx < 0) {
+        printf("tried getting illumination of an unloaded chunk %d %d %d\n", spread(coords.r));
+        return 255;
+    }
 
-// issues chunk updates including to neighbouring chunks if the block is on an edge
-
+    return cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(coords.l)];    
+}
 
 void world_set_illumination(chunk_manager *cm, vec3l pos, uint8_t illumination) {
     vec3i_pair coords = world_posl_to_block_chunk(pos);
@@ -168,12 +159,21 @@ void world_set_illumination(chunk_manager *cm, vec3l pos, uint8_t illumination) 
         return;
     }
 
-    if (cm->chunk_hm[idx].empty) {
-        printf("tried setting illumination of an empty chunk\n");
-        return;
-    }
     cm_lighting_touch_block(cm, pos);
     cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(coords.l)] = illumination;
+}
+
+void world_set_sunlight(chunk_manager *cm, vec3l pos, uint8_t illumination) {
+    vec3i_pair coords = world_posl_to_block_chunk(pos);
+    int idx = hmgeti(cm->chunk_hm, coords.r);
+    
+    if (idx < 0) {
+        printf("tried setting skylight of an unloaded chunk\n");
+        return;
+    }
+
+    cm_lighting_touch_block(cm, pos);
+    cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(coords.l)] = illumination;
 }
 
 

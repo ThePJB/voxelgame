@@ -31,9 +31,7 @@ void cm_load_chunk(chunk_manager *cm, int x, int y, int z) {
     glGenVertexArrays(1, &c->vao);
     glGenBuffers(1, &c->vbo);
 
-    if (!c->empty) {
-        c->block_light_levels = calloc(CHUNK_RADIX_3, sizeof(uint8_t));
-    }
+    c->block_light_levels = calloc(CHUNK_RADIX_3, sizeof(uint8_t));
 
     neighbour_handshake(cm, c, (vec3i){x+1, y, z});
     neighbour_handshake(cm, c, (vec3i){x-1, y, z});

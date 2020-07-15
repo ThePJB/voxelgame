@@ -103,7 +103,11 @@ int main(int argc, char** argv) {
                 y += 100;
                 
                 vec3l neighbour_block_pos = vec3l_add(lookat.coords, unit_vec3l[lookat.normal_dir]);
-                sprintf(buf, "Lookat face: %s, light: %u", dir_name[lookat.normal_dir], world_get_illumination(&cm, neighbour_block_pos));
+                sprintf(buf, "Lookat face: %s, light: %u sun, %u block", 
+                    dir_name[lookat.normal_dir], 
+                    world_get_sunlight(&cm, neighbour_block_pos),
+                    world_get_illumination(&cm, neighbour_block_pos)
+                    );
                 draw_text(buf, 10, y, debug_text);
                 y += 100;
             } else {
@@ -132,9 +136,8 @@ int main(int argc, char** argv) {
             
             if (idx > -1) {
                 chunk c = cm.chunk_hm[idx];
-                sprintf(buf, "In chunk %d %d %d, empty: %d, block coords %d %d %d, 4conn: %d", 
+                sprintf(buf, "In chunk %d %d %d, block coords %d %d %d, 4conn: %d", 
                     coords.r.x, coords.r.y, coords.r.z,
-                    c.empty,
                     coords.l.x, coords.l.y, coords.l.z,
                     c.loaded_4con_neighbours);
             } else {
@@ -145,6 +148,11 @@ int main(int argc, char** argv) {
             y += 100;
 
             sprintf(buf, "Block ur in: %d", world_get_block(&cm, bc));
+            draw_text(buf, 10, y, debug_text);
+            y += 100;            
+            
+            extern block_tag place_block;
+            sprintf(buf, "Placing: %d", place_block);
             draw_text(buf, 10, y, debug_text);
             y += 100;
 

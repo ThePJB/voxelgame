@@ -11,9 +11,6 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
     c->needs_remesh = false;
     float buf[MESHING_BUF_SIZE] = {0};
 
-    if (c->empty) {
-        return;
-    }
     int vertex_idx = 0;
     const float cube_verts[] = 
         #include "cube.h"
@@ -66,7 +63,9 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
                     CHUNK_RADIX * z + block_pos.z,
                 };
                 vec3l face_neighbour_pos = vec3l_add(pos, unit_vec3l[face]);
-                buf[vertex_idx++] = unlerp(0, light_max, world_get_illumination(cm, face_neighbour_pos));
+                uint8_t block_light = world_get_illumination(cm, face_neighbour_pos);
+                uint8_t sky_light = world_get_sunlight(cm, face_neighbour_pos);
+                buf[vertex_idx++] = unlerp(0, light_max, max(block_light, sky_light));
             }
         }
     }
