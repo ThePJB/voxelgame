@@ -138,7 +138,7 @@ void draw_mesh(graphics_context *gc, mesh m, vec3s translate, vec3s rotate_axis,
 
 // nvidia smi better breakdown
 // this is total vram usage not just ur app
-unsigned long int get_vram_usage() {
+uint32_t get_vram_usage() {
     GLint total_mem_kb = 0;
     glGetIntegerv(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX, 
                 &total_mem_kb);

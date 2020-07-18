@@ -59,8 +59,14 @@ typedef struct {
 
 
 typedef struct {
+    int32_t_pair key;
+    int32_t value;
+} surface_hm_entry;
+
+typedef struct {
     chunk_rngs world_noise;
     chunk *chunk_hm;
+    surface_hm_entry *surface_hm;
     vec3i loaded_dimensions;
     vec3i *load_list;
 } chunk_manager;
@@ -73,13 +79,18 @@ typedef struct {
 
 block_definition block_defs[NUM_BLOCKS];
 
+MKMAYBE(block_tag);
+
 // low level -- chunks
 chunk_rngs chunk_rngs_init(int64_t seed);
-chunk chunk_generate(chunk_rngs noise, int x, int y, int z);
+chunk chunk_generate(chunk_manager *cm, chunk_rngs noise, int x, int y, int z);
+void update_highest_block(chunk_manager *cm, int32_t x, int32_t y, int32_t z);
 int chunk_3d_to_1d(vec3i pos);
 vec3i chunk_1d_to_3d(int idx);
 void chunk_print(chunk c);
 void chunk_test();
+
+void chunk_fix_lighting(chunk_manager *cm, int x, int y, int z);
 
 // chunk manager
 void cm_update(chunk_manager *cm, vec3s pos);           // queue up chunks to load
@@ -87,16 +98,28 @@ void cm_load_n(chunk_manager *cm, vec3s pos, int n);    // load a limited number
 bool neighbour_exists(vec3i pos, int direction);
 void cm_test();
 
-// higher level -- world
-// the job of this is to wrap all of the chunk nasties and present a nice interface, getblock, setblock, getlight, setlight, etc.
+// higher level -- world data structures
+
+// coordinate conversions
 vec3i_pair world_posl_to_block_chunk(vec3l block_global);
-vec3l world_block_chunk_to_global(vec3i block, vec3i chunk);
-block_tag world_get_block(chunk_manager *cm, vec3l pos);
-void world_set_block(chunk_manager *cm, vec3l pos, block_tag b);
+vec3l world_block_chunk_to_posl(vec3i block, vec3i chunk);
 vec3i world_posl_to_chunk(vec3l pos);
 
-uint8_t world_get_illumination(chunk_manager *cm, vec3l pos);
+
+// access
+maybe_block_tag world_get_block(chunk_manager *cm, vec3l pos);
+void world_set_block(chunk_manager *cm, vec3l pos, block_tag b);
+
+maybe_uint8_t world_get_illumination(chunk_manager *cm, vec3l pos);
 void world_set_illumination(chunk_manager *cm, vec3l pos, uint8_t illumination);
+
+maybe_uint8_t world_get_sunlight(chunk_manager *cm, vec3l pos);
+void world_set_sunlight(chunk_manager *cm, vec3l pos, uint8_t illumination);
+
+maybe_int32_t world_get_surface_y(chunk_manager *cm, int32_t x, int32_t z);
+void world_update_surface_y(chunk_manager *cm, int32_t x, int32_t y, int32_t z);
+
+
 void world_draw(chunk_manager *cm, graphics_context *c);
 void world_test();
 
@@ -109,6 +132,7 @@ void cm_delete_light(chunk_manager *cm, long x, long y, long z);
 void cm_update_light_for_block_deletion(chunk_manager *cm, long x, long y, long z);
 void cm_update_light_for_block_placement(chunk_manager *cm, long x, long y, long z);
 void cm_lighting_touch_block(chunk_manager *cm, vec3l pos);
+void cm_propagate_sunlight(chunk_manager *cm, int32_t x, int32_t y, int32_t z);
 
 // picking
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance);

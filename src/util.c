@@ -47,11 +47,11 @@ int floor_div(int a, int b) {
     return d * b == a ? d : d - ((a < 0) ^ (b < 0));
 }
 
-long int fast_floorf(float x) {
+int32_t fast_floorf(float x) {
     return (int)x - (x < (int)x);
 }
 
-long int fast_floord(double x) {
+int32_t fast_floord(double x) {
     return (int)x - (x < (int)x);
 }
 
@@ -107,7 +107,7 @@ bool fequals(float a, float b) {
 }
 
 // todo make it say true false
-void assert_bool(char *desc, bool a, bool b) {
+void assert_bool_equal(char *desc, bool a, bool b) {
     if (a == b) {
         printf("\033[032m");
     } else {
@@ -193,7 +193,7 @@ void read_off_memory_status(statm_t *result)
   fclose(f);
 }
 
-unsigned long int get_ram_usage() {
+uint32_t get_ram_usage() {
     statm_t res = {0};
     read_off_memory_status(&res);
     return PAGESIZE * res.size;
@@ -286,11 +286,11 @@ int vec3l_queue_len(vec3l_queue *vq) {
 
 void test_util() {
     // fequals
-    assert_bool("feq 0.4 0.4", fequals(0.4, 0.4), true);
-    assert_bool("feq 0.5 0.5", fequals(0.5, 0.5), true);
-    assert_bool("feq 0.8 0.8", fequals(0.8, 0.8), true);
-    assert_bool("feq 0.8 big", fequals(0.8, 123098.34234), false);
-    assert_bool("feq 0.81 0.8", fequals(0.81, 0.8), false);    
+    assert_bool_equal("feq 0.4 0.4", fequals(0.4, 0.4), true);
+    assert_bool_equal("feq 0.5 0.5", fequals(0.5, 0.5), true);
+    assert_bool_equal("feq 0.8 0.8", fequals(0.8, 0.8), true);
+    assert_bool_equal("feq 0.8 big", fequals(0.8, 123098.34234), false);
+    assert_bool_equal("feq 0.81 0.8", fequals(0.81, 0.8), false);    
 
     // vec3i
     assert_vec3i_equal("123 + 456 = 579", vec3i_add((vec3i){1,2,3}, (vec3i){4,5,6}), 5,7,9);

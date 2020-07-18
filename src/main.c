@@ -13,6 +13,8 @@
 #include "window.h"
 #include "stb_ds.h"
 
+#include "debug_overlay.h"
+
 #include "chunk_common.h"
 
 #define STB_DS_IMPLEMENTATION
@@ -52,7 +54,7 @@ int main(int argc, char** argv) {
 
     text_init(gc);
     cm.world_noise = chunk_rngs_init(123456789);
-    cm.loaded_dimensions = (vec3i) {8, 4, 8};
+    cm.loaded_dimensions = (vec3i) {8,4,8};
 
     cam.pos = (vec3s) {0, 0, 0};
 
@@ -64,7 +66,7 @@ int main(int argc, char** argv) {
     float dt = 0;
     
     while (!glfwWindowShouldClose(wc->window)) {
-        cm_load_n(&cm, cam.pos, 20);
+        cm_load_n(&cm, cam.pos, 4);
         if (glfwGetKey(wc->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(wc->window, true);
         }
@@ -83,85 +85,8 @@ int main(int argc, char** argv) {
         draw_lookat_cube(cam.pos, cam.front, gc, lookat);
 
         if (wc->show_info) {
-            char buf[64] = {0};
-            const text_style debug_text = (text_style) {
-                .scale = 1,
-                .colour = (vec3s) {1,1,1},
-            };
-            int y = 10;
-            sprintf(buf, "%.2f fps", 1.0 / wc->dt);
-            draw_text(buf, 10, y, debug_text);
-            y += 100;
-
-            sprintf(buf, "Facing {%.2f, %.2f, %.2f}", cam.front.x, cam.front.y, cam.front.z);
-            draw_text(buf, 10, y, debug_text);
-            y += 100;
-
-            if (lookat.success) {
-                sprintf(buf, "Lookat block: {%ld %ld %ld}, type: %d light: %u", spread(lookat.coords), world_get_block(&cm, lookat.coords), world_get_illumination(&cm, lookat.coords));
-                draw_text(buf, 10, y, debug_text);
-                y += 100;
-                
-                vec3l neighbour_block_pos = vec3l_add(lookat.coords, unit_vec3l[lookat.normal_dir]);
-                sprintf(buf, "Lookat face: %s, light: %u sun, %u block", 
-                    dir_name[lookat.normal_dir], 
-                    world_get_sunlight(&cm, neighbour_block_pos),
-                    world_get_illumination(&cm, neighbour_block_pos)
-                    );
-                draw_text(buf, 10, y, debug_text);
-                y += 100;
-            } else {
-                sprintf(buf, "Lookat block: none");
-                draw_text(buf, 10, y, debug_text);
-                y += 100;
-
-                sprintf(buf, "Lookat face: none");
-                draw_text(buf, 10, y, debug_text);
-                y += 100;
-            }
-
-            sprintf(buf, "Pos {%.2f, %.2f, %.2f}", cam.pos.x, cam.pos.y, cam.pos.z);
-            draw_text(buf, 10, y, debug_text);
-            y += 100;            
-            
-            sprintf(buf, "RAM: %lu VRAM: %lu MB, ", get_ram_usage()/ (1024*1024), get_vram_usage()/ (1024));
-            draw_text(buf, 10, y, debug_text);
-            y += 100;        
-
-            // block coords
-            vec3l bc = (vec3l) {cam.pos.x, cam.pos.y, cam.pos.z};
-
-            vec3i_pair coords = world_posl_to_block_chunk(bc);
-            int idx = hmgeti(cm.chunk_hm, coords.r);
-            
-            if (idx > -1) {
-                chunk c = cm.chunk_hm[idx];
-                sprintf(buf, "In chunk %d %d %d, block coords %d %d %d, 4conn: %d", 
-                    coords.r.x, coords.r.y, coords.r.z,
-                    coords.l.x, coords.l.y, coords.l.z,
-                    c.loaded_4con_neighbours);
-            } else {
-                sprintf(buf, "not in chunk");
-            }
-
-            draw_text(buf, 10, y, debug_text);
-            y += 100;
-
-            sprintf(buf, "Block ur in: %d", world_get_block(&cm, bc));
-            draw_text(buf, 10, y, debug_text);
-            y += 100;            
-            
-            extern block_tag place_block;
-            sprintf(buf, "Placing: %d", place_block);
-            draw_text(buf, 10, y, debug_text);
-            y += 100;
-
-        }
-
-        const text_style debug_text = (text_style) {
-            .scale = 1,
-            .colour = (vec3s) {1,1,1},
-        };
+            draw_debug_info(dt, cam, wc, &cm);
+        }            
 
         // good reticle
         const int rscale = 2;

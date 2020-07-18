@@ -42,12 +42,11 @@ bool neighbour_exists(vec3i pos, int direction) {
     } else if (direction == MINUS_Z) {
         return pos.z > 0;
     }
-    printf("shouldnt happen, direction %d\n", direction);
-    exit(1);
-    return false; // shouldnt happen
+    panicf("shouldnt happen, direction %d\n", direction);
+    return false;
 }
 
-chunk chunk_generate(chunk_rngs noise, int x, int y, int z) {
+chunk chunk_generate(chunk_manager *cm, chunk_rngs noise, int x, int y, int z) {
     block_tag *blocks = calloc(sizeof(block_tag), CHUNK_RADIX_3);
     uint8_t *block_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
     uint8_t *sky_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
@@ -76,9 +75,10 @@ chunk chunk_generate(chunk_rngs noise, int x, int y, int z) {
 
         float cave_cutoff = remap(64, -80, -10, 2, block_y);
 
+        block_tag place_block;
+
         if (cave_carve_density < cave_cutoff) {
-            blocks[idx] = BLOCK_AIR;
-            continue;
+            place_block = BLOCK_AIR; goto SET_BLOCK;
         }
 
         float height;
@@ -88,35 +88,94 @@ chunk chunk_generate(chunk_rngs noise, int x, int y, int z) {
             height = height_low + height_high;
         }
 
+        if (cave_carve_density < cave_cutoff + 0.05 && block_y < height) {
+            place_block = BLOCK_GEMS; goto SET_BLOCK;
+        }
+
         // grass and stuff
         if (block_y < height - 4) {
-            blocks[idx] = BLOCK_STONE;
+            place_block = BLOCK_STONE; goto SET_BLOCK;
         } else if (block_y < height - 0.5) {
             // not stone layers
             if (height > -25) {
-                blocks[idx] = BLOCK_DIRT;
+                place_block = BLOCK_DIRT; goto SET_BLOCK;
             } else {
-                blocks[idx] = BLOCK_SAND;
+                place_block = BLOCK_SAND; goto SET_BLOCK;
             }
         } else if (block_y < height + 0.5) {
             // top layer
             if (height > 40) {
-                blocks[idx] = BLOCK_SNOW;    
+                place_block = BLOCK_SNOW; goto SET_BLOCK;
             } else if (height > -25) {
-                blocks[idx] = BLOCK_GRASS;
+                place_block = BLOCK_GRASS; goto SET_BLOCK;
             } else {
-                blocks[idx] = BLOCK_SAND;
+                place_block = BLOCK_SAND; goto SET_BLOCK;
             }
         } else {
-            blocks[idx] = BLOCK_AIR;
             sky_light[idx] = SKY_LIGHT_FULL;
-            // we could fix up the lighting from here - have an array that remembers the lowest sky light
-            // maybe if we iterate from high to low
+            place_block = BLOCK_AIR; goto SET_BLOCK;
+        }
+    
+        SET_BLOCK:
+        blocks[idx] = place_block;
 
+        if (block_defs[place_block].opaque == false) {
+            continue;
+        }
+
+
+        vec3l world_coorindates = world_block_chunk_to_posl(block_pos, c.key);
+        world_update_surface_y(cm, spread(world_coorindates));
+    }
+        
+    return c;
+}
+
+void chunk_fix_lighting(chunk_manager *cm, int x, int y, int z) {
+    
+    vec3i chunk_pos = {x,y,z};
+
+    int chunk_idx = hmgeti(cm->chunk_hm, chunk_pos);
+    
+    if (chunk_idx == -1) {
+        printf("trying to fix lighting of nonexistent chunk?\n");
+        return;
+    } 
+
+    for (int bx = 0; bx < CHUNK_RADIX; bx++) {
+        int32_t global_block_x = bx + x * CHUNK_RADIX;
+        for (int bz = 0; bz < CHUNK_RADIX; bz++) {
+            int32_t global_block_z = bz + z * CHUNK_RADIX;
+
+            // so we run the sunlight propagation algorithm at the highest y point in this chunk,
+            // if this chunk is the one with the surface (highest opauqe block)
+            int32_t surface_y = world_get_surface_y(cm, global_block_x, global_block_z).value;
+            if (floor_div(surface_y, CHUNK_RADIX) == y) {
+                cm_propagate_sunlight(cm, x, CHUNK_MAX, z);
+            }
+            
+            for (int by = 0; by < CHUNK_RADIX; by++) {
+                int32_t global_block_y = by + y * CHUNK_RADIX;
+
+                vec3i block_pos = (vec3i){bx,by,bz};
+                //print_vec3i(block_pos);
+                int idx = chunk_3d_to_1d(block_pos);
+                //printf("fix lighting index %d\n", idx);
+
+
+                //printf("%d\n", chunk_idx);
+                chunk *c = &cm->chunk_hm[chunk_idx];
+                block_tag block = c->blocks[idx];
+                //printf("%u\n", (uint16_t)block);
+
+                uint8_t lum = block_defs[block].luminance;
+                if (lum > 0) {
+                    vec3l world_block_pos = world_block_chunk_to_posl(block_pos, (vec3i){x,y,z});
+                    cm_add_light(cm, lum, global_block_x, global_block_y, global_block_z);
+                }
+            }
         }
     }
-
-    return c;
 }
 
 void chunk_test() {

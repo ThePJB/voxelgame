@@ -78,3 +78,25 @@ smooth lighting
 its also pretty unstable
 
 not sure how to sort out lighting when chunk loads either. maybe copy the code but make it stop at the chunk boundary? hmm idk. maybe just issuing the update is fine because it will stop eventually
+
+bit burnt out on lighting hey, maybe take a break and work on something cool
+
+some other good things are happening at the same time
+
+probably a good idea to have a data structure that stores the highest opaque block in the world at each pos
+and use that for the lighting
+
+refacting debug overlay
+then refactoring getblock setblock gety sety getlight setlight etc
+should have some kind of global settings thing as well
+so there isnt magic numbers like "pick distance" etc
+
+
+ok very confused about the xy surface setting thing.
+it sets just fine in my test thing
+ingame it says its got the right values but when it set it its just 12
+
+so there has to be something else different right?
+
+so I think I know what the problem is. it samples a chunk and gets 255 for its sky light value and propagates that down lol
+so go be more careful with those maybes hey. and can just do if its higher than highest opaque set its brightness to SKY_BRIGHTNESS

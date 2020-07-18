@@ -8,8 +8,8 @@
 
 // ------------------------ math
 int floor_div(int a, int b);
-long int fast_floorf(float x);
-long fast_floord(double x);
+int32_t fast_floorf(float x);
+int32_t fast_floord(double x);
 float min(float a, float b);
 float max(float a, float b);
 int mod(int val, int modulus);
@@ -21,9 +21,9 @@ float remap(float prev_lower, float prev_upper, float new_lower, float new_upper
 
 // ------------------------- vectors
 typedef struct {
-    long int x;
-    long int y;
-    long int z;
+    int32_t x;
+    int32_t y;
+    int32_t z;
 } vec3l;
 
 typedef struct {
@@ -82,9 +82,9 @@ int vec3i_queue_len(vec3i_queue *vq);
 
 typedef struct {
     vec3l *items;
-    unsigned long int start;
-    unsigned long int end;
-    unsigned long int size;
+    uint32_t start;
+    uint32_t end;
+    uint32_t size;
 } vec3l_queue;
 
 void vec3l_queue_push(vec3l_queue *vq, vec3l item);
@@ -97,26 +97,33 @@ int vec3l_queue_len(vec3l_queue *vq);
 
 QUEUE_STRUCT(uint8_t)
 
-#define MKPAIR(T) typedef struct {T l; T r;}T##_pair;
-MKPAIR(vec3l)
-MKPAIR(vec3i)
-MKPAIR(int)
+#define MKPAIR(T) typedef struct {T l; T r;}T##_pair
+MKPAIR(vec3l);
+MKPAIR(vec3i);
+MKPAIR(int);
+MKPAIR(int32_t);
+
+#define MKMAYBE(T) typedef struct {T value; bool ok;} maybe_##T
+MKMAYBE(int32_t);
+MKMAYBE(uint8_t);
 
 // ------------------------- debug output
 extern bool enable_debug;
 
 #define debugf(...) if(enable_debug) {printf("%s:%d:",__FILE__,__LINE__); printf(__VA_ARGS__);}
 
+#define panicf(...) printf("%s:%d: panic -- ", __FILE__, __LINE__); printf(__VA_ARGS__); exit(1)
+//#define unwrap(X) X.value; if (!X.ok) panic("failed unwrapping maybe")
 
 // ------------------------- unit tests
 void assert_int_equal(char *desc, int a, int b);
 void assert_float_equal(char *desc, float a, float b);
 void assert_vec3i_equal(char *desc, vec3i a, int bx, int by, int bz);
-void assert_bool(char *desc, bool a, bool b);
+void assert_bool_equal(char *desc, bool a, bool b);
 
 
 // -------------------------- other
-unsigned long int get_ram_usage();
+uint32_t get_ram_usage();
 
 void test_util();
 

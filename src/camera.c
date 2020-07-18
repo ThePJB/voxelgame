@@ -35,22 +35,22 @@ extern chunk_manager *cmp;
 void move(vec3s *pos, vec3s amount) {
     vec3s old_pos = *pos;
     *pos = glms_vec3_add(*pos, amount);
-    if ((pos->x > 0 && old_pos.x < 0) || (long int)old_pos.x / CHUNK_RADIX < (long int)pos->x / CHUNK_RADIX) {
+    if ((pos->x > 0 && old_pos.x < 0) || (int32_t)old_pos.x / CHUNK_RADIX < (int32_t)pos->x / CHUNK_RADIX) {
         //printf("+x chunk boundary\n");
         cm_update(cmp, *pos);
-    } else if ((pos->x < 0 && old_pos.x > 0) || (long int)old_pos.x / CHUNK_RADIX > (long int)pos->x / CHUNK_RADIX) {
+    } else if ((pos->x < 0 && old_pos.x > 0) || (int32_t)old_pos.x / CHUNK_RADIX > (int32_t)pos->x / CHUNK_RADIX) {
         //printf("-x chunk boundary\n");
         cm_update(cmp, *pos);
-    } else if ((pos->y > 0 && old_pos.y < 0) || (long int)old_pos.y / CHUNK_RADIX < (long int)pos->y / CHUNK_RADIX) {
+    } else if ((pos->y > 0 && old_pos.y < 0) || (int32_t)old_pos.y / CHUNK_RADIX < (int32_t)pos->y / CHUNK_RADIX) {
         //printf("+y chunk boundary\n");
         cm_update(cmp, *pos);
-    } else if ((pos->y < 0 && old_pos.y > 0) || (long int)old_pos.y / CHUNK_RADIX > (long int)pos->y / CHUNK_RADIX) {
+    } else if ((pos->y < 0 && old_pos.y > 0) || (int32_t)old_pos.y / CHUNK_RADIX > (int32_t)pos->y / CHUNK_RADIX) {
         //printf("-y chunk boundary\n");
         cm_update(cmp, *pos);
-    } else if ((pos->z > 0 && old_pos.z < 0) || (long int)old_pos.z / CHUNK_RADIX < (long int)pos->z / CHUNK_RADIX) {
+    } else if ((pos->z > 0 && old_pos.z < 0) || (int32_t)old_pos.z / CHUNK_RADIX < (int32_t)pos->z / CHUNK_RADIX) {
         //printf("+z chunk boundary\n");
         cm_update(cmp, *pos);
-    } else if ((pos->z < 0 && old_pos.z > 0) || (long int)old_pos.z / CHUNK_RADIX > (long int)pos->z / CHUNK_RADIX) {
+    } else if ((pos->z < 0 && old_pos.z > 0) || (int32_t)old_pos.z / CHUNK_RADIX > (int32_t)pos->z / CHUNK_RADIX) {
         //printf("-z chunk boundary\n");
         cm_update(cmp, *pos);
     }

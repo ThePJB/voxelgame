@@ -14,6 +14,7 @@ typedef enum __attribute__ ((__packed__)) {
     BLOCK_SNOW,
     BLOCK_SAND,
     BLOCK_PLANKS,
+    BLOCK_GEMS,
     // BLOCK_UNKNOWN, todo use this, and look up block opacity
     NUM_BLOCKS,
 } block_tag;

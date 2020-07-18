@@ -14,15 +14,17 @@ void neighbour_handshake(chunk_manager *cm, chunk *this, vec3i neighbour_pos) {
     
     if (this_nn == 6) {
         cm_mesh_chunk(cm, spread(this->key));
+        chunk_fix_lighting(cm, spread(this->key));
     }
     if (other_nn == 6) {
         cm_mesh_chunk(cm, spread(neighbour_pos));
+        chunk_fix_lighting(cm, spread(this->key));
     }
 }
 
 void cm_load_chunk(chunk_manager *cm, int x, int y, int z) {
     debugf("loading chunk %d %d %d\n", x, y, z);
-    chunk new_chunk = chunk_generate(cm->world_noise, x, y, z);
+    chunk new_chunk = chunk_generate(cm, cm->world_noise, x, y, z);
     hmputs(cm->chunk_hm, new_chunk);
 
     int idx = hmgeti(cm->chunk_hm, ((vec3i){x,y,z}));
@@ -172,32 +174,6 @@ void cm_test() {
 
     assert_int_equal("hmgeti 123 0", 0, hmgeti(hm, akey));
     assert_int_equal("hmgets 123 vao", 123, hmgets(hm, akey).vao);
-
-    /*
-    assert_int_equal("hm len 3", 3, hmlen(hm));
-    int idx789 = hmgeti(hm, ((vec3i){7,8,9}));
-    assert_int_equal("hmgeti 789", idx789, 2);
-    int idx456 = hmgeti(hm, ((vec3i){4,5,6}));
-    assert_int_equal("hmgeti 456", idx456, 1);
-    chunk *p123 = hmgetp(hm, ((vec3i){1,2,3}));
-    printf("p: %p\n", p123);
-    assert_int_equal("hmgetp 123 vao", 123, p123->vao);
-    assert_int_equal("hmgetp 123 x", 1, p123->key.x);
-    assert_int_equal("hmgetp 123 y", 2, p123->key.y);
-    assert_int_equal("hmgetp 123 z", 3, p123->key.z);
-    */
-
-    typedef struct {vec3i key; int vao; int vbo} not_a_chunk;
-    chunk *cm = NULL;
-    vec3i aakey = (vec3i){1,2,3};
-    chunk aa = {0};
-    aa.key = aakey;
-    aa.vao = 6;
-    aa.vbo = 8;
-    //not_a_chunk aa = (not_a_chunk){aakey, 6, 8};
-    hmputs(cm, aa);
-    assert_int_equal("not a chunk 1 2 3 1\n", hmgets(cm, ((vec3i){1,2,3})).vao, 6);
-    assert_int_equal("not a chunk 1 2 3 2\n", hmgets(cm, ((vec3i){1,2,3})).vbo, 8);
 
 
 }
