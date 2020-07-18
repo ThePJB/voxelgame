@@ -112,7 +112,6 @@ chunk chunk_generate(chunk_manager *cm, chunk_rngs noise, int x, int y, int z) {
                 place_block = BLOCK_SAND; goto SET_BLOCK;
             }
         } else {
-            sky_light[idx] = SKY_LIGHT_FULL;
             place_block = BLOCK_AIR; goto SET_BLOCK;
         }
     
@@ -147,13 +146,8 @@ void chunk_fix_lighting(chunk_manager *cm, int x, int y, int z) {
         for (int bz = 0; bz < CHUNK_RADIX; bz++) {
             int32_t global_block_z = bz + z * CHUNK_RADIX;
 
-            // so we run the sunlight propagation algorithm at the highest y point in this chunk,
-            // if this chunk is the one with the surface (highest opauqe block)
             int32_t surface_y = world_get_surface_y(cm, global_block_x, global_block_z).value;
-            if (floor_div(surface_y, CHUNK_RADIX) == y) {
-                cm_propagate_sunlight(cm, x, CHUNK_MAX, z);
-            }
-            
+
             for (int by = 0; by < CHUNK_RADIX; by++) {
                 int32_t global_block_y = by + y * CHUNK_RADIX;
 
@@ -173,6 +167,16 @@ void chunk_fix_lighting(chunk_manager *cm, int x, int y, int z) {
                     vec3l world_block_pos = world_block_chunk_to_posl(block_pos, (vec3i){x,y,z});
                     cm_add_light(cm, lum, global_block_x, global_block_y, global_block_z);
                 }
+
+                if (global_block_y > surface_y) {
+                    c->sky_light_levels[idx] = SKY_LIGHT_FULL;
+                }
+            }
+
+            // so we run the sunlight propagation algorithm at the highest y point in this chunk,
+            // if this chunk is the one with the surface (highest opauqe block)
+            if (floor_div(surface_y, CHUNK_RADIX) == y) {
+                cm_propagate_sunlight(cm, x, CHUNK_MAX, z);
             }
         }
     }

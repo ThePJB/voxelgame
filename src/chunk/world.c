@@ -142,8 +142,7 @@ void world_set_block(chunk_manager *cm, vec3l pos, block_tag new_block) {
         // TODO remove highest block 
     }
     
-
-    cm_mesh_chunk(cm, spread(chunk_coords));
+    c->needs_remesh = true;
 }
 
 maybe_uint8_t world_get_illumination(chunk_manager *cm, vec3l pos) {

@@ -1,24 +1,24 @@
 #include "chunk_common.h"
 
+// this is an effort to synchronize all the lighting and stuff and make it behave.
 void neighbour_handshake(chunk_manager *cm, chunk *this, vec3i neighbour_pos) {
-    chunk *np;
     int i = hmgeti(cm->chunk_hm, neighbour_pos);
     if (i == -1) {
         // neighbour not loaded, return
         return;
     }
-    np = &cm->chunk_hm[i];
+    chunk *neighbour = &cm->chunk_hm[i];
     
     int this_nn = ++(this->loaded_4con_neighbours);
-    int other_nn = ++(np->loaded_4con_neighbours);
+    int other_nn = ++(neighbour->loaded_4con_neighbours);
     
     if (this_nn == 6) {
-        cm_mesh_chunk(cm, spread(this->key));
         chunk_fix_lighting(cm, spread(this->key));
+        this->needs_remesh = true;
     }
     if (other_nn == 6) {
-        cm_mesh_chunk(cm, spread(neighbour_pos));
-        chunk_fix_lighting(cm, spread(this->key));
+        chunk_fix_lighting(cm, spread(neighbour->key));
+        neighbour->needs_remesh = true;
     }
 }
 

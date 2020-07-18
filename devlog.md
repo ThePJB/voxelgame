@@ -100,3 +100,24 @@ so there has to be something else different right?
 
 so I think I know what the problem is. it samples a chunk and gets 255 for its sky light value and propagates that down lol
 so go be more careful with those maybes hey. and can just do if its higher than highest opaque set its brightness to SKY_BRIGHTNESS
+
+
+yo world gen: multiply noise for hillier areas and flatter areas
+and likewise with caves maybe rather than do the threshold thing im doing
+
+multiplying vs changing the cutoff interesting
+
+and obivously domain warping
+
+
+with lighting, do I just want one function that updates lights?
+and be very sure of how it works.
+
+cases: this is > 1 higher: spread to that neighbour
+this is > 1 lower: delete this and propagate from neighbour
+
+if you delete a light source you better add it to propagation queue
+
+for fixing these light holes we need to propagate down and sideways
+
+and ultimately probably unit test it
