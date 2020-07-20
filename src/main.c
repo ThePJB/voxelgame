@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
 
     text_init(gc);
     cm.world_noise = chunk_rngs_init(123456789);
-    cm.loaded_dimensions = (vec3i) {8,4,8};
+    cm.loaded_dimensions = (vec3i) {12,10,12};
 
     cam.pos = (vec3s) {0, 0, 0};
 

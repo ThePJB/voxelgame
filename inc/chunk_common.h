@@ -38,6 +38,7 @@
 typedef struct {
     noise2d noise_lf_heightmap;
     noise2d noise_hf_heightmap;
+    noise2d noise_smoothness;
     noise3d noise_cliff_carver;
     noise3d noise_cave_carver;
 } chunk_rngs;
@@ -90,7 +91,6 @@ vec3i chunk_1d_to_3d(int idx);
 void chunk_print(chunk c);
 void chunk_test();
 
-void chunk_fix_lighting(chunk_manager *cm, int x, int y, int z);
 
 // chunk manager
 void cm_update(chunk_manager *cm, vec3s pos);           // queue up chunks to load
@@ -127,11 +127,12 @@ void world_test();
 void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z);
 
 // lighting
-void cm_add_light(chunk_manager *cm, uint8_t luminance, long x, long y, long z);
-void cm_delete_light(chunk_manager *cm, long x, long y, long z);
-void cm_update_light_for_block_deletion(chunk_manager *cm, long x, long y, long z);
-void cm_update_light_for_block_placement(chunk_manager *cm, long x, long y, long z);
-void cm_lighting_touch_block(chunk_manager *cm, vec3l pos);
+void light_initialize_for_chunk(chunk_manager *cm, int x, int y, int z);
+void light_add(chunk_manager *cm, uint8_t luminance, long x, long y, long z);
+void light_delete(chunk_manager *cm, long x, long y, long z);
+//void cm_update_light_for_block_deletion(chunk_manager *cm, long x, long y, long z);
+//void cm_update_light_for_block_placement(chunk_manager *cm, long x, long y, long z);
+void light_issue_remesh(chunk_manager *cm, vec3l pos);
 void cm_propagate_sunlight(chunk_manager *cm, int32_t x, int32_t y, int32_t z);
 
 // picking

@@ -5,10 +5,12 @@ void chunk_print(chunk c) {
 }
 
 chunk_rngs chunk_rngs_init(int64_t seed) {
-    const int vec = 987234;
+    // const int vec = 987234;
+    const int vec = 1;
     return (chunk_rngs) {
-        .noise_lf_heightmap = n2d_create(seed, 2, 0.01, 2, 50, 0.5),
+        .noise_lf_heightmap = n2d_create(seed, 2, 0.01, 1, 50, 0.5),
         .noise_hf_heightmap = n2d_create(seed*vec, 3, 0.04, 2, 12.5, 0.5),
+        .noise_smoothness = n2d_create(seed*vec*vec*vec*vec, 4, 0.005, 2, 0.005, 0.5),
         .noise_cliff_carver = n3d_create(seed*vec*vec, 3, 0.03, 2, 20, 0.5),
         .noise_cave_carver = n3d_create(seed*vec*vec*vec, 4, 0.05, 2, 10, 0.7),
     };
@@ -128,58 +130,6 @@ chunk chunk_generate(chunk_manager *cm, chunk_rngs noise, int x, int y, int z) {
     }
         
     return c;
-}
-
-void chunk_fix_lighting(chunk_manager *cm, int x, int y, int z) {
-    
-    vec3i chunk_pos = {x,y,z};
-
-    int chunk_idx = hmgeti(cm->chunk_hm, chunk_pos);
-    
-    if (chunk_idx == -1) {
-        printf("trying to fix lighting of nonexistent chunk?\n");
-        return;
-    } 
-
-    for (int bx = 0; bx < CHUNK_RADIX; bx++) {
-        int32_t global_block_x = bx + x * CHUNK_RADIX;
-        for (int bz = 0; bz < CHUNK_RADIX; bz++) {
-            int32_t global_block_z = bz + z * CHUNK_RADIX;
-
-            int32_t surface_y = world_get_surface_y(cm, global_block_x, global_block_z).value;
-
-            for (int by = 0; by < CHUNK_RADIX; by++) {
-                int32_t global_block_y = by + y * CHUNK_RADIX;
-
-                vec3i block_pos = (vec3i){bx,by,bz};
-                //print_vec3i(block_pos);
-                int idx = chunk_3d_to_1d(block_pos);
-                //printf("fix lighting index %d\n", idx);
-
-
-                //printf("%d\n", chunk_idx);
-                chunk *c = &cm->chunk_hm[chunk_idx];
-                block_tag block = c->blocks[idx];
-                //printf("%u\n", (uint16_t)block);
-
-                uint8_t lum = block_defs[block].luminance;
-                if (lum > 0) {
-                    vec3l world_block_pos = world_block_chunk_to_posl(block_pos, (vec3i){x,y,z});
-                    cm_add_light(cm, lum, global_block_x, global_block_y, global_block_z);
-                }
-
-                if (global_block_y > surface_y) {
-                    c->sky_light_levels[idx] = SKY_LIGHT_FULL;
-                }
-            }
-
-            // so we run the sunlight propagation algorithm at the highest y point in this chunk,
-            // if this chunk is the one with the surface (highest opauqe block)
-            if (floor_div(surface_y, CHUNK_RADIX) == y) {
-                cm_propagate_sunlight(cm, x, CHUNK_MAX, z);
-            }
-        }
-    }
 }
 
 void chunk_test() {

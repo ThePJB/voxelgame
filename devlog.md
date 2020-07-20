@@ -121,3 +121,59 @@ if you delete a light source you better add it to propagation queue
 for fixing these light holes we need to propagate down and sideways
 
 and ultimately probably unit test it
+
+----
+
+why does sunlight propagate down but not sideways?
+
+
+---------
+
+how lighting works:
+    - update: propagate light outward from the source, 4con, with intensity of source -1
+
+    - update that might reduce light: delete all light that could have been from this thing, then update from the edges and any light sources within
+
+
+opaque blocks always have light 0.
+placing a block is equivalent to deleting a light source.
+deleting a block is a bit like deleting a light source. you set to 0 in case the block emitted.
+
+i could also make 4 run "fix light" on the chunk
+
+
+----
+ok current problem, you delete something, it doesnt update propagation queue
+
+ok thats all G.
+
+can there just be a general light update that does a deletey update? its not much to check really
+actually i think light add is a bit different to light delete. light delete could be light update.
+
+i think there might be a sticky extra case with deleting as there is with adding.
+
+deleting you want to remember the brightness to delete. if its not the first one you also want to re add though
+ok that didnt have the effect i thought
+
+
+OK thats nice, I improved the block deleting case and simplified code a bit.
+
+Skylight propagates correctly as you delete blocks btw. and says it is propagating sideways in doing chunk deleteys.
+
+maybe its getting zeroed in the fix thing
+
+fix that before moving onto the larger artifacts in the world.
+
+and then some relaxing terrain generation.
+
+
+ok fix nice
+
+its really gonna need some unit tests though its pretty unreliable
+
+---------------------------
+current state of lighting:
+    - inconsistent
+    - chunk load order dependent I think
+
+    noise abstractions dont really work, they may needa go

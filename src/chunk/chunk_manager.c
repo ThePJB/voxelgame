@@ -13,11 +13,11 @@ void neighbour_handshake(chunk_manager *cm, chunk *this, vec3i neighbour_pos) {
     int other_nn = ++(neighbour->loaded_4con_neighbours);
     
     if (this_nn == 6) {
-        chunk_fix_lighting(cm, spread(this->key));
+        light_initialize_for_chunk(cm, spread(this->key));
         this->needs_remesh = true;
     }
     if (other_nn == 6) {
-        chunk_fix_lighting(cm, spread(neighbour->key));
+        light_initialize_for_chunk(cm, spread(neighbour->key));
         neighbour->needs_remesh = true;
     }
 }

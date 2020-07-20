@@ -120,19 +120,21 @@ void world_set_block(chunk_manager *cm, vec3l pos, block_tag new_block) {
 
     if (new_luminance > 0 && old_luminance == 0) {
         // previously not luminous, now luminous
-        cm_add_light(cm, new_luminance, spread(pos));
+        light_add(cm, new_luminance, spread(pos));
 
     } else if (old_luminance > 0 && new_luminance == 0) {
         // previously luminous, now not
-        cm_delete_light(cm, spread(pos));
+        light_delete(cm, spread(pos));
 
     } else if (old_opaque && !new_opaque) {
         // deleted a block that may have been obstructing light
-        cm_update_light_for_block_deletion(cm, spread(pos));
+        light_delete(cm, spread(pos));
+        //cm_update_light_for_block_deletion(cm, spread(pos));
 
     } else if (new_opaque && !old_opaque) {
         // placed a block that may now obstruct light
-        cm_update_light_for_block_placement(cm, spread(pos));
+        light_delete(cm, spread(pos));
+        //cm_update_light_for_block_placement(cm, spread(pos));
 
     }
 
@@ -178,7 +180,7 @@ void world_set_illumination(chunk_manager *cm, vec3l pos, uint8_t illumination) 
         return;
     }
 
-    cm_lighting_touch_block(cm, pos);
+    light_issue_remesh(cm, pos);
     cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(coords.l)] = illumination;
 }
 
@@ -191,7 +193,7 @@ void world_set_sunlight(chunk_manager *cm, vec3l pos, uint8_t illumination) {
         return;
     }
 
-    cm_lighting_touch_block(cm, pos);
+    light_issue_remesh(cm, pos);
     cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(coords.l)] = illumination;
 }
 
