@@ -175,5 +175,42 @@ its really gonna need some unit tests though its pretty unreliable
 current state of lighting:
     - inconsistent
     - chunk load order dependent I think
+    - with lighting we can use a heuristic to see involving the xy height
+    - code could be cleaned up a bit too
 
-    noise abstractions dont really work, they may needa go
+    noise abstractions dont really work, they needa go
+
+
+    so with lighting we are deleting properly im pretty sure
+    i broke world gen lol
+
+
+    trying toget surface of unloaded chunk a lot
+
+    open simplex noise is a bit gay to use. why is everything 0
+
+
+    for some reason it was the vec thing
+
+    im gonna make a superflat world gen option now, world gen func fn ptr, and look at light. its also really sluggish. its doing a lot of unnecessary work with the light updates
+
+    maybe i need a "distance to unloaded" heuristic or something to sort the chunk lighting
+
+
+I think world gen stuff worked so far, the frequency coefficient
+it needs an abstraction and also running like shit
+
+
+
+sooo sunlight propagation must be too aggressive
+or maybe deletion doesnt do it properly when push comes to shove
+
+
+
+ok so not deleting the right stuff with sunlight. its a bit weird
+so if the overhang is placed presumably the 16 below is deleted.  and that should then delete the 15 next to it right
+instead it doesnt, it only deletes down
+
+lol condition was wrong
+
+ok then i think its mostly fixed except cooked loading order stuff

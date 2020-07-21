@@ -64,7 +64,7 @@ window_context *window_init(char *title, int *w, int *h, camera *cam) {
 
 block_tag place_block = 0;
 extern chunk_manager *cmp;
-
+bool test_disable_del_propagate_sun = false;
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
         if (wc.wireframe) {
@@ -78,10 +78,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         wc.show_info = !wc.show_info;
     }
     if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
-        n2d_reseed(&cmp->world_noise.noise_lf_heightmap, rand());
-        n2d_reseed(&cmp->world_noise.noise_hf_heightmap, rand());
-        n3d_reseed(&cmp->world_noise.noise_cliff_carver, rand());
-        cm_update(cmp, (vec3s){0,0,0});
+        test_disable_del_propagate_sun = !test_disable_del_propagate_sun;
     }
     if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
         printf("meshing\n");

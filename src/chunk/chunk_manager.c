@@ -24,7 +24,7 @@ void neighbour_handshake(chunk_manager *cm, chunk *this, vec3i neighbour_pos) {
 
 void cm_load_chunk(chunk_manager *cm, int x, int y, int z) {
     debugf("loading chunk %d %d %d\n", x, y, z);
-    chunk new_chunk = chunk_generate(cm, cm->world_noise, x, y, z);
+    chunk new_chunk = cm->gen_func(cm, x, y, z);
     hmputs(cm->chunk_hm, new_chunk);
 
     int idx = hmgeti(cm->chunk_hm, ((vec3i){x,y,z}));

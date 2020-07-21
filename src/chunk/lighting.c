@@ -35,7 +35,7 @@ vec3l_queue sunlight_deletion_queue = {
 void finish_propagating(chunk_manager *cm) {
     while (vec3l_queue_len(&propagation_queue) > 0) {
         vec3l current_pos = vec3l_queue_pop(&propagation_queue);
-        uint8_t current_illumination = world_get_illumination(cm, current_pos).value;
+        uint8_t current_illumination = light_get_block(cm, current_pos).value;
         if (current_illumination == 0) {
             continue;
         }
@@ -49,9 +49,9 @@ void finish_propagating(chunk_manager *cm) {
                 continue;
             }
 
-            uint8_t neighbour_illumination = world_get_illumination(cm, neighbour_pos).value;
+            uint8_t neighbour_illumination = light_get_block(cm, neighbour_pos).value;
             if (neighbour_illumination < current_illumination - 1) {
-                world_set_illumination(cm, neighbour_pos, current_illumination - 1);
+                light_set_block(cm, neighbour_pos, current_illumination - 1);
                 vec3l_queue_push(&propagation_queue, neighbour_pos);
             }
         }
@@ -61,7 +61,7 @@ void finish_propagating(chunk_manager *cm) {
 void finish_propagating_sunlight(chunk_manager *cm) {
     while (vec3l_queue_len(&sunlight_queue) > 0) {
         vec3l current_pos = vec3l_queue_pop(&sunlight_queue);
-        maybe_uint8_t current_sunlight = world_get_sunlight(cm, current_pos);
+        maybe_uint8_t current_sunlight = light_get_sky(cm, current_pos);
         if (current_sunlight.ok == false ||
             current_sunlight.value == 0) {
             continue;
@@ -71,7 +71,7 @@ void finish_propagating_sunlight(chunk_manager *cm) {
             vec3l neighbour_pos = vec3l_add(current_pos, unit_vec3l[dir]);
             block_tag neighbour_block = world_get_block(cm, neighbour_pos).value;
             block_definition neighbour_props = block_defs[neighbour_block];
-            maybe_uint8_t neighbour_sunlight = world_get_sunlight(cm, neighbour_pos);
+            maybe_uint8_t neighbour_sunlight = light_get_sky(cm, neighbour_pos);
 
             if (neighbour_sunlight.ok == false ||
                 neighbour_props.opaque) {
@@ -80,11 +80,11 @@ void finish_propagating_sunlight(chunk_manager *cm) {
 
             // downward propagating sunlight case
             if (dir == DIR_MY && current_sunlight.value == SKY_LIGHT_FULL) {
-                world_set_sunlight(cm, neighbour_pos, current_sunlight.value);
+                light_set_sky(cm, neighbour_pos, current_sunlight.value);
                 vec3l_queue_push(&sunlight_queue, neighbour_pos);
                 //printf("sunlight propagate down\n");
             } else if (neighbour_sunlight.value < current_sunlight.value - 1) {
-                world_set_sunlight(cm, neighbour_pos, current_sunlight.value - 1);
+                light_set_sky(cm, neighbour_pos, current_sunlight.value - 1);
                 vec3l_queue_push(&sunlight_queue, neighbour_pos);
             }
         }
@@ -94,7 +94,7 @@ void finish_propagating_sunlight(chunk_manager *cm) {
 void finish_deleting(chunk_manager *cm) {
     while(vec3l_queue_len(&deletion_queue) > 0) {
         vec3l current_pos = vec3l_queue_pop(&deletion_queue);
-        maybe_uint8_t current_illumination = world_get_illumination(cm, current_pos);
+        maybe_uint8_t current_illumination = light_get_block(cm, current_pos);
         if (current_illumination.ok == false) {
             printf("warning: trying to delete light but couldnt get it");
             continue;
@@ -103,7 +103,7 @@ void finish_deleting(chunk_manager *cm) {
         for (direction dir = 0; dir < NUM_DIRS; dir++) {
             vec3l neighbour_pos = vec3l_add(current_pos, unit_vec3l[dir]);
             block_tag neighbour_block = world_get_block(cm, neighbour_pos).value;
-            maybe_uint8_t neighbour_illumination = world_get_illumination(cm, neighbour_pos);
+            maybe_uint8_t neighbour_illumination = light_get_block(cm, neighbour_pos);
 
             if (block_defs[neighbour_block].luminance > 0) {
                 // if neighbour is a light we need to add it to propagation queue
@@ -125,19 +125,19 @@ void finish_deleting(chunk_manager *cm) {
             }
         }
 
-        world_set_illumination(cm, current_pos, 0);
+        light_set_block(cm, current_pos, 0);
     }
 }
 
 void finish_deleting_sunlight(chunk_manager *cm) {
     while(vec3l_queue_len(&sunlight_deletion_queue) > 0) {
         vec3l current_pos = vec3l_queue_pop(&sunlight_deletion_queue);
-        uint8_t current_sunlight = world_get_sunlight(cm, current_pos).value;
+        uint8_t current_sunlight = light_get_sky(cm, current_pos).value;
 
         for (direction dir = 0; dir < NUM_DIRS; dir++) {
             vec3l neighbour_pos = vec3l_add(current_pos, unit_vec3l[dir]);
             block_tag neighbour_block = world_get_block(cm, neighbour_pos).value;
-            maybe_uint8_t neighbour_sunlight = world_get_sunlight(cm, neighbour_pos);
+            maybe_uint8_t neighbour_sunlight = light_get_sky(cm, neighbour_pos);
 
             if (block_defs[neighbour_block].opaque || 
                 neighbour_sunlight.ok == false || 
@@ -146,7 +146,8 @@ void finish_deleting_sunlight(chunk_manager *cm) {
             }
 
             // this block will be darker, so we have to delete it and let propagation re run
-            if ((current_sunlight == SKY_LIGHT_FULL && dir == DIR_MY) || current_sunlight < neighbour_sunlight.value) {
+            if ((current_sunlight == SKY_LIGHT_FULL && dir == DIR_MY) ||
+                neighbour_sunlight.value < current_sunlight) {
                 vec3l_queue_push(&sunlight_deletion_queue, neighbour_pos);
             } else {
                 // block is illuminated some other way
@@ -154,13 +155,13 @@ void finish_deleting_sunlight(chunk_manager *cm) {
             }
         }
 
-        world_set_sunlight(cm, current_pos, 0);
+        light_set_sky(cm, current_pos, 0);
     }
 }
 
 void light_add(chunk_manager *cm, uint8_t luminance, long x, long y, long z) {
     vec3l new_light_pos = {x,y,z};
-    world_set_illumination(cm, new_light_pos, luminance);
+    light_set_block(cm, new_light_pos, luminance);
     vec3l_queue_push(&propagation_queue, new_light_pos);
 
     finish_propagating(cm);
@@ -175,11 +176,15 @@ void light_delete(chunk_manager *cm, long x, long y, long z) {
 
     vec3l_queue_push(&sunlight_deletion_queue, current_pos);
     finish_deleting_sunlight(cm);
-    finish_propagating_sunlight(cm);
+
+    extern bool test_disable_del_propagate_sun;
+    if (!test_disable_del_propagate_sun) {
+        finish_propagating_sunlight(cm);
+    }
 }
 
 
-void cm_propagate_sunlight(chunk_manager *cm, int32_t x, int32_t y, int32_t z) {
+void light_propagate_sky(chunk_manager *cm, int32_t x, int32_t y, int32_t z) {
     vec3l pos = {x,y,z};
     vec3l_queue_push(&sunlight_queue, pos);
     finish_propagating_sunlight(cm);
@@ -269,8 +274,64 @@ void light_initialize_for_chunk(chunk_manager *cm, int x, int y, int z) {
             // so we run the sunlight propagation algorithm at the highest y point in this chunk,
             // if this chunk is the one with the surface (highest opauqe block)
             if (floor_div(surface_y, CHUNK_RADIX) == y) {
-                cm_propagate_sunlight(cm, global_block_x, CHUNK_MAX, global_block_z);
+                light_propagate_sky(cm, global_block_x, CHUNK_MAX, global_block_z);
             }
         }
     }
+}
+
+
+
+// basic structure access
+
+
+
+void light_set_block(chunk_manager *cm, vec3l pos, uint8_t illumination) {
+    vec3i_pair coords = world_posl_to_block_chunk(pos);
+    int idx = hmgeti(cm->chunk_hm, coords.r);
+    
+    if (idx < 0) {
+        printf("tried setting block light of an unloaded chunk\n");
+        return;
+    }
+
+    light_issue_remesh(cm, pos);
+    cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(coords.l)] = illumination;
+}
+
+void light_set_sky(chunk_manager *cm, vec3l pos, uint8_t illumination) {
+    vec3i_pair coords = world_posl_to_block_chunk(pos);
+    int idx = hmgeti(cm->chunk_hm, coords.r);
+    
+    if (idx < 0) {
+        printf("tried setting sky light of an unloaded chunk\n");
+        return;
+    }
+
+    light_issue_remesh(cm, pos);
+    cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(coords.l)] = illumination;
+}
+
+maybe_uint8_t light_get_block(chunk_manager *cm, vec3l pos) {
+    vec3i_pair coords = world_posl_to_block_chunk(pos);
+    int idx = hmgeti(cm->chunk_hm, coords.r);
+    
+    if (idx < 0) {
+        //printf("tried getting illumination of an unloaded chunk %d %d %d\n", spread(coords.r));
+        return (maybe_uint8_t) {255, false};
+    }
+
+    return (maybe_uint8_t) {cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(coords.l)], true};
+}
+
+maybe_uint8_t light_get_sky(chunk_manager *cm, vec3l pos) {
+    vec3i_pair coords = world_posl_to_block_chunk(pos);
+    int idx = hmgeti(cm->chunk_hm, coords.r);
+    
+    if (idx < 0) {
+        //printf("tried getting illumination of an unloaded chunk %d %d %d\n", spread(coords.r));
+        return (maybe_uint8_t) {255, false};
+    }
+
+    return (maybe_uint8_t) {cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(coords.l)], true};
 }

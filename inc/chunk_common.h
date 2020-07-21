@@ -64,12 +64,19 @@ typedef struct {
     int32_t value;
 } surface_hm_entry;
 
-typedef struct {
-    chunk_rngs world_noise;
+
+typedef struct chunk_manager {
+    //chunk_rngs world_noise;
+    struct osn_context* osn;
+
+
     chunk *chunk_hm;
     surface_hm_entry *surface_hm;
     vec3i loaded_dimensions;
     vec3i *load_list;
+
+    chunk (*gen_func)(struct chunk_manager *cm, int chunk_x, int chunk_y, int chunk_z);
+
 } chunk_manager;
 
 typedef struct {
@@ -83,13 +90,14 @@ block_definition block_defs[NUM_BLOCKS];
 MKMAYBE(block_tag);
 
 // low level -- chunks
-chunk_rngs chunk_rngs_init(int64_t seed);
-chunk chunk_generate(chunk_manager *cm, chunk_rngs noise, int x, int y, int z);
+//chunk_rngs chunk_rngs_init(int64_t seed);
+chunk chunk_generate(chunk_manager *cm, int x, int y, int z);
 void update_highest_block(chunk_manager *cm, int32_t x, int32_t y, int32_t z);
 int chunk_3d_to_1d(vec3i pos);
 vec3i chunk_1d_to_3d(int idx);
 void chunk_print(chunk c);
 void chunk_test();
+chunk generate_flat(chunk_manager *cm, int chunk_x, int chunk_y, int chunk_z);
 
 
 // chunk manager
@@ -110,12 +118,6 @@ vec3i world_posl_to_chunk(vec3l pos);
 maybe_block_tag world_get_block(chunk_manager *cm, vec3l pos);
 void world_set_block(chunk_manager *cm, vec3l pos, block_tag b);
 
-maybe_uint8_t world_get_illumination(chunk_manager *cm, vec3l pos);
-void world_set_illumination(chunk_manager *cm, vec3l pos, uint8_t illumination);
-
-maybe_uint8_t world_get_sunlight(chunk_manager *cm, vec3l pos);
-void world_set_sunlight(chunk_manager *cm, vec3l pos, uint8_t illumination);
-
 maybe_int32_t world_get_surface_y(chunk_manager *cm, int32_t x, int32_t z);
 void world_update_surface_y(chunk_manager *cm, int32_t x, int32_t y, int32_t z);
 
@@ -127,13 +129,19 @@ void world_test();
 void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z);
 
 // lighting
+maybe_uint8_t light_get_block(chunk_manager *cm, vec3l pos);
+void light_set_block(chunk_manager *cm, vec3l pos, uint8_t illumination);
+
+maybe_uint8_t light_get_sky(chunk_manager *cm, vec3l pos);
+void light_set_sky(chunk_manager *cm, vec3l pos, uint8_t illumination);
+
 void light_initialize_for_chunk(chunk_manager *cm, int x, int y, int z);
 void light_add(chunk_manager *cm, uint8_t luminance, long x, long y, long z);
 void light_delete(chunk_manager *cm, long x, long y, long z);
 //void cm_update_light_for_block_deletion(chunk_manager *cm, long x, long y, long z);
 //void cm_update_light_for_block_placement(chunk_manager *cm, long x, long y, long z);
 void light_issue_remesh(chunk_manager *cm, vec3l pos);
-void cm_propagate_sunlight(chunk_manager *cm, int32_t x, int32_t y, int32_t z);
+void light_propagate_sky(chunk_manager *cm, int32_t x, int32_t y, int32_t z);
 
 // picking
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance);

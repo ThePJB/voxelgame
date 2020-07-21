@@ -53,9 +53,10 @@ int main(int argc, char** argv) {
     graphics_context *gc = graphics_init(&w, &h, &cam);
 
     text_init(gc);
-    cm.world_noise = chunk_rngs_init(123456789);
-    cm.loaded_dimensions = (vec3i) {12,10,12};
-
+    //cm.world_noise = chunk_rngs_init(123456789);
+    open_simplex_noise(123456789, &cm.osn);
+    cm.loaded_dimensions = (vec3i) {8,8,8};
+    cm.gen_func = generate_flat;
     cam.pos = (vec3s) {0, 0, 0};
 
     cam.front = (vec3s) {0, 0, -1};

@@ -147,55 +147,6 @@ void world_set_block(chunk_manager *cm, vec3l pos, block_tag new_block) {
     c->needs_remesh = true;
 }
 
-maybe_uint8_t world_get_illumination(chunk_manager *cm, vec3l pos) {
-    vec3i_pair coords = world_posl_to_block_chunk(pos);
-    int idx = hmgeti(cm->chunk_hm, coords.r);
-    
-    if (idx < 0) {
-        //printf("tried getting illumination of an unloaded chunk %d %d %d\n", spread(coords.r));
-        return (maybe_uint8_t) {255, false};
-    }
-
-    return (maybe_uint8_t) {cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(coords.l)], true};
-}
-
-maybe_uint8_t world_get_sunlight(chunk_manager *cm, vec3l pos) {
-    vec3i_pair coords = world_posl_to_block_chunk(pos);
-    int idx = hmgeti(cm->chunk_hm, coords.r);
-    
-    if (idx < 0) {
-        //printf("tried getting illumination of an unloaded chunk %d %d %d\n", spread(coords.r));
-        return (maybe_uint8_t) {255, false};
-    }
-
-    return (maybe_uint8_t) {cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(coords.l)], true};
-}
-
-void world_set_illumination(chunk_manager *cm, vec3l pos, uint8_t illumination) {
-    vec3i_pair coords = world_posl_to_block_chunk(pos);
-    int idx = hmgeti(cm->chunk_hm, coords.r);
-    
-    if (idx < 0) {
-        printf("tried setting illumination of an unloaded chunk\n");
-        return;
-    }
-
-    light_issue_remesh(cm, pos);
-    cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(coords.l)] = illumination;
-}
-
-void world_set_sunlight(chunk_manager *cm, vec3l pos, uint8_t illumination) {
-    vec3i_pair coords = world_posl_to_block_chunk(pos);
-    int idx = hmgeti(cm->chunk_hm, coords.r);
-    
-    if (idx < 0) {
-        printf("tried setting skylight of an unloaded chunk\n");
-        return;
-    }
-
-    light_issue_remesh(cm, pos);
-    cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(coords.l)] = illumination;
-}
 
 
 
@@ -232,7 +183,7 @@ maybe_int32_t world_get_surface_y(chunk_manager *cm, int32_t x, int32_t z) {
         return (maybe_int32_t){cm->surface_hm[surface_map_idx].value, true};
     }
     
-    printf("warning: tried to get surface of unloaded chunk\n");
+    //printf("warning: tried to get surface of unloaded chunk\n");
     return (maybe_int32_t){0, false};
 }
 

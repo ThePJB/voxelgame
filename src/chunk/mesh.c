@@ -4,7 +4,7 @@
 
 #define MESHING_BUF_SIZE 409600 * 5
 void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
-    printf("meshing chunk %d %d %d\n", x, y, z);
+    //printf("meshing chunk %d %d %d\n", x, y, z);
 
     int chunk_idx = hmgeti(cm->chunk_hm, ((vec3i){x,y,z}));
     chunk *c = &cm->chunk_hm[chunk_idx];
@@ -63,8 +63,8 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
                     CHUNK_RADIX * z + block_pos.z,
                 };
                 vec3l face_neighbour_pos = vec3l_add(pos, unit_vec3l[face]);
-                uint8_t block_light = world_get_illumination(cm, face_neighbour_pos).value;
-                uint8_t sky_light = world_get_sunlight(cm, face_neighbour_pos).value;
+                uint8_t block_light = light_get_block(cm, face_neighbour_pos).value;
+                uint8_t sky_light = light_get_sky(cm, face_neighbour_pos).value;
                 buf[vertex_idx++] = unlerp(0, light_max, max(block_light, sky_light));
             }
         }

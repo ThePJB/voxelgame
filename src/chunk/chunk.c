@@ -48,7 +48,52 @@ bool neighbour_exists(vec3i pos, int direction) {
     return false;
 }
 
-chunk chunk_generate(chunk_manager *cm, chunk_rngs noise, int x, int y, int z) {
+chunk generate_flat(chunk_manager *cm, int chunk_x, int chunk_y, int chunk_z) {
+    block_tag *blocks = calloc(sizeof(block_tag), CHUNK_RADIX_3);
+    uint8_t *block_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
+    uint8_t *sky_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
+    chunk c = {0};
+    c.blocks = blocks;
+    c.sky_light_levels = sky_light;
+    c.block_light_levels = block_light;
+
+    c.key = (vec3i) {chunk_x, chunk_y, chunk_z};
+
+    int chunk_global_x = chunk_x * CHUNK_RADIX;
+    int chunk_global_y = chunk_y * CHUNK_RADIX;
+    int chunk_global_z = chunk_z * CHUNK_RADIX;
+
+    for (int idx = 0; idx < CHUNK_RADIX_3; idx++) {
+        vec3i block_pos_in_chunk = chunk_1d_to_3d(idx);
+        vec3l block_pos_global = {
+            chunk_global_x + block_pos_in_chunk.x,
+            chunk_global_y + block_pos_in_chunk.y,
+            chunk_global_z + block_pos_in_chunk.z,
+        };
+        
+        if (block_pos_global.y > 0) {
+            blocks[idx] = BLOCK_AIR;
+            sky_light[idx] = SKY_LIGHT_FULL;
+            block_light[idx] = 0;
+        } else if (block_pos_global.y == 0) {
+            blocks[idx] = BLOCK_GRASS;
+            sky_light[idx] = SKY_LIGHT_FULL;
+            block_light[idx] = 0;
+        } else if (block_pos_global.y > -4) {
+            blocks[idx] = BLOCK_DIRT;
+            sky_light[idx] = SKY_LIGHT_FULL;
+            block_light[idx] = 0;
+        }  else {
+            blocks[idx] = BLOCK_STONE;
+            sky_light[idx] = SKY_LIGHT_FULL;
+            block_light[idx] = 0;
+        } 
+        world_update_surface_y(cm, spread(block_pos_global));
+    }
+    return c;
+}
+
+chunk chunk_generate(chunk_manager *cm, int x, int y, int z) {
     block_tag *blocks = calloc(sizeof(block_tag), CHUNK_RADIX_3);
     uint8_t *block_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
     uint8_t *sky_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
@@ -69,11 +114,96 @@ chunk chunk_generate(chunk_manager *cm, chunk_rngs noise, int x, int y, int z) {
         double block_x = chunk_x + block_pos.x;
         double block_y = chunk_y + block_pos.y;
         double block_z = chunk_z + block_pos.z;
+        
+        // useful sampled thingies
+        float height_low = 0;
+        float height_high = 0;
+        float cliff_carve_density = 0; // partial carving
+        float cave_carve_density = 0; // complete carving
+        float cave_cutoff_coefficient;
+    
+        // used within sampling
+        float domain_warp_x;
+        float domain_warp_y;
+        float domain_warp_z;
 
-        float height_low = n2d_sample(&noise.noise_lf_heightmap, block_x, block_z);
-        float height_high = n2d_sample(&noise.noise_hf_heightmap, block_x, block_z);
-        float cliff_carve_density = n3d_sample(&noise.noise_cliff_carver, block_x, block_y, block_z);
-        float cave_carve_density = n3d_sample(&noise.noise_cliff_carver, block_x, block_y, block_z);
+        float freq_coefficient; // smoother areas and rougher areas
+        float A_fc = 0.01;
+        float f_fc = 0.001;
+        freq_coefficient = A_fc * open_simplex_noise2(cm->osn, f_fc*block_x, f_fc*block_z);
+        freq_coefficient += 1;
+
+        float A_height = 50;
+        float f_height = 0.01;
+
+        float vec = 0;
+        float vecm = 1234;
+
+        float A_cliff = 20;
+        float f_cliff = 0.03;
+
+        cliff_carve_density += A_cliff * open_simplex_noise2(cm->osn, vec + f_cliff*block_x, vec + f_cliff*block_z);
+        A_cliff /= 2;
+        f_cliff *= 2;
+        vec *= vecm;
+        cliff_carve_density += A_cliff * open_simplex_noise2(cm->osn, vec + f_cliff*block_x, vec + f_cliff*block_z);
+        A_cliff /= 2;
+        f_cliff *= 2;
+        vec *= vecm;
+        cliff_carve_density += A_cliff * open_simplex_noise2(cm->osn, vec + f_cliff*block_x, vec + f_cliff*block_z);
+        A_cliff /= 2;
+        f_cliff *= 2;
+        vec *= vecm;
+
+        height_low += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
+        A_height /= 2;
+        f_height *= 2;
+        vec *= vecm;
+        height_low += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
+        A_height /= 2;
+        f_height *= 2;
+        vec *= vecm;
+        height_low += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
+        A_height /= 2;
+        f_height *= 2;
+        vec *= vecm;
+
+        height_high += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
+        A_height /= 2;
+        f_height *= 2;
+        vec *= vecm;
+        height_high += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
+        A_height /= 2;
+        f_height *= 2;
+        vec *= vecm;
+        height_high += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
+        A_height /= 2;
+        f_height *= 2;
+        vec *= vecm;
+
+
+
+        float A_cave = 20;
+        float f_cave = 0.05;
+
+        cave_carve_density += A_cave * open_simplex_noise3(cm->osn, vec + f_cave*block_x, f_cave*block_y, vec + f_cave*block_z);
+        A_cave /= 2;
+        f_cave *= 2;
+        vec *= vecm;
+        cave_carve_density += A_cave * open_simplex_noise3(cm->osn, vec + f_cave*block_x, f_cave*block_y, vec + f_cave*block_z);
+        A_cave /= 2;
+        f_cave *= 2;
+        vec *= vecm;
+        cave_carve_density += A_cave * open_simplex_noise3(cm->osn, vec + f_cave*block_x, f_cave*block_y, vec + f_cave*block_z);
+        A_cave /= 2;
+        f_cave *= 2;
+        vec *= vecm;            
+
+
+        //float height_low = n2d_sample(&noise.noise_lf_heightmap, block_x, block_z);
+        //float height_high = n2d_sample(&noise.noise_hf_heightmap, block_x, block_z);
+        //float cliff_carve_density = n3d_sample(&noise.noise_cliff_carver, block_x, block_y, block_z);
+        //float cave_carve_density = n3d_sample(&noise.noise_cliff_carver, block_x, block_y, block_z);
 
         float cave_cutoff = remap(64, -80, -10, 2, block_y);
 

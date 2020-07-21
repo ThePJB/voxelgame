@@ -29,7 +29,7 @@ void draw_debug_info(float dt, camera cam, window_context *wc, chunk_manager *cm
     if (lookat.success) {
         sprintf(buf, "Lookat block: {%d %d %d}, type: %d light: %u", 
             spread(lookat.coords), world_get_block(cm, lookat.coords).value,
-            world_get_illumination(cm, lookat.coords).value);
+            light_get_block(cm, lookat.coords).value);
     } else {
         sprintf(buf, "Lookat block: none");
     }
@@ -40,8 +40,8 @@ void draw_debug_info(float dt, camera cam, window_context *wc, chunk_manager *cm
         vec3l neighbour_block_pos = vec3l_add(lookat.coords, unit_vec3l[lookat.normal_dir]);
         sprintf(buf, "Lookat face: %s, light: %u sun, %u block", 
             dir_name[lookat.normal_dir], 
-            world_get_sunlight(cm, neighbour_block_pos).value,
-            world_get_illumination(cm, neighbour_block_pos).value
+            light_get_sky(cm, neighbour_block_pos).value,
+            light_get_block(cm, neighbour_block_pos).value
             );
     } else {
         sprintf(buf, "Lookat face: none");
