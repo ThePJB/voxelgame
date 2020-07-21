@@ -63,8 +63,16 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
                     CHUNK_RADIX * z + block_pos.z,
                 };
                 vec3l face_neighbour_pos = vec3l_add(pos, unit_vec3l[face]);
-                uint8_t block_light = light_get_block(cm, face_neighbour_pos).value;
-                uint8_t sky_light = light_get_sky(cm, face_neighbour_pos).value;
+                uint8_t block_light = 0;
+                uint8_t sky_light = SKY_LIGHT_FULL;
+                maybe_uint8_t mblock_light = light_get_block(cm, face_neighbour_pos);
+                if (mblock_light.ok) {
+                    block_light = mblock_light.value;
+                }
+                maybe_uint8_t msky_light = light_get_sky(cm, face_neighbour_pos);
+                if (msky_light.ok) {
+                    sky_light = msky_light.value;
+                }
                 buf[vertex_idx++] = unlerp(0, light_max, max(block_light, sky_light));
             }
         }

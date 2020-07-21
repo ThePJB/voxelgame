@@ -214,3 +214,83 @@ instead it doesnt, it only deletes down
 lol condition was wrong
 
 ok then i think its mostly fixed except cooked loading order stuff
+
+
+
+----------
+Tue 21 Jul
+ 
+ So lighting is kind of getting there
+ I need to improve performance and fix edgy bugs
+ 
+ Information: time world generation vs. lighting calculations vs. meshing
+
+ One option would be to have a priority queue of jobs
+
+ Performance:
+    - Sampling noise is slow / gets done heaps.
+        soln: lower res ones that are done once per chunk (caveyness, temp, etc) and maybe lerp. maybe. it means noise octaves are pricey as well.
+
+    - Lots of time spent accessing hash maps. so probably if there was fast path for the light that would be nice
+
+
+im gonna try profiling flat world to see why the lighting is so bad
+
+maybe i could memoize the chunk idx or something
+
+todo profile, test flags for main
+
+so loosely speaking chunk generation takes 5ms per chunk, lighting 1.5ms per chunk, meshing 1.4ms per chunk in the benchmarks. 
+
+
+oh I just realised that in these benchmarks im still neighbour handshaking. gonna have to do something about that. that could be the root of the slowness, maybe generating is fast
+
+
+also quite curious to see if bigger chunks is better
+
+ok without the handshake its generation 3-4ms lighting 2ms
+
+with bigger chunks its 25 ms per chunk
+and 36 ms per chunk
+and 5ms per chunk
+
+/8 = 3ms, 4.5ms 0.somethingms
+
+yeah so im happy saying 16^3 chunks rn cause 32 isnt faster
+
+maybe we need all light then all mesh
+
+
+OK making gen, light, mesh all be on a queue AND making mesh dependent on light FIRST fixed some of the artifacts.
+
+But the light not spreading thing is still happening a bit and thats the LIGHT LOGIC's fault
+
+theres an additional problem which is that there are artifacts where the chunks bordered once nothing. could maybe remesh the edge chunks when a new one is loaded in, or just better guess at the ligh level (guess full sky bright)
+
+
+maybe unwrapper with a default if not ok?
+uint8_t x = maybe_fallback(light_get_blah, SKY_FULL);
+#define maybe_fallback(X, Y) X.ok ? X.value, Y
+it requires computing X twice like with maybe_panic not sure about getting around it
+
+
+
+could smarten up the no adjacent chunk meshing heuristic (NACMH) to check the surface height map (SHM) so that i dont now get lighting artifacts down in caves.
+
+
+ok yeah so now the performance is a lot better, theres a loady part at the start
+artifacts are reduced
+can look at world gen a bit now
+
+
+
+so the same piece of tech for the world map screen could also lod up very distant terrain. fuck that would be awesome.
+
+have, say, a "lodchunk" where say the 2d heightmap is sampled at each corner only and used to make polys
+
+would need a way to guess colour too, say blocks have a colour
+
+i think therell have to be some abstracting of all the 2d height map stuff and also a bit of cheeky undersampling and interpolating where possible
+
+
+do i even want to think about hiding occluded chunks? sweet christ not really

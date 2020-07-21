@@ -93,7 +93,7 @@ chunk generate_flat(chunk_manager *cm, int chunk_x, int chunk_y, int chunk_z) {
     return c;
 }
 
-chunk chunk_generate(chunk_manager *cm, int x, int y, int z) {
+chunk generate_v1(chunk_manager *cm, int x, int y, int z) {
     block_tag *blocks = calloc(sizeof(block_tag), CHUNK_RADIX_3);
     uint8_t *block_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
     uint8_t *sky_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
@@ -128,17 +128,18 @@ chunk chunk_generate(chunk_manager *cm, int x, int y, int z) {
         float domain_warp_z;
 
         float freq_coefficient; // smoother areas and rougher areas
-        float A_fc = 0.01;
+        float A_fc = 2;
         float f_fc = 0.001;
         freq_coefficient = A_fc * open_simplex_noise2(cm->osn, f_fc*block_x, f_fc*block_z);
         freq_coefficient += 1;
 
-        float A_height = 50;
-        float f_height = 0.01;
+        float A_height = 80;
+        float f_height = 0.004;
 
         float vec = 0;
         float vecm = 1234;
 
+    /*
         float A_cliff = 20;
         float f_cliff = 0.03;
 
@@ -154,34 +155,24 @@ chunk chunk_generate(chunk_manager *cm, int x, int y, int z) {
         A_cliff /= 2;
         f_cliff *= 2;
         vec *= vecm;
+        */
 
         height_low += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
         A_height /= 2;
         f_height *= 2;
-        vec *= vecm;
         height_low += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
         A_height /= 2;
         f_height *= 2;
-        vec *= vecm;
         height_low += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
         A_height /= 2;
         f_height *= 2;
-        vec *= vecm;
 
         height_high += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
         A_height /= 2;
         f_height *= 2;
-        vec *= vecm;
         height_high += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
         A_height /= 2;
         f_height *= 2;
-        vec *= vecm;
-        height_high += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
-        A_height /= 2;
-        f_height *= 2;
-        vec *= vecm;
-
-
 
         float A_cave = 20;
         float f_cave = 0.05;
@@ -194,10 +185,8 @@ chunk chunk_generate(chunk_manager *cm, int x, int y, int z) {
         A_cave /= 2;
         f_cave *= 2;
         vec *= vecm;
-        cave_carve_density += A_cave * open_simplex_noise3(cm->osn, vec + f_cave*block_x, f_cave*block_y, vec + f_cave*block_z);
-        A_cave /= 2;
-        f_cave *= 2;
-        vec *= vecm;            
+
+        // a bit of high freq does really make the caves pop though
 
 
         //float height_low = n2d_sample(&noise.noise_lf_heightmap, block_x, block_z);

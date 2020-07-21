@@ -43,31 +43,67 @@ int main(int argc, char** argv) {
     int w = 2560;
     int h = 1440;
     camera cam = fly_camera();
-    //chunk_test();
-    //world_test();
-    //test_util();
-    //cm_test();
-    //exit(0);
-
     window_context *wc = window_init("sick game", &w, &h, &cam);
     graphics_context *gc = graphics_init(&w, &h, &cam);
+
+    if (argc == 2 && !strcmp(argv[1], "--test")) {
+        chunk_test();
+        world_test();
+        test_util();
+        cm_test();
+        exit(0);
+    } else if (argc == 3 && !strcmp(argv[1], "--profile")) {
+        int n = atoi(argv[2]);
+        world_benchmark(n);
+        exit(0);
+    }
+
 
     text_init(gc);
     //cm.world_noise = chunk_rngs_init(123456789);
     open_simplex_noise(123456789, &cm.osn);
-    cm.loaded_dimensions = (vec3i) {8,8,8};
-    cm.gen_func = generate_flat;
+    cm.loaded_dimensions = (vec3i) {14,9,14};
+    int nchunks = cm.loaded_dimensions.x * cm.loaded_dimensions.y * cm.loaded_dimensions.z;
+//    cm.gen_func = generate_flat;
+    cm.gen_func = generate_v1;
     cam.pos = (vec3s) {0, 0, 0};
 
     cam.front = (vec3s) {0, 0, -1};
 
     cm_update(&cm, cam.pos); // generates and meshes chunks
 
+    // initial load etc
+    cm_load_n(&cm, cam.pos, nchunks);
+    cm_light_n(&cm, cam.pos, nchunks);
+    cm_mesh_n(&cm, cam.pos, nchunks);
+
     float last = 0;
     float dt = 0;
     
+    int total_genned = 0;
+    int total_lit = 0;
+    int total_meshed = 0;
+
+    int frame_counter = 0;
+
     while (!glfwWindowShouldClose(wc->window)) {
-        cm_load_n(&cm, cam.pos, 4);
+        frame_counter++;
+
+        int load_amt = cm_load_n(&cm, cam.pos, 3);
+        total_genned += load_amt;
+        if (load_amt == 0) {
+            int light_amt = cm_light_n(&cm, cam.pos, 3);
+            total_lit += light_amt;
+            if (light_amt == 0) {
+                total_meshed += cm_mesh_n(&cm, cam.pos, 8);
+            }
+        }
+
+        if (frame_counter % 60 == 0) {
+            printf("loaded %d lit %d meshed %d\n", total_genned, total_lit, total_meshed);
+        }
+        
+        
         if (glfwGetKey(wc->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(wc->window, true);
         }

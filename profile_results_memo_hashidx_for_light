@@ -1,0 +1,727 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 21.33      0.48     0.48  6291456     0.00     0.00  open_simplex_noise3
+ 19.11      0.91     0.43 18345509     0.00     0.00  stbds_hash_bytes
+ 16.00      1.27     0.36 20971520     0.00     0.00  open_simplex_noise2
+  5.33      1.39     0.12  1020309     0.00     0.00  stbds_hmput_key
+  4.89      1.50     0.11 93475112     0.00     0.00  floor_div
+  4.44      1.60     0.10 20996958     0.00     0.00  world_posl_to_block_chunk
+  4.44      1.70     0.10 10099290     0.00     0.00  world_get_block
+  3.56      1.78     0.08 93288744     0.00     0.00  mod
+  2.67      1.84     0.06 17325714     0.00     0.00  stbds_hmget_key
+  2.67      1.90     0.06      512     0.00     0.00  generate_v1
+  2.22      1.95     0.05 31718323     0.00     0.00  chunk_3d_to_1d
+  1.78      1.99     0.04                             slow_stop4
+  1.33      2.02     0.03 13068210     0.00     0.00  vec3l_add
+  1.33      2.05     0.03  3988717     0.00     0.00  chunk_1d_to_3d
+  1.33      2.08     0.03  1671755     0.00     0.00  light_issue_remesh
+  0.89      2.10     0.02 14175244     0.00     0.00  light_get_sky
+  0.89      2.12     0.02  6118782     0.00     0.00  neighbour_exists
+  0.89      2.14     0.02  1724302     0.00     0.00  vec3l_queue_len
+  0.89      2.16     0.02                             open_simplex_noise_free
+  0.89      2.18     0.02                             vec3l_div
+  0.44      2.19     0.01  3478204     0.00     0.00  light_get_block
+  0.44      2.20     0.01  1697008     0.00     0.00  vec3l_queue_push
+  0.44      2.21     0.01    44958     0.00     0.00  stbi__jpeg_decode_block_prog_dc
+  0.44      2.22     0.01      512     0.00     0.00  cm_mesh_chunk
+  0.44      2.23     0.01        1     0.01     0.01  min
+  0.44      2.24     0.01                             chunk_rngs_init
+  0.44      2.25     0.01                             lerp
+  0.00      2.25     0.00  2968920     0.00     0.00  max
+  0.00      2.25     0.00  2968920     0.00     0.00  unlerp
+  0.00      2.25     0.00  2097152     0.00     0.00  remap
+  0.00      2.25     0.00  1697008     0.00     0.00  vec3l_queue_pop
+  0.00      2.25     0.00  1021838     0.00     0.00  world_block_chunk_to_posl
+  0.00      2.25     0.00  1019797     0.00     0.00  world_update_surface_y
+  0.00      2.25     0.00   625548     0.00     0.00  vec3i_add
+  0.00      2.25     0.00   186368     0.00     0.00  world_get_surface_y
+  0.00      2.25     0.00   167163     0.00     0.00  stbi__jpeg_huff_decode
+  0.00      2.25     0.00    57863     0.00     0.00  stbi__grow_buffer_unsafe
+  0.00      2.25     0.00    25253     0.00     0.00  finish_propagating_sunlight
+  0.00      2.25     0.00    22479     0.00     0.00  stbi__idct_simd
+  0.00      2.25     0.00     3204     0.00     0.00  resample_row_1
+  0.00      2.25     0.00     3072     0.00     0.00  neighbour_handshake
+  0.00      2.25     0.00     2041     0.00     0.00  finish_propagating
+  0.00      2.25     0.00     1068     0.00     0.00  stbi__YCbCr_to_RGB_simd
+  0.00      2.25     0.00      967     0.00     0.00  stbi__stdio_read
+  0.00      2.25     0.00      728     0.00     0.00  light_initialize_for_chunk
+  0.00      2.25     0.00      512     0.00     0.00  cm_load_chunk
+  0.00      2.25     0.00      173     0.00     0.00  stbi__get8
+  0.00      2.25     0.00       50     0.00     0.00  stbi__get16be
+  0.00      2.25     0.00       46     0.00     0.00  stbi__get32be
+  0.00      2.25     0.00       41     0.00     0.00  stbi__process_marker
+  0.00      2.25     0.00       30     0.00     0.00  stbi__build_huffman
+  0.00      2.25     0.00       21     0.00     0.00  stbds_make_hash_index
+  0.00      2.25     0.00       13     0.00     0.00  stbi__skip
+  0.00      2.25     0.00        9     0.00     0.00  stbi__malloc_mad3
+  0.00      2.25     0.00        8     0.00     0.00  stbds_arrgrowf
+  0.00      2.25     0.00        6     0.00     0.00  make_shader
+  0.00      2.25     0.00        6     0.00     0.00  slurp
+  0.00      2.25     0.00        5     0.00     0.00  stbi__load_and_postprocess_8bit
+  0.00      2.25     0.00        5     0.00     0.00  stbi__load_main
+  0.00      2.25     0.00        4     0.00     0.00  load_texture
+  0.00      2.25     0.00        4     0.00     0.00  vec3i_div
+  0.00      2.25     0.00        3     0.00     0.00  make_shader_program
+  0.00      2.25     0.00        3     0.00     0.00  stbi__decode_jpeg_header
+  0.00      2.25     0.00        3     0.00     0.00  stbi__decode_jpeg_image
+  0.00      2.25     0.00        3     0.00     0.00  stbi__mad3sizes_valid
+  0.00      2.25     0.00        2     0.00     0.00  stbi__getn
+  0.00      2.25     0.00        2     0.00     0.00  stbi__parse_png_file
+  0.00      2.25     0.00        2     0.00     0.00  stbi__parse_zlib
+  0.00      2.25     0.00        2     0.00     0.00  stbi__readval
+  0.00      2.25     0.00        2     0.00     0.00  stbi__zbuild_huffman
+  0.00      2.25     0.00        2     0.00     0.00  vec3i_sub
+  0.00      2.25     0.00        1     0.00     1.35  cm_load_n
+  0.00      2.25     0.00        1     0.00     0.00  cm_update
+  0.00      2.25     0.00        1     0.00     0.00  find_coreGL
+  0.00      2.25     0.00        1     0.00     0.00  get_exts
+  0.00      2.25     0.00        1     0.00     0.00  gladLoadGLLoader
+  0.00      2.25     0.00        1     0.00     0.00  load_GL_VERSION_1_0
+  0.00      2.25     0.00        1     0.00     0.00  load_GL_VERSION_2_0
+  0.00      2.25     0.00        1     0.00     0.00  load_GL_VERSION_3_0
+  0.00      2.25     0.00        1     0.00     0.00  load_GL_VERSION_3_3
+  0.00      2.25     0.00        1     0.00     0.00  load_GL_VERSION_4_0
+  0.00      2.25     0.00        1     0.00     0.00  load_GL_VERSION_4_1
+  0.00      2.25     0.00        1     0.00     0.00  load_GL_VERSION_4_3
+  0.00      2.25     0.00        1     0.00     0.00  load_GL_VERSION_4_5
+  0.00      2.25     0.00        1     0.00     0.00  load_texture_rgba
+  0.00      2.25     0.00        1     0.00     0.00  open_simplex_noise
+  0.00      2.25     0.00        1     0.00     0.00  stbi__compute_huffman_codes
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 0.44% of 2.25 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     95.1    0.00    2.14                 world_benchmark [1]
+                0.00    1.35       1/1           cm_load_n [2]
+                0.00    0.63     512/728         light_initialize_for_chunk [5]
+                0.01    0.16     512/512         cm_mesh_chunk [16]
+                0.00    0.00       1/1           cm_update [43]
+                0.00    0.00       1/1           open_simplex_noise [88]
+-----------------------------------------------
+                0.00    1.35       1/1           world_benchmark [1]
+[2]     59.8    0.00    1.35       1         cm_load_n [2]
+                0.00    1.34     512/512         cm_load_chunk [3]
+                0.01    0.00       1/1           min [36]
+                0.00    0.00     512/17325714     stbds_hmget_key [8]
+                0.00    0.00       2/4           vec3i_div [67]
+                0.00    0.00       1/2           vec3i_sub [76]
+                0.00    0.00       1/625548      vec3i_add [49]
+-----------------------------------------------
+                0.00    1.34     512/512         cm_load_n [2]
+[3]     59.3    0.00    1.34     512         cm_load_chunk [3]
+                0.06    1.01     512/512         generate_v1 [4]
+                0.00    0.26    3072/3072        neighbour_handshake [12]
+                0.00    0.00     512/1020309     stbds_hmput_key [17]
+                0.00    0.00     512/17325714     stbds_hmget_key [8]
+-----------------------------------------------
+                0.06    1.01     512/512         cm_load_chunk [3]
+[4]     47.6    0.06    1.01     512         generate_v1 [4]
+                0.48    0.00 6291456/6291456     open_simplex_noise3 [7]
+                0.36    0.00 20971520/20971520     open_simplex_noise2 [11]
+                0.00    0.17 1019797/1019797     world_update_surface_y [15]
+                0.00    0.00 2097152/2097152     remap [46]
+                0.00    0.00 1019797/1021838     world_block_chunk_to_posl [48]
+-----------------------------------------------
+                0.00    0.26     216/728         neighbour_handshake [12]
+                0.00    0.63     512/728         world_benchmark [1]
+[5]     39.5    0.00    0.89     728         light_initialize_for_chunk [5]
+                0.00    0.84   25253/25253       finish_propagating_sunlight [6]
+                0.00    0.04    2041/2041        finish_propagating [23]
+                0.00    0.01  186368/186368      world_get_surface_y [41]
+                0.00    0.00 2983929/31718323     chunk_3d_to_1d [22]
+                0.00    0.00  186368/93475112     floor_div [18]
+                0.00    0.00   27294/1697008     vec3l_queue_push [31]
+                0.00    0.00    2041/1671755     light_issue_remesh [19]
+                0.00    0.00    2769/17325714     stbds_hmget_key [8]
+                0.00    0.00    2041/20996958     world_posl_to_block_chunk [14]
+                0.00    0.00    2041/1021838     world_block_chunk_to_posl [48]
+-----------------------------------------------
+                0.00    0.84   25253/25253       light_initialize_for_chunk [5]
+[6]     37.1    0.00    0.84   25253         finish_propagating_sunlight [6]
+                0.09    0.33 9593598/10099290     world_get_block [9]
+                0.02    0.18 11206324/14175244     light_get_sky [13]
+                0.03    0.08 1587473/1671755     light_issue_remesh [19]
+                0.01    0.04 1587473/17325714     stbds_hmget_key [8]
+                0.02    0.00 9593598/13068210     vec3l_add [25]
+                0.02    0.00 1637979/1724302     vec3l_queue_len [28]
+                0.01    0.01 1587473/20996958     world_posl_to_block_chunk [14]
+                0.01    0.00 1587473/1697008     vec3l_queue_push [31]
+                0.00    0.00 1587473/31718323     chunk_3d_to_1d [22]
+                0.00    0.00 1612726/1697008     vec3l_queue_pop [47]
+-----------------------------------------------
+                0.48    0.00 6291456/6291456     generate_v1 [4]
+[7]     21.3    0.48    0.00 6291456         open_simplex_noise3 [7]
+-----------------------------------------------
+                0.00    0.00     512/17325714     cm_load_chunk [3]
+                0.00    0.00     512/17325714     cm_update [43]
+                0.00    0.00     512/17325714     cm_load_n [2]
+                0.00    0.00     512/17325714     cm_mesh_chunk [16]
+                0.00    0.00    2769/17325714     light_initialize_for_chunk [5]
+                0.00    0.00    3072/17325714     neighbour_handshake [12]
+                0.00    0.00   82241/17325714     finish_propagating [23]
+                0.00    0.00  186368/17325714     world_get_surface_y [41]
+                0.00    0.01  304172/17325714     light_get_block [21]
+                0.00    0.02 1019797/17325714     world_update_surface_y [15]
+                0.01    0.04 1587473/17325714     finish_propagating_sunlight [6]
+                0.01    0.04 1741183/17325714     light_get_sky [13]
+                0.01    0.05 2297301/17325714     light_issue_remesh [19]
+                0.03    0.24 10099290/17325714     world_get_block [9]
+[8]     20.7    0.06    0.41 17325714         stbds_hmget_key [8]
+                0.41    0.00 17325200/18345509     stbds_hash_bytes [10]
+-----------------------------------------------
+                0.01    0.02  505692/10099290     finish_propagating [23]
+                0.09    0.33 9593598/10099290     finish_propagating_sunlight [6]
+[9]     20.0    0.10    0.35 10099290         world_get_block [9]
+                0.03    0.24 10099290/17325714     stbds_hmget_key [8]
+                0.04    0.00 30297870/93475112     floor_div [18]
+                0.03    0.00 30297870/93288744     mod [20]
+                0.02    0.00 10027151/31718323     chunk_3d_to_1d [22]
+-----------------------------------------------
+                             17325200             stbds_hash_bytes [10]
+                0.02    0.00 1020309/18345509     stbds_hmput_key [17]
+                0.41    0.00 17325200/18345509     stbds_hmget_key [8]
+[10]    19.1    0.43    0.00 18345509+17325200 stbds_hash_bytes [10]
+                             17325200             stbds_hash_bytes [10]
+-----------------------------------------------
+                0.36    0.00 20971520/20971520     generate_v1 [4]
+[11]    16.0    0.36    0.00 20971520         open_simplex_noise2 [11]
+-----------------------------------------------
+                0.00    0.26    3072/3072        cm_load_chunk [3]
+[12]    11.7    0.00    0.26    3072         neighbour_handshake [12]
+                0.00    0.26     216/728         light_initialize_for_chunk [5]
+                0.00    0.00    3072/17325714     stbds_hmget_key [8]
+-----------------------------------------------
+                0.00    0.05 2968920/14175244     cm_mesh_chunk [16]
+                0.02    0.18 11206324/14175244     finish_propagating_sunlight [6]
+[13]    10.8    0.02    0.22 14175244         light_get_sky [13]
+                0.07    0.09 14175244/20996958     world_posl_to_block_chunk [14]
+                0.01    0.04 1741183/17325714     stbds_hmget_key [8]
+                0.02    0.00 13834152/31718323     chunk_3d_to_1d [22]
+-----------------------------------------------
+                0.00    0.00    2041/20996958     light_initialize_for_chunk [5]
+                0.00    0.00   82241/20996958     finish_propagating [23]
+                0.01    0.01 1587473/20996958     finish_propagating_sunlight [6]
+                0.01    0.01 1671755/20996958     light_issue_remesh [19]
+                0.02    0.02 3478204/20996958     light_get_block [21]
+                0.07    0.09 14175244/20996958     light_get_sky [13]
+[14]    10.1    0.10    0.13 20996958         world_posl_to_block_chunk [14]
+                0.07    0.00 62990874/93475112     floor_div [18]
+                0.05    0.00 62990874/93288744     mod [20]
+-----------------------------------------------
+                0.00    0.17 1019797/1019797     generate_v1 [4]
+[15]     7.6    0.00    0.17 1019797         world_update_surface_y [15]
+                0.12    0.02 1019797/1020309     stbds_hmput_key [17]
+                0.00    0.02 1019797/17325714     stbds_hmget_key [8]
+-----------------------------------------------
+                0.01    0.16     512/512         world_benchmark [1]
+[16]     7.5    0.01    0.16     512         cm_mesh_chunk [16]
+                0.01    0.04 2968920/3478204     light_get_block [21]
+                0.00    0.05 2968920/14175244     light_get_sky [13]
+                0.03    0.00 3988717/3988717     chunk_1d_to_3d [26]
+                0.02    0.00 6118782/6118782     neighbour_exists [27]
+                0.01    0.00 2968920/13068210     vec3l_add [25]
+                0.00    0.00     512/17325714     stbds_hmget_key [8]
+                0.00    0.00 2968920/2968920     max [44]
+                0.00    0.00 2968920/2968920     unlerp [45]
+-----------------------------------------------
+                0.00    0.00     512/1020309     cm_load_chunk [3]
+                0.12    0.02 1019797/1020309     world_update_surface_y [15]
+[17]     6.4    0.12    0.02 1020309         stbds_hmput_key [17]
+                0.02    0.00 1020309/18345509     stbds_hash_bytes [10]
+                0.00    0.00      21/21          stbds_make_hash_index [61]
+-----------------------------------------------
+                0.00    0.00  186368/93475112     light_initialize_for_chunk [5]
+                0.04    0.00 30297870/93475112     world_get_block [9]
+                0.07    0.00 62990874/93475112     world_posl_to_block_chunk [14]
+[18]     4.9    0.11    0.00 93475112         floor_div [18]
+-----------------------------------------------
+                0.00    0.00    2041/1671755     light_initialize_for_chunk [5]
+                0.00    0.00   82241/1671755     finish_propagating [23]
+                0.03    0.08 1587473/1671755     finish_propagating_sunlight [6]
+[19]     4.9    0.03    0.08 1671755         light_issue_remesh [19]
+                0.01    0.05 2297301/17325714     stbds_hmget_key [8]
+                0.01    0.01 1671755/20996958     world_posl_to_block_chunk [14]
+                0.00    0.00  625546/625548      vec3i_add [49]
+-----------------------------------------------
+                0.03    0.00 30297870/93288744     world_get_block [9]
+                0.05    0.00 62990874/93288744     world_posl_to_block_chunk [14]
+[20]     3.6    0.08    0.00 93288744         mod [20]
+-----------------------------------------------
+                0.00    0.01  509284/3478204     finish_propagating [23]
+                0.01    0.04 2968920/3478204     cm_mesh_chunk [16]
+[21]     2.7    0.01    0.05 3478204         light_get_block [21]
+                0.02    0.02 3478204/20996958     world_posl_to_block_chunk [14]
+                0.00    0.01  304172/17325714     stbds_hmget_key [8]
+                0.01    0.00 3203377/31718323     chunk_3d_to_1d [22]
+-----------------------------------------------
+                0.00    0.00   82241/31718323     finish_propagating [23]
+                0.00    0.00 1587473/31718323     finish_propagating_sunlight [6]
+                0.00    0.00 2983929/31718323     light_initialize_for_chunk [5]
+                0.01    0.00 3203377/31718323     light_get_block [21]
+                0.02    0.00 10027151/31718323     world_get_block [9]
+                0.02    0.00 13834152/31718323     light_get_sky [13]
+[22]     2.2    0.05    0.00 31718323         chunk_3d_to_1d [22]
+-----------------------------------------------
+                0.00    0.04    2041/2041        light_initialize_for_chunk [5]
+[23]     1.9    0.00    0.04    2041         finish_propagating [23]
+                0.01    0.02  505692/10099290     world_get_block [9]
+                0.00    0.01  509284/3478204     light_get_block [21]
+                0.00    0.00   82241/1671755     light_issue_remesh [19]
+                0.00    0.00   82241/17325714     stbds_hmget_key [8]
+                0.00    0.00  505692/13068210     vec3l_add [25]
+                0.00    0.00   86323/1724302     vec3l_queue_len [28]
+                0.00    0.00   82241/20996958     world_posl_to_block_chunk [14]
+                0.00    0.00   82241/1697008     vec3l_queue_push [31]
+                0.00    0.00   82241/31718323     chunk_3d_to_1d [22]
+                0.00    0.00   84282/1697008     vec3l_queue_pop [47]
+-----------------------------------------------
+                                                 <spontaneous>
+[24]     1.8    0.04    0.00                 slow_stop4 [24]
+-----------------------------------------------
+                0.00    0.00  505692/13068210     finish_propagating [23]
+                0.01    0.00 2968920/13068210     cm_mesh_chunk [16]
+                0.02    0.00 9593598/13068210     finish_propagating_sunlight [6]
+[25]     1.3    0.03    0.00 13068210         vec3l_add [25]
+-----------------------------------------------
+                0.03    0.00 3988717/3988717     cm_mesh_chunk [16]
+[26]     1.3    0.03    0.00 3988717         chunk_1d_to_3d [26]
+-----------------------------------------------
+                0.02    0.00 6118782/6118782     cm_mesh_chunk [16]
+[27]     0.9    0.02    0.00 6118782         neighbour_exists [27]
+-----------------------------------------------
+                0.00    0.00   86323/1724302     finish_propagating [23]
+                0.02    0.00 1637979/1724302     finish_propagating_sunlight [6]
+[28]     0.9    0.02    0.00 1724302         vec3l_queue_len [28]
+-----------------------------------------------
+                                                 <spontaneous>
+[29]     0.9    0.02    0.00                 open_simplex_noise_free [29]
+-----------------------------------------------
+                                                 <spontaneous>
+[30]     0.9    0.02    0.00                 vec3l_div [30]
+-----------------------------------------------
+                0.00    0.00   27294/1697008     light_initialize_for_chunk [5]
+                0.00    0.00   82241/1697008     finish_propagating [23]
+                0.01    0.00 1587473/1697008     finish_propagating_sunlight [6]
+[31]     0.4    0.01    0.00 1697008         vec3l_queue_push [31]
+-----------------------------------------------
+                0.01    0.00   44958/44958       stbi__decode_jpeg_image [35]
+[32]     0.4    0.01    0.00   44958         stbi__jpeg_decode_block_prog_dc [32]
+                0.00    0.00   22479/167163      stbi__jpeg_huff_decode [50]
+                0.00    0.00    5368/57863       stbi__grow_buffer_unsafe [51]
+-----------------------------------------------
+                0.00    0.00       1/5           load_texture_rgba [42]
+                0.00    0.01       4/5           load_texture [40]
+[33]     0.4    0.00    0.01       5         stbi__load_and_postprocess_8bit [33]
+                0.00    0.01       5/5           stbi__load_main [34]
+-----------------------------------------------
+                0.00    0.01       5/5           stbi__load_and_postprocess_8bit [33]
+[34]     0.4    0.00    0.01       5         stbi__load_main [34]
+                0.00    0.01       3/3           stbi__decode_jpeg_image [35]
+                0.00    0.00    3204/3204        resample_row_1 [53]
+                0.00    0.00    1068/1068        stbi__YCbCr_to_RGB_simd [54]
+                0.00    0.00       5/173         stbi__get8 [56]
+                0.00    0.00       2/2           stbi__parse_png_file [72]
+-----------------------------------------------
+                0.00    0.01       3/3           stbi__load_main [34]
+[35]     0.4    0.00    0.01       3         stbi__decode_jpeg_image [35]
+                0.01    0.00   44958/44958       stbi__jpeg_decode_block_prog_dc [32]
+                0.00    0.00  144684/167163      stbi__jpeg_huff_decode [50]
+                0.00    0.00   22479/22479       stbi__idct_simd [52]
+                0.00    0.00   18304/57863       stbi__grow_buffer_unsafe [51]
+                0.00    0.00      93/173         stbi__get8 [56]
+                0.00    0.00      30/41          stbi__process_marker [59]
+                0.00    0.00       3/3           stbi__decode_jpeg_header [69]
+                0.00    0.00       3/967         stbi__stdio_read [55]
+-----------------------------------------------
+                0.01    0.00       1/1           cm_load_n [2]
+[36]     0.4    0.01    0.00       1         min [36]
+-----------------------------------------------
+                                                 <spontaneous>
+[37]     0.4    0.01    0.00                 chunk_rngs_init [37]
+-----------------------------------------------
+                                                 <spontaneous>
+[38]     0.4    0.00    0.01                 graphics_init [38]
+                0.00    0.01       4/4           load_texture [40]
+                0.00    0.00       1/1           load_texture_rgba [42]
+                0.00    0.00       3/3           make_shader_program [68]
+                0.00    0.00       1/1           gladLoadGLLoader [79]
+-----------------------------------------------
+                                                 <spontaneous>
+[39]     0.4    0.01    0.00                 lerp [39]
+-----------------------------------------------
+                0.00    0.01       4/4           graphics_init [38]
+[40]     0.4    0.00    0.01       4         load_texture [40]
+                0.00    0.01       4/5           stbi__load_and_postprocess_8bit [33]
+                0.00    0.00       4/967         stbi__stdio_read [55]
+-----------------------------------------------
+                0.00    0.01  186368/186368      light_initialize_for_chunk [5]
+[41]     0.2    0.00    0.01  186368         world_get_surface_y [41]
+                0.00    0.00  186368/17325714     stbds_hmget_key [8]
+-----------------------------------------------
+                0.00    0.00       1/1           graphics_init [38]
+[42]     0.1    0.00    0.00       1         load_texture_rgba [42]
+                0.00    0.00       1/5           stbi__load_and_postprocess_8bit [33]
+                0.00    0.00       1/967         stbi__stdio_read [55]
+-----------------------------------------------
+                0.00    0.00       1/1           world_benchmark [1]
+[43]     0.0    0.00    0.00       1         cm_update [43]
+                0.00    0.00     512/17325714     stbds_hmget_key [8]
+                0.00    0.00       8/8           stbds_arrgrowf [64]
+                0.00    0.00       2/4           vec3i_div [67]
+                0.00    0.00       1/2           vec3i_sub [76]
+                0.00    0.00       1/625548      vec3i_add [49]
+-----------------------------------------------
+                0.00    0.00 2968920/2968920     cm_mesh_chunk [16]
+[44]     0.0    0.00    0.00 2968920         max [44]
+-----------------------------------------------
+                0.00    0.00 2968920/2968920     cm_mesh_chunk [16]
+[45]     0.0    0.00    0.00 2968920         unlerp [45]
+-----------------------------------------------
+                0.00    0.00 2097152/2097152     generate_v1 [4]
+[46]     0.0    0.00    0.00 2097152         remap [46]
+-----------------------------------------------
+                0.00    0.00   84282/1697008     finish_propagating [23]
+                0.00    0.00 1612726/1697008     finish_propagating_sunlight [6]
+[47]     0.0    0.00    0.00 1697008         vec3l_queue_pop [47]
+-----------------------------------------------
+                0.00    0.00    2041/1021838     light_initialize_for_chunk [5]
+                0.00    0.00 1019797/1021838     generate_v1 [4]
+[48]     0.0    0.00    0.00 1021838         world_block_chunk_to_posl [48]
+-----------------------------------------------
+                0.00    0.00       1/625548      cm_update [43]
+                0.00    0.00       1/625548      cm_load_n [2]
+                0.00    0.00  625546/625548      light_issue_remesh [19]
+[49]     0.0    0.00    0.00  625548         vec3i_add [49]
+-----------------------------------------------
+                0.00    0.00   22479/167163      stbi__jpeg_decode_block_prog_dc [32]
+                0.00    0.00  144684/167163      stbi__decode_jpeg_image [35]
+[50]     0.0    0.00    0.00  167163         stbi__jpeg_huff_decode [50]
+                0.00    0.00   34191/57863       stbi__grow_buffer_unsafe [51]
+-----------------------------------------------
+                0.00    0.00    5368/57863       stbi__jpeg_decode_block_prog_dc [32]
+                0.00    0.00   18304/57863       stbi__decode_jpeg_image [35]
+                0.00    0.00   34191/57863       stbi__jpeg_huff_decode [50]
+[51]     0.0    0.00    0.00   57863         stbi__grow_buffer_unsafe [51]
+                0.00    0.00     940/967         stbi__stdio_read [55]
+-----------------------------------------------
+                0.00    0.00   22479/22479       stbi__decode_jpeg_image [35]
+[52]     0.0    0.00    0.00   22479         stbi__idct_simd [52]
+-----------------------------------------------
+                0.00    0.00    3204/3204        stbi__load_main [34]
+[53]     0.0    0.00    0.00    3204         resample_row_1 [53]
+-----------------------------------------------
+                0.00    0.00    1068/1068        stbi__load_main [34]
+[54]     0.0    0.00    0.00    1068         stbi__YCbCr_to_RGB_simd [54]
+-----------------------------------------------
+                0.00    0.00       1/967         stbi__getn [71]
+                0.00    0.00       1/967         load_texture_rgba [42]
+                0.00    0.00       3/967         stbi__get32be [58]
+                0.00    0.00       3/967         stbi__decode_jpeg_image [35]
+                0.00    0.00       4/967         load_texture [40]
+                0.00    0.00      15/967         stbi__process_marker [59]
+                0.00    0.00     940/967         stbi__grow_buffer_unsafe [51]
+[55]     0.0    0.00    0.00     967         stbi__stdio_read [55]
+-----------------------------------------------
+                0.00    0.00       5/173         stbi__load_main [34]
+                0.00    0.00      10/173         stbi__parse_png_file [72]
+                0.00    0.00      15/173         stbi__process_marker [59]
+                0.00    0.00      50/173         stbi__decode_jpeg_header [69]
+                0.00    0.00      93/173         stbi__decode_jpeg_image [35]
+[56]     0.0    0.00    0.00     173         stbi__get8 [56]
+-----------------------------------------------
+                0.00    0.00       9/50          stbi__decode_jpeg_header [69]
+                0.00    0.00      41/50          stbi__process_marker [59]
+[57]     0.0    0.00    0.00      50         stbi__get16be [57]
+-----------------------------------------------
+                0.00    0.00      46/46          stbi__parse_png_file [72]
+[58]     0.0    0.00    0.00      46         stbi__get32be [58]
+                0.00    0.00       3/967         stbi__stdio_read [55]
+-----------------------------------------------
+                0.00    0.00      11/41          stbi__decode_jpeg_header [69]
+                0.00    0.00      30/41          stbi__decode_jpeg_image [35]
+[59]     0.0    0.00    0.00      41         stbi__process_marker [59]
+                0.00    0.00      41/50          stbi__get16be [57]
+                0.00    0.00      30/30          stbi__build_huffman [60]
+                0.00    0.00      15/967         stbi__stdio_read [55]
+                0.00    0.00      15/173         stbi__get8 [56]
+                0.00    0.00       5/13          stbi__skip [62]
+-----------------------------------------------
+                0.00    0.00      30/30          stbi__process_marker [59]
+[60]     0.0    0.00    0.00      30         stbi__build_huffman [60]
+-----------------------------------------------
+                0.00    0.00      21/21          stbds_hmput_key [17]
+[61]     0.0    0.00    0.00      21         stbds_make_hash_index [61]
+-----------------------------------------------
+                0.00    0.00       5/13          stbi__process_marker [59]
+                0.00    0.00       8/13          stbi__parse_png_file [72]
+[62]     0.0    0.00    0.00      13         stbi__skip [62]
+-----------------------------------------------
+                0.00    0.00       9/9           stbi__decode_jpeg_header [69]
+[63]     0.0    0.00    0.00       9         stbi__malloc_mad3 [63]
+-----------------------------------------------
+                0.00    0.00       8/8           cm_update [43]
+[64]     0.0    0.00    0.00       8         stbds_arrgrowf [64]
+-----------------------------------------------
+                0.00    0.00       6/6           make_shader_program [68]
+[65]     0.0    0.00    0.00       6         make_shader [65]
+                0.00    0.00       6/6           slurp [66]
+-----------------------------------------------
+                0.00    0.00       6/6           make_shader [65]
+[66]     0.0    0.00    0.00       6         slurp [66]
+-----------------------------------------------
+                0.00    0.00       2/4           cm_update [43]
+                0.00    0.00       2/4           cm_load_n [2]
+[67]     0.0    0.00    0.00       4         vec3i_div [67]
+-----------------------------------------------
+                0.00    0.00       3/3           graphics_init [38]
+[68]     0.0    0.00    0.00       3         make_shader_program [68]
+                0.00    0.00       6/6           make_shader [65]
+-----------------------------------------------
+                0.00    0.00       3/3           stbi__decode_jpeg_image [35]
+[69]     0.0    0.00    0.00       3         stbi__decode_jpeg_header [69]
+                0.00    0.00      50/173         stbi__get8 [56]
+                0.00    0.00      11/41          stbi__process_marker [59]
+                0.00    0.00       9/50          stbi__get16be [57]
+                0.00    0.00       9/9           stbi__malloc_mad3 [63]
+                0.00    0.00       3/3           stbi__mad3sizes_valid [70]
+-----------------------------------------------
+                0.00    0.00       3/3           stbi__decode_jpeg_header [69]
+[70]     0.0    0.00    0.00       3         stbi__mad3sizes_valid [70]
+-----------------------------------------------
+                0.00    0.00       2/2           stbi__parse_png_file [72]
+[71]     0.0    0.00    0.00       2         stbi__getn [71]
+                0.00    0.00       1/967         stbi__stdio_read [55]
+-----------------------------------------------
+                0.00    0.00       2/2           stbi__load_main [34]
+[72]     0.0    0.00    0.00       2         stbi__parse_png_file [72]
+                0.00    0.00      46/46          stbi__get32be [58]
+                0.00    0.00      10/173         stbi__get8 [56]
+                0.00    0.00       8/13          stbi__skip [62]
+                0.00    0.00       2/2           stbi__parse_zlib [73]
+                0.00    0.00       2/2           stbi__getn [71]
+                0.00    0.00       2/2           stbi__readval [74]
+-----------------------------------------------
+                0.00    0.00       2/2           stbi__parse_png_file [72]
+[73]     0.0    0.00    0.00       2         stbi__parse_zlib [73]
+                0.00    0.00       1/1           stbi__compute_huffman_codes [89]
+-----------------------------------------------
+                0.00    0.00       2/2           stbi__parse_png_file [72]
+[74]     0.0    0.00    0.00       2         stbi__readval [74]
+-----------------------------------------------
+                0.00    0.00       2/2           stbi__compute_huffman_codes [89]
+[75]     0.0    0.00    0.00       2         stbi__zbuild_huffman [75]
+-----------------------------------------------
+                0.00    0.00       1/2           cm_update [43]
+                0.00    0.00       1/2           cm_load_n [2]
+[76]     0.0    0.00    0.00       2         vec3i_sub [76]
+-----------------------------------------------
+                0.00    0.00       1/1           gladLoadGLLoader [79]
+[77]     0.0    0.00    0.00       1         find_coreGL [77]
+-----------------------------------------------
+                0.00    0.00       1/1           gladLoadGLLoader [79]
+[78]     0.0    0.00    0.00       1         get_exts [78]
+-----------------------------------------------
+                0.00    0.00       1/1           graphics_init [38]
+[79]     0.0    0.00    0.00       1         gladLoadGLLoader [79]
+                0.00    0.00       1/1           find_coreGL [77]
+                0.00    0.00       1/1           load_GL_VERSION_1_0 [80]
+                0.00    0.00       1/1           load_GL_VERSION_2_0 [81]
+                0.00    0.00       1/1           load_GL_VERSION_3_0 [82]
+                0.00    0.00       1/1           load_GL_VERSION_3_3 [83]
+                0.00    0.00       1/1           load_GL_VERSION_4_1 [85]
+                0.00    0.00       1/1           load_GL_VERSION_4_0 [84]
+                0.00    0.00       1/1           load_GL_VERSION_4_3 [86]
+                0.00    0.00       1/1           load_GL_VERSION_4_5 [87]
+                0.00    0.00       1/1           get_exts [78]
+-----------------------------------------------
+                0.00    0.00       1/1           gladLoadGLLoader [79]
+[80]     0.0    0.00    0.00       1         load_GL_VERSION_1_0 [80]
+-----------------------------------------------
+                0.00    0.00       1/1           gladLoadGLLoader [79]
+[81]     0.0    0.00    0.00       1         load_GL_VERSION_2_0 [81]
+-----------------------------------------------
+                0.00    0.00       1/1           gladLoadGLLoader [79]
+[82]     0.0    0.00    0.00       1         load_GL_VERSION_3_0 [82]
+-----------------------------------------------
+                0.00    0.00       1/1           gladLoadGLLoader [79]
+[83]     0.0    0.00    0.00       1         load_GL_VERSION_3_3 [83]
+-----------------------------------------------
+                0.00    0.00       1/1           gladLoadGLLoader [79]
+[84]     0.0    0.00    0.00       1         load_GL_VERSION_4_0 [84]
+-----------------------------------------------
+                0.00    0.00       1/1           gladLoadGLLoader [79]
+[85]     0.0    0.00    0.00       1         load_GL_VERSION_4_1 [85]
+-----------------------------------------------
+                0.00    0.00       1/1           gladLoadGLLoader [79]
+[86]     0.0    0.00    0.00       1         load_GL_VERSION_4_3 [86]
+-----------------------------------------------
+                0.00    0.00       1/1           gladLoadGLLoader [79]
+[87]     0.0    0.00    0.00       1         load_GL_VERSION_4_5 [87]
+-----------------------------------------------
+                0.00    0.00       1/1           world_benchmark [1]
+[88]     0.0    0.00    0.00       1         open_simplex_noise [88]
+-----------------------------------------------
+                0.00    0.00       1/1           stbi__parse_zlib [73]
+[89]     0.0    0.00    0.00       1         stbi__compute_huffman_codes [89]
+                0.00    0.00       2/2           stbi__zbuild_huffman [75]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+  [26] chunk_1d_to_3d         [65] make_shader            [51] stbi__grow_buffer_unsafe (stb_image.h)
+  [22] chunk_3d_to_1d         [68] make_shader_program    [52] stbi__idct_simd (stb_image.h)
+  [37] chunk_rngs_init        [44] max                    [32] stbi__jpeg_decode_block_prog_dc (stb_image.h)
+   [3] cm_load_chunk          [36] min                    [50] stbi__jpeg_huff_decode (stb_image.h)
+   [2] cm_load_n              [20] mod                    [33] stbi__load_and_postprocess_8bit (stb_image.h)
+  [16] cm_mesh_chunk          [27] neighbour_exists       [34] stbi__load_main (stb_image.h)
+  [43] cm_update              [12] neighbour_handshake    [70] stbi__mad3sizes_valid (stb_image.h)
+  [77] find_coreGL (glad.c)   [88] open_simplex_noise     [63] stbi__malloc_mad3 (stb_image.h)
+  [23] finish_propagating     [11] open_simplex_noise2    [72] stbi__parse_png_file (stb_image.h)
+   [6] finish_propagating_sunlight [7] open_simplex_noise3 [73] stbi__parse_zlib (stb_image.h)
+  [18] floor_div              [29] open_simplex_noise_free [59] stbi__process_marker (stb_image.h)
+   [4] generate_v1            [46] remap                  [74] stbi__readval (stb_image.h)
+  [78] get_exts (glad.c)      [53] resample_row_1 (stb_image.h) [62] stbi__skip (stb_image.h)
+  [79] gladLoadGLLoader       [24] slow_stop4             [55] stbi__stdio_read (stb_image.h)
+  [39] lerp                   [66] slurp                  [75] stbi__zbuild_huffman (stb_image.h)
+  [21] light_get_block        [64] stbds_arrgrowf         [45] unlerp
+  [13] light_get_sky          [10] stbds_hash_bytes       [49] vec3i_add
+   [5] light_initialize_for_chunk [8] stbds_hmget_key     [67] vec3i_div
+  [19] light_issue_remesh     [17] stbds_hmput_key        [76] vec3i_sub
+  [80] load_GL_VERSION_1_0 (glad.c) [61] stbds_make_hash_index (stb_ds.h) [25] vec3l_add
+  [81] load_GL_VERSION_2_0 (glad.c) [54] stbi__YCbCr_to_RGB_simd (stb_image.h) [30] vec3l_div
+  [82] load_GL_VERSION_3_0 (glad.c) [60] stbi__build_huffman (stb_image.h) [28] vec3l_queue_len
+  [83] load_GL_VERSION_3_3 (glad.c) [89] stbi__compute_huffman_codes (stb_image.h) [47] vec3l_queue_pop
+  [84] load_GL_VERSION_4_0 (glad.c) [69] stbi__decode_jpeg_header (stb_image.h) [31] vec3l_queue_push
+  [85] load_GL_VERSION_4_1 (glad.c) [35] stbi__decode_jpeg_image (stb_image.h) [48] world_block_chunk_to_posl
+  [86] load_GL_VERSION_4_3 (glad.c) [57] stbi__get16be (stb_image.h) [9] world_get_block
+  [87] load_GL_VERSION_4_5 (glad.c) [58] stbi__get32be (stb_image.h) [41] world_get_surface_y
+  [40] load_texture           [56] stbi__get8 (stb_image.h) [14] world_posl_to_block_chunk
+  [42] load_texture_rgba      [71] stbi__getn (stb_image.h) [15] world_update_surface_y

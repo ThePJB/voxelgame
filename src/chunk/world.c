@@ -47,9 +47,9 @@ block_definition block_defs[NUM_BLOCKS] = {
 // Converting positions
 vec3i world_posl_to_chunk(vec3l pos) {
     return (vec3i) {
-        floor_div(pos.x, CHUNK_RADIX),
-        floor_div(pos.y, CHUNK_RADIX),
-        floor_div(pos.z, CHUNK_RADIX),
+        pos.x >> CHUNK_RADIX_LOG2,
+        pos.y >> CHUNK_RADIX_LOG2,
+        pos.z >> CHUNK_RADIX_LOG2,
     };
 }
 
@@ -62,9 +62,9 @@ vec3i_pair world_posl_to_block_chunk(vec3l pos) {
             mod(pos.z, CHUNK_RADIX),
         },
         (vec3i) {
-            floor_div(pos.x, CHUNK_RADIX),
-            floor_div(pos.y, CHUNK_RADIX),
-            floor_div(pos.z, CHUNK_RADIX),
+            pos.x >> CHUNK_RADIX_LOG2,
+            pos.y >> CHUNK_RADIX_LOG2,
+            pos.z >> CHUNK_RADIX_LOG2,
         },
     };
 }
@@ -214,4 +214,41 @@ void world_test() {
     assert_bool_equal("surface set 2 ok", world_get_surface_y(&cm, 120, 120).ok, true);
     assert_int_equal("surface set 2", world_get_surface_y(&cm, 120, 120).value, 6);
 
+}
+
+void world_benchmark(int n) {
+    printf("profiling with worldsize %d*%d*%d (%d chunks)\n", n,n,n,n*n*n);
+    chunk_manager cm = {0};
+
+    double t_start = glfwGetTime();
+
+    open_simplex_noise(123456789, &cm.osn);
+    cm.loaded_dimensions = (vec3i) {n,n,n};
+    cm.gen_func = generate_v1;
+    //cm.gen_func = generate_flat;
+
+    cm_update(&cm, (vec3s) {0,0,0});
+    cm_load_n(&cm, (vec3s) {0,0,0}, n*n*n);
+
+    double t_chunks_done = glfwGetTime();
+
+    for (int i = 0; i < hmlen(cm.chunk_hm); i++) {
+        light_initialize_for_chunk(&cm, spread(cm.chunk_hm[i].key));
+    } 
+
+    double t_light_done = glfwGetTime();
+
+    for (int i = 0; i < hmlen(cm.chunk_hm); i++) {
+        cm_mesh_chunk(&cm, spread(cm.chunk_hm[i].key));
+    } 
+
+    double t_mesh_done = glfwGetTime();
+
+    float t_gen = t_chunks_done - t_start;
+    float t_light = t_light_done - t_chunks_done;
+    float t_mesh = t_mesh_done - t_light_done;
+
+    printf("Generating took %f s (%f ms per chunk)\n", t_gen, 1000 * t_gen / (n*n*n) );
+    printf("Lighting took %f s (%f ms per chunk)\n", t_light, 1000 * t_light / (n*n*n));
+    printf("Meshing took %f s (%f ms per chunk)\n", t_mesh,  1000 * t_mesh / (n*n*n));
 }

@@ -17,6 +17,9 @@ obj/%.o: src/%.c $(headers)
 voxelgame: $(obj)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
+profile: $(src)
+	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS) -pg && ./profile --profile && gprof profile gmon.out
+
 .PHONY: clean
 clean:
 	rm -f $(obj) voxelgame
