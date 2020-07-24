@@ -1,5 +1,30 @@
 #include "chunk_common.h"
 
+
+bool vec3i_bounded_inclusive(vec3i upper, vec3i lower, vec3i a) {
+    return (a.x <= upper.x && a.x >= lower.x &&
+        a.y <= upper.y && a.y >= lower.y &&
+        a.z <= upper.z && a.z >= lower.z);
+}
+
+vec3i world_pos_to_chunk(vec3s pos) {
+    int posix = floorf(pos.x);
+    int posiy = floorf(pos.y);
+    int posiz = floorf(pos.z);
+
+    if (posix < 0) posix++;
+    if (posiy < 0) posiy++;
+    if (posiz < 0) posiz++;
+
+    return (vec3i) {
+        .x = posix / CHUNK_RADIX,
+        .y = posiy / CHUNK_RADIX,
+        .z = posiz / CHUNK_RADIX,
+    };
+}
+
+
+
 // this is an effort to synchronize all the lighting and stuff and make it behave.
 void neighbour_handshake(chunk_manager *cm, chunk *this, vec3i neighbour_pos) {
     int i = hmgeti(cm->chunk_hm, neighbour_pos);
@@ -21,6 +46,19 @@ void neighbour_handshake(chunk_manager *cm, chunk *this, vec3i neighbour_pos) {
         neighbour->needs_remesh = true;
     }
 }
+
+void neighbour_unhandshake(chunk_manager *cm, vec3i neighbour_pos) {
+    chunk *np;
+    int i = hmgeti(cm->chunk_hm, neighbour_pos);
+    if (i == -1) {
+        // neighbour not loaded, return
+        return;
+    }
+    np = &cm->chunk_hm[i];
+    np->loaded_4con_neighbours--; 
+}
+
+
 
 void cm_load_chunk(chunk_manager *cm, int x, int y, int z) {
     chunk new_chunk = cm->gen_func(cm, x, y, z);
@@ -45,17 +83,6 @@ void cm_load_chunk(chunk_manager *cm, int x, int y, int z) {
 
 }
 
-void neighbour_unhandshake(chunk_manager *cm, vec3i neighbour_pos) {
-    chunk *np;
-    int i = hmgeti(cm->chunk_hm, neighbour_pos);
-    if (i == -1) {
-        // neighbour not loaded, return
-        return;
-    }
-    np = &cm->chunk_hm[i];
-    np->loaded_4con_neighbours--; 
-}
-
 void cm_unload_chunk(chunk_manager *cm, int x, int y, int z) {
     debugf("unloading chunk %d %d %d\n", x, y, z);
     int cs_idx = hmgeti(cm->chunk_hm, ((vec3i){x,y,z}));
@@ -77,27 +104,7 @@ void cm_unload_chunk(chunk_manager *cm, int x, int y, int z) {
     hmdel(cm->chunk_hm, ((vec3i){x,y,z}));
 }
 
-bool vec3i_bounded_inclusive(vec3i upper, vec3i lower, vec3i a) {
-    return (a.x <= upper.x && a.x >= lower.x &&
-        a.y <= upper.y && a.y >= lower.y &&
-        a.z <= upper.z && a.z >= lower.z);
-}
 
-vec3i world_pos_to_chunk(vec3s pos) {
-    int posix = floorf(pos.x);
-    int posiy = floorf(pos.y);
-    int posiz = floorf(pos.z);
-
-    if (posix < 0) posix++;
-    if (posiy < 0) posiy++;
-    if (posiz < 0) posiz++;
-
-    return (vec3i) {
-        .x = posix / CHUNK_RADIX,
-        .y = posiy / CHUNK_RADIX,
-        .z = posiz / CHUNK_RADIX,
-    };
-}
 
 void cm_update(chunk_manager *cm, vec3s pos) {
     vec3i in_chunk = world_pos_to_chunk(pos);
@@ -131,12 +138,19 @@ void cm_lod_update(chunk_manager *cm, vec3s pos) {
     int32_t_pair lod_min = {in_chunk.x - cm->lod_dimensions.l/2, in_chunk.z - cm->lod_dimensions.r/2};
     int32_t_pair lod_max = {in_chunk.x + cm->lod_dimensions.l/2, in_chunk.z + cm->lod_dimensions.r/2};
 
+        // see which chunks we can unload. unload criteria
+    for (int idx = 0; idx < hmlen(cm->lodmesh_hm); idx++) {
+        int32_t_pair key = cm->lodmesh_hm[idx].key;
+        if (key.l < lod_min.l || key.r < lod_min.r || key.l > lod_max.l || key.r > lod_max.r) {
+            lodmesh_delete(cm, key.l, key.r);
+        }
+    }   
+
     for (int x = lod_min.l; x < lod_max.l; x++) {
         for (int z = lod_min.r; z < lod_max.r; z++) {
-            //printf("lmx %d x %d lxx %d\n", lod_min.l, x, lod_max.l);
-            //printf("lmz %d z %d lxz %d\n", lod_min.r, z, lod_max.r);
-            int32_t_pair lod_pos = (int32_t_pair){x,z};
-            if (hmgeti(cm->lodmesh_hm, lod_pos) < 0) {
+            int32_t_pair lod_pos = {x,z};
+            int i = hmgeti(cm->lodmesh_hm, lod_pos);
+            if (i == -1) {
                 lodmesh m = lodmesh_generate(cm->osn, cm->noise_params, 4, x, z);
                 hmputs(cm->lodmesh_hm, m);
             }
@@ -252,6 +266,19 @@ void cm_test() {
 
     assert_int_equal("hmgeti 123 0", 0, hmgeti(hm, akey));
     assert_int_equal("hmgets 123 vao", 123, hmgets(hm, akey).vao);
+
+    //chunk_manager cm = {0};
+    //open_simplex_noise(123456789, &cm.osn);
+
+    lodmesh *lm_hm = {0};
+    lodmesh m = {0};
+    m.key.l = 1;
+    m.key.r = 1;
+    hmputs(lm_hm, m);
+
+    int i = hmgeti(lm_hm, m.key);
+    assert_int_equal("hmgeti 0 in", 0, i);
+    
 
 
 }

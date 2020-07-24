@@ -95,6 +95,7 @@ graphics_context *graphics_init(int *w, int *h, camera *cam) {
     return &gc;
 }
 
+// basically clearing and uniforms for the shaders
 void pre_draw(graphics_context *gc) {
     glClearColor(0.3, 0.5, 0.7, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -103,7 +104,7 @@ void pre_draw(graphics_context *gc) {
     view = glms_lookat(gc->cam->pos, glms_vec3_add(gc->cam->pos, gc->cam->front), gc->cam->up);
 
     mat4s projection = GLMS_MAT4_IDENTITY_INIT;
-    projection = glms_perspective(glm_rad(gc->cam->fovx), (float)*gc->w / *gc->h, 0.1, 1000);
+    projection = glms_perspective(glm_rad(gc->cam->fovx), (float)*gc->w / *gc->h, 0.1, 10000);
 
     vec3s light = glms_vec3_normalize((vec3s){1,2,1});
 
@@ -123,7 +124,10 @@ void pre_draw(graphics_context *gc) {
     glUseProgram(gc->lodmesh_program);
     glUniformMatrix4fv(glGetUniformLocation(gc->lodmesh_program, "view"), 1, GL_FALSE, view.raw[0]);
     glUniformMatrix4fv(glGetUniformLocation(gc->lodmesh_program, "projection"), 1, GL_FALSE, projection.raw[0]);
+    glUniformMatrix4fv(glGetUniformLocation(gc->lodmesh_program, "player_position"), 1, GL_FALSE, gc->cam->pos.raw);
     //glUniform3fv(glGetUniformLocation(gc->chunk_program, "light"), 1, light.raw);
+
+
 }
 
 void draw_mesh(graphics_context *gc, mesh m, vec3s translate, vec3s rotate_axis, float rotate_amt) {

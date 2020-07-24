@@ -38,12 +38,16 @@ void draw_lookat_cube(vec3s cam_pos, vec3s cam_front, graphics_context *c, pick_
 }
 
 bool enable_debug = false;
+bool load_chunks = false;
 
 int main(int argc, char** argv) {
     int w = 2560;
     int h = 1440;
+
     camera cam = fly_camera();
-    cam.pos = (vec3s) {0,0,0};
+    cam.pos = (vec3s) {1000,100,1000};
+    cam.front = (vec3s) {0, 0, -1};
+
     window_context *wc = window_init("sick game", &w, &h, &cam);
     graphics_context *gc = graphics_init(&w, &h, &cam);
 
@@ -64,25 +68,29 @@ int main(int argc, char** argv) {
     //cm.world_noise = chunk_rngs_init(123456789);
     open_simplex_noise(123456789, &cm.osn);
     cm.loaded_dimensions = (vec3i) {8,8,8};
-    cm.lod_dimensions = (int32_t_pair) {40,40};
+    cm.lod_dimensions = (int32_t_pair) {80,80};
     int nchunks = cm.loaded_dimensions.x * cm.loaded_dimensions.y * cm.loaded_dimensions.z;
 //    cm.gen_func = generate_flat;
     cm.gen_func = generate_v2;
 
     // world gen parameters
     noise2d_params p = {0};
+    arrpush(p.height_amplitude, 400);
+    arrpush(p.height_amplitude, 200);
     arrpush(p.height_amplitude, 100);
-    arrpush(p.height_amplitude, 80);
-    arrpush(p.height_amplitude, 60);
-    arrpush(p.height_amplitude, 40);
-    arrpush(p.height_amplitude, 20);
-    arrpush(p.height_amplitude, 10);
-    arrpush(p.height_amplitude, 5);
-
-    arrpush(p.height_frequency, 0.0001);
-    arrpush(p.height_frequency, 0.0004);
+    arrpush(p.height_amplitude, 50);
+    arrpush(p.height_amplitude, 25);
+    arrpush(p.height_amplitude, 12.5);
+    arrpush(p.height_amplitude, 6.25);
+/*
+    arrpush(p.height_frequency, 0.0008);
+    arrpush(p.height_frequency, 0.0016);
+    arrpush(p.height_frequency, 0.0032);
+*/
+    arrpush(p.height_frequency, 0.004);
     arrpush(p.height_frequency, 0.0016);
     arrpush(p.height_frequency, 0.0064);
+    arrpush(p.height_frequency, 0.0128);
     arrpush(p.height_frequency, 0.0256);
     arrpush(p.height_frequency, 0.0512);
     arrpush(p.height_frequency, 0.1024);
@@ -97,11 +105,10 @@ int main(int argc, char** argv) {
 
     cm.noise_params = p;
 
-    cam.pos = (vec3s) {0, 0, 0};
 
-    cam.front = (vec3s) {0, 0, -1};
-
-    cm_update(&cm, cam.pos); // generates and meshes chunks
+    if (load_chunks) {
+        cm_update(&cm, cam.pos);
+    }
     cm_lod_update(&cm, cam.pos); // generates loddy boys
 
     for (int i = 0; i < hmlen(cm.lodmesh_hm); i++) {

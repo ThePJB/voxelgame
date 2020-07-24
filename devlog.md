@@ -339,10 +339,34 @@ so up next
 
 lodmesh todo list:
     - unloading
+    - o i also keep vertex data in ram for some reason lol
     - how not to draw over terrain
     - beautification (like colour flattening out over distance like mountains do turning blue)
 
 
+
+so up next i could put you on a really big round island and have that hopefully be visible from the world
+try and get the scale right kinda, and see how far draw distance can be pushed
+and maybe the chunks for the lod need to be bigger
+
+uniform pos and fade to blue
+trying to do that and one corner is quite blue, i wonder if im putting the wrong value in the uniform or if somethings wrong in the shader
+
+
+ok lod update is always loading every single chunk lol so 
+
+never forget that the key has to be the first thing
+
+the problem with the blue is funny its around 0,0,0 of course. im sus that the uniform isnt getting uploaded properly.
+anyway thats enough for today.
+
+todo tomoz, fix the blue thing, tweak terrain into a better shape
+(i think atm the amplitude scaler needs to be more of a low pass filter i.e ignore some low frequencies because it just pulls them down to 0)
+
+world gen performance continues to be a bit disappointing. we'll see. maybe fast path light. gating 3d noise fn behind 2d noise is a good idea also
+
+im pretty close to be able to do world map screen and continent generation, however thats done. like idea before, make it an island at sea
+water, animated!
 
 janitor stuff:
 
@@ -353,3 +377,7 @@ janitor stuff:
     no xyz convention
 
     yeah gotta put these functions and shit into sensible folders
+
+    generation
+
+    

@@ -77,14 +77,11 @@ typedef struct {
 
 
 typedef struct {
+    int32_t_pair key;
     int num_triangles;
-    float *data;
     unsigned int vao;
     unsigned int vbo;
 
-    bool should_draw;
-
-    int32_t_pair key;
 } lodmesh;
 
 typedef struct chunk_manager {
@@ -183,5 +180,6 @@ pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_di
 lodmesh lodmesh_generate(struct osn_context *osn, noise2d_params p, int n, int cx, int cz);
 void cm_lod_update(chunk_manager *cm, vec3s pos);
 void lodmesh_draw(lodmesh m, graphics_context *ctx);
+void lodmesh_delete(chunk_manager *cm, int cx, int cz);
 
 #endif

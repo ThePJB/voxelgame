@@ -109,8 +109,8 @@ float generate_height(struct osn_context *osn, float x, float z, noise2d_params 
         height += p.height_amplitude[i] * open_simplex_noise2(osn, p.height_frequency[i] * x, p.height_frequency[i] * z);
     }
 
-    //return smooth*height;
-    return height;
+    return smooth*height;
+    //return height;
 }
 
 chunk generate_v2(chunk_manager *cm, int x, int y, int z) {

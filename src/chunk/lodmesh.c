@@ -97,9 +97,7 @@ lodmesh lodmesh_generate(struct osn_context *osn, noise2d_params p, int n, int c
     }
 
     lodmesh m = {0};
-    m.data = buf;
     m.key = (int32_t_pair) {cx,cz};
-    m.should_draw = true;
 
     const int attribs_per_vertex = 9;
 
@@ -131,29 +129,22 @@ lodmesh lodmesh_generate(struct osn_context *osn, noise2d_params p, int n, int c
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     
-    //printf("lodmesh gen end %d\n", m.num_triangles);
+    arrfree(buf);
 
     return m;
 }
 
-// probably should have a custom mesh type, custom shader
-// colour and normals? for appearance i anticipate making it kinda green and doing facing ratio
-// for starters anyway
-
-// maybe some uniforms as arguments or something
 void lodmesh_draw(lodmesh m, graphics_context *ctx) {
     glUseProgram(ctx->lodmesh_program);
-    mat4s model = GLMS_MAT4_IDENTITY_INIT;
-
-    glUniformMatrix4fv(glGetUniformLocation(ctx->lodmesh_program, "model"), 1, GL_FALSE, model.raw[0]);
     glBindVertexArray(m.vao);
     glDrawArrays(GL_TRIANGLES, 0, m.num_triangles * 3);
-
 }
 
 void lodmesh_delete(chunk_manager *cm, int cx, int cz) {
+    int32_t_pair key = {cx, cz};
+    lodmesh m = hmgets(cm->lodmesh_hm, key);
 
+    glDeleteBuffers(1, &m.vbo);
+    glDeleteVertexArrays(1, &m.vao);
+    hmdel(cm->lodmesh_hm, key);
 }
-
-
-// lodmesh_delete

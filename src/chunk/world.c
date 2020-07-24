@@ -177,6 +177,7 @@ void world_draw(chunk_manager *cm, graphics_context *ctx) {
         //printf("drawing %u %d hmlen %d\n", m->vao, m->num_triangles, hmlen(cm->lodmesh_hm));
     }
 
+    glClear(GL_DEPTH_BUFFER_BIT);
     glUseProgram(ctx->chunk_program);
 
     for (int idx = 0; idx < hmlen(cm->chunk_hm); idx++) {
