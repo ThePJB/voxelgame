@@ -33,6 +33,7 @@ typedef struct {
     
     unsigned int mesh_program;
     unsigned int chunk_program;
+    unsigned int lodmesh_program;
     
     unsigned int pgm_2d;
     unsigned int vao_2d;

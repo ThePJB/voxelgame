@@ -324,6 +324,32 @@ but it shouldnt be that much of a problem if its pre lit by the down light calcu
 
 what if we had a separate pass for downward skylight and sideways skylight
 did downward skylight first
-dont even use a queue just do it recursively, but add along the way if anyone is blocked, to the queue thing.
+dont even use a queue just do it recursively, but add along the way if anyone is blocked, to the queue thing. (if its blocked = query the highestmap)
 
 that could be more correct and faster
+
+-------
+
+so up next
+- lod chunks(int nsquares_per_side) -> mesh. 1 (1), 2(4), 3(9)
+- or better lighting
+- also fix up world gen some more. try and get me smooooth on
+
+-------------------
+
+lodmesh todo list:
+    - unloading
+    - how not to draw over terrain
+    - beautification (like colour flattening out over distance like mountains do turning blue)
+
+
+
+janitor stuff:
+
+    rename chunk_manager to world
+
+    there was something else as well
+    chunk folder to world folder maybe
+    no xyz convention
+
+    yeah gotta put these functions and shit into sensible folders

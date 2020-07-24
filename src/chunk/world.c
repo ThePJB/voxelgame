@@ -154,6 +154,29 @@ void world_set_block(chunk_manager *cm, vec3l pos, block_tag new_block) {
 
 void world_draw(chunk_manager *cm, graphics_context *ctx) {
     glBindTexture(GL_TEXTURE_2D, ctx->atlas);
+
+    glUseProgram(ctx->lodmesh_program);
+
+
+    for (int idx = 0; idx < hmlen(cm->lodmesh_hm); idx++) {
+        lodmesh *m = &cm->lodmesh_hm[idx];
+
+        mat4s model = GLMS_MAT4_IDENTITY_INIT;
+        /*
+        model = glms_translate(model, (vec3s){
+            m->key.l*CHUNK_RADIX, 
+            0,
+            m->key.r*CHUNK_RADIX, 
+        });
+        */
+
+        glUniformMatrix4fv(glGetUniformLocation(ctx->lodmesh_program, "model"), 1, GL_FALSE, model.raw[0]);
+        glBindVertexArray(m->vao);
+        glDrawArrays(GL_TRIANGLES, 0, m->num_triangles * 3);
+
+        //printf("drawing %u %d hmlen %d\n", m->vao, m->num_triangles, hmlen(cm->lodmesh_hm));
+    }
+
     glUseProgram(ctx->chunk_program);
 
     for (int idx = 0; idx < hmlen(cm->chunk_hm); idx++) {

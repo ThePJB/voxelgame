@@ -23,7 +23,6 @@ void neighbour_handshake(chunk_manager *cm, chunk *this, vec3i neighbour_pos) {
 }
 
 void cm_load_chunk(chunk_manager *cm, int x, int y, int z) {
-    debugf("loading chunk %d %d %d\n", x, y, z);
     chunk new_chunk = cm->gen_func(cm, x, y, z);
     hmputs(cm->chunk_hm, new_chunk);
 
@@ -127,12 +126,32 @@ void cm_update(chunk_manager *cm, vec3s pos) {
     }
 }
 
+void cm_lod_update(chunk_manager *cm, vec3s pos) {
+    vec3i in_chunk = world_pos_to_chunk(pos);
+    int32_t_pair lod_min = {in_chunk.x - cm->lod_dimensions.l/2, in_chunk.z - cm->lod_dimensions.r/2};
+    int32_t_pair lod_max = {in_chunk.x + cm->lod_dimensions.l/2, in_chunk.z + cm->lod_dimensions.r/2};
+
+    for (int x = lod_min.l; x < lod_max.l; x++) {
+        for (int z = lod_min.r; z < lod_max.r; z++) {
+            //printf("lmx %d x %d lxx %d\n", lod_min.l, x, lod_max.l);
+            //printf("lmz %d z %d lxz %d\n", lod_min.r, z, lod_max.r);
+            int32_t_pair lod_pos = (int32_t_pair){x,z};
+            if (hmgeti(cm->lodmesh_hm, lod_pos) < 0) {
+                lodmesh m = lodmesh_generate(cm->osn, cm->noise_params, 4, x, z);
+                hmputs(cm->lodmesh_hm, m);
+            }
+        }
+    }
+
+}
+
 // todo priority queue and some heuristic
 // or maybe hashmap
 int cm_load_n(chunk_manager *cm, vec3s pos, int n) {
     vec3i in_chunk = world_pos_to_chunk(pos);
     vec3i load_min = vec3i_sub(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
     vec3i load_max = vec3i_add(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
+    
 
     int i = 0;
     int amt_actually_loaded = 0;

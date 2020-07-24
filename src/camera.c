@@ -38,9 +38,11 @@ void move(vec3s *pos, vec3s amount) {
     if ((pos->x > 0 && old_pos.x < 0) || (int32_t)old_pos.x / CHUNK_RADIX < (int32_t)pos->x / CHUNK_RADIX) {
         //printf("+x chunk boundary\n");
         cm_update(cmp, *pos);
+        cm_lod_update(cmp, *pos);
     } else if ((pos->x < 0 && old_pos.x > 0) || (int32_t)old_pos.x / CHUNK_RADIX > (int32_t)pos->x / CHUNK_RADIX) {
         //printf("-x chunk boundary\n");
         cm_update(cmp, *pos);
+        cm_lod_update(cmp, *pos);
     } else if ((pos->y > 0 && old_pos.y < 0) || (int32_t)old_pos.y / CHUNK_RADIX < (int32_t)pos->y / CHUNK_RADIX) {
         //printf("+y chunk boundary\n");
         cm_update(cmp, *pos);
@@ -50,9 +52,11 @@ void move(vec3s *pos, vec3s amount) {
     } else if ((pos->z > 0 && old_pos.z < 0) || (int32_t)old_pos.z / CHUNK_RADIX < (int32_t)pos->z / CHUNK_RADIX) {
         //printf("+z chunk boundary\n");
         cm_update(cmp, *pos);
+        cm_lod_update(cmp, *pos);
     } else if ((pos->z < 0 && old_pos.z > 0) || (int32_t)old_pos.z / CHUNK_RADIX > (int32_t)pos->z / CHUNK_RADIX) {
         //printf("-z chunk boundary\n");
         cm_update(cmp, *pos);
+        cm_lod_update(cmp, *pos);
     }
 
 

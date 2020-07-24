@@ -31,7 +31,9 @@ graphics_context *graphics_init(int *w, int *h, camera *cam) {
 
     gc.mesh_program = make_shader_program("shaders/vertex.glsl", "shaders/fragment.glsl");
     gc.chunk_program = make_shader_program("shaders/chunk.vert", "shaders/chunk.frag");
+    gc.lodmesh_program = make_shader_program("shaders/lodmesh.vert", "shaders/lodmesh.frag");
     gc.pgm_2d = make_shader_program("shaders/2d.vert", "shaders/2d.frag");
+
 
     // make cube
    float vertices[] =
@@ -116,6 +118,12 @@ void pre_draw(graphics_context *gc) {
     glUniformMatrix4fv(glGetUniformLocation(gc->chunk_program, "view"), 1, GL_FALSE, view.raw[0]);
     glUniformMatrix4fv(glGetUniformLocation(gc->chunk_program, "projection"), 1, GL_FALSE, projection.raw[0]);
     glUniform3fv(glGetUniformLocation(gc->chunk_program, "light"), 1, light.raw);
+
+    // send shared uniforms
+    glUseProgram(gc->lodmesh_program);
+    glUniformMatrix4fv(glGetUniformLocation(gc->lodmesh_program, "view"), 1, GL_FALSE, view.raw[0]);
+    glUniformMatrix4fv(glGetUniformLocation(gc->lodmesh_program, "projection"), 1, GL_FALSE, projection.raw[0]);
+    //glUniform3fv(glGetUniformLocation(gc->chunk_program, "light"), 1, light.raw);
 }
 
 void draw_mesh(graphics_context *gc, mesh m, vec3s translate, vec3s rotate_axis, float rotate_amt) {

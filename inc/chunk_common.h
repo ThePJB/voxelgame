@@ -76,6 +76,17 @@ typedef struct {
 } surface_hm_entry;
 
 
+typedef struct {
+    int num_triangles;
+    float *data;
+    unsigned int vao;
+    unsigned int vbo;
+
+    bool should_draw;
+
+    int32_t_pair key;
+} lodmesh;
+
 typedef struct chunk_manager {
     //chunk_rngs world_noise;
     struct osn_context* osn;
@@ -83,7 +94,10 @@ typedef struct chunk_manager {
 
     chunk *chunk_hm;
     surface_hm_entry *surface_hm;
+    lodmesh *lodmesh_hm;
+
     vec3i loaded_dimensions;
+    int32_t_pair lod_dimensions;
     vec3i *load_list;
     vec3i *light_list;
     vec3i *mesh_list;
@@ -97,6 +111,7 @@ typedef struct {
     vec3l coords;
     direction normal_dir;
 } pick_info;
+
 
 block_definition block_defs[NUM_BLOCKS];
 
@@ -112,7 +127,7 @@ vec3i chunk_1d_to_3d(int idx);
 void chunk_print(chunk c);
 void chunk_test();
 chunk generate_flat(chunk_manager *cm, int chunk_x, int chunk_y, int chunk_z);
-
+float generate_height(struct osn_context *osn, float x, float z, noise2d_params p);
 
 // chunk manager
 void cm_update(chunk_manager *cm, vec3s pos);           // queue up chunks to load
@@ -162,5 +177,11 @@ void light_propagate_sky(chunk_manager *cm, int32_t x, int32_t y, int32_t z);
 
 // picking
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance);
+
+
+// lodmesh
+lodmesh lodmesh_generate(struct osn_context *osn, noise2d_params p, int n, int cx, int cz);
+void cm_lod_update(chunk_manager *cm, vec3s pos);
+void lodmesh_draw(lodmesh m, graphics_context *ctx);
 
 #endif
