@@ -294,3 +294,36 @@ i think therell have to be some abstracting of all the 2d height map stuff and a
 
 
 do i even want to think about hiding occluded chunks? sweet christ not really
+i guess it wouldnt be that hard
+
+------------------
+
+do lodchunks and see how that looks
+also can be used for world map
+
+could speed worldgen up a lot if I used the same X and Y values for height (have to do something different for cliffs tho)
+
+is there something it would be cool to have at 0,0?
+
+maybe im meant to be timesing by some kind of amplitude coefficient
+
+ok performance is improved a bit
+
+
+need to get the scale just right. its definitely too big at small scales
+and now ive got cave openings being blocked too
+
+
+maybe 1/2 ratio is wasteful and should try 1/3 or 1/4
+ah freq was just way too low
+
+got to do something about light issue remesh during generation
+it just spills into neighbouring chunks and its a waste of time. maybe have a flag for light calculated yet?
+
+but it shouldnt be that much of a problem if its pre lit by the down light calculation
+
+what if we had a separate pass for downward skylight and sideways skylight
+did downward skylight first
+dont even use a queue just do it recursively, but add along the way if anyone is blocked, to the queue thing.
+
+that could be more correct and faster

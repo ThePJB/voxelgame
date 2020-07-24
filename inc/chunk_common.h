@@ -36,6 +36,16 @@
 
 #define SKY_LIGHT_FULL 16
 
+
+typedef struct {
+    float *height_amplitude;
+    float *height_frequency;
+
+    float *smooth_amplitude;
+    float *smooth_frequency;
+} noise2d_params;
+
+
 typedef struct {
     noise2d noise_lf_heightmap;
     noise2d noise_hf_heightmap;
@@ -69,7 +79,7 @@ typedef struct {
 typedef struct chunk_manager {
     //chunk_rngs world_noise;
     struct osn_context* osn;
-
+    noise2d_params noise_params;
 
     chunk *chunk_hm;
     surface_hm_entry *surface_hm;
@@ -95,8 +105,9 @@ MKMAYBE(block_tag);
 // low level -- chunks
 //chunk_rngs chunk_rngs_init(int64_t seed);
 chunk generate_v1(chunk_manager *cm, int x, int y, int z);
+chunk generate_v2(chunk_manager *cm, int x, int y, int z);
 void update_highest_block(chunk_manager *cm, int32_t x, int32_t y, int32_t z);
-int chunk_3d_to_1d(vec3i pos);
+int chunk_3d_to_1d(int x, int y, int z);
 vec3i chunk_1d_to_3d(int idx);
 void chunk_print(chunk c);
 void chunk_test();
@@ -114,9 +125,9 @@ void cm_test();
 // higher level -- world data structures
 
 // coordinate conversions
-vec3i_pair world_posl_to_block_chunk(vec3l block_global);
-vec3l world_block_chunk_to_posl(vec3i block, vec3i chunk);
-vec3i world_posl_to_chunk(vec3l pos);
+vec3i_pair world_posl_to_block_chunk(int gx, int gy, int gz);
+vec3l world_block_chunk_to_posl(int bx, int by, int bz, int cx, int cy, int cz);
+vec3i world_posl_to_chunk(int gx, int gy, int gz);
 
 
 // access

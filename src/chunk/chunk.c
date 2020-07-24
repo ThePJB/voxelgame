@@ -4,6 +4,8 @@ void chunk_print(chunk c) {
     printf("x: %d y: %d z: %d\n blocks ptr: %p\n", spread(c.key), c.blocks);
 }
 
+
+
 chunk_rngs chunk_rngs_init(int64_t seed) {
     // const int vec = 987234;
     const int vec = 1;
@@ -24,8 +26,8 @@ vec3i chunk_1d_to_3d(int idx) {
     return ret;
 }
 
-int chunk_3d_to_1d(vec3i pos) {
-    return pos.x * CHUNK_RADIX_2 + pos.y * CHUNK_RADIX + pos.z;
+int chunk_3d_to_1d(int x, int y, int z) {
+    return x * CHUNK_RADIX_2 + y * CHUNK_RADIX + z;
 }
 
 // for checking if neighbour exists
@@ -89,6 +91,122 @@ chunk generate_flat(chunk_manager *cm, int chunk_x, int chunk_y, int chunk_z) {
             block_light[idx] = 0;
         } 
         world_update_surface_y(cm, spread(block_pos_global));
+    }
+    return c;
+}
+
+// the point of factoring this out is it can be used for lod chunks as well as normal chunks, global gen
+float generate_height(struct osn_context *osn, float x, float z, noise2d_params p) {
+    float height = 0;
+
+    float smooth = 0;
+    for (int i = 0; i < arrlen(p.smooth_amplitude); i++) {
+        smooth += p.smooth_amplitude[i] * open_simplex_noise2(osn, p.smooth_frequency[i] * x, p.smooth_frequency[i] * z);
+    }
+    smooth += 0.5;
+
+    for (int i = 0; i < arrlen(p.height_amplitude); i++) {
+        height += p.height_amplitude[i] * open_simplex_noise2(osn, p.height_frequency[i] * x, p.height_frequency[i] * z);
+    }
+
+    //return smooth*height;
+    return height;
+}
+
+chunk generate_v2(chunk_manager *cm, int x, int y, int z) {
+    block_tag *blocks = calloc(sizeof(block_tag), CHUNK_RADIX_3);
+    uint8_t *block_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
+    uint8_t *sky_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
+    chunk c = {0}; 
+    
+    c.blocks = blocks;
+    c.sky_light_levels = sky_light;
+    c.block_light_levels = block_light;
+
+    c.key = (vec3i) {x,y,z};
+
+    float chunk_x = x*CHUNK_RADIX;
+    float chunk_y = y*CHUNK_RADIX;
+    float chunk_z = z*CHUNK_RADIX;   
+
+    for (int bx = 0; bx < CHUNK_RADIX; bx++) {
+        float gx = bx + chunk_x;
+
+        for (int bz = 0; bz < CHUNK_RADIX; bz++) {
+            float gz = bz + chunk_z;
+
+            float height = generate_height(cm->osn, gx, gz, cm->noise_params);
+
+            for (int by = 0; by < CHUNK_RADIX; by++) {
+                float gy = by + chunk_y;
+
+                block_tag place_block;
+
+                // dont waste time generating caves in the sky
+                if (gy < height + 1) {
+                    float cave_carve_density = 0;
+
+                    float A_cave = 20;
+                    float f_cave = 0.05;
+
+                    cave_carve_density += A_cave * open_simplex_noise3(cm->osn, f_cave*gx, f_cave*gy, f_cave*gz);
+                    A_cave /= 2;
+                    f_cave *= 2;
+
+                    cave_carve_density += A_cave * open_simplex_noise3(cm->osn, f_cave*gx, f_cave*gy, f_cave*gz);
+                    A_cave /= 2;
+                    f_cave *= 2;
+
+                    float cave_cutoff = remap(64, -80, -10, 2, by);
+
+
+                    if (cave_carve_density < cave_cutoff) {
+                        place_block = BLOCK_AIR; goto SET_BLOCK;
+                    }
+                            
+
+                    if (cave_carve_density < cave_cutoff + 0.05 && gy < height) {
+                        place_block = BLOCK_GEMS; goto SET_BLOCK;
+                    }
+                }
+
+                
+
+                // grass and stuff
+                if (gy < height - 4) {
+                    place_block = BLOCK_STONE; goto SET_BLOCK;
+                } else if (gy < height - 0.5) {
+                    // not stone layers
+                    if (height > -25) {
+                        place_block = BLOCK_DIRT; goto SET_BLOCK;
+                    } else {
+                        place_block = BLOCK_SAND; goto SET_BLOCK;
+                    }
+                } else if (gy < height + 0.5) {
+                    // top layer
+                    if (height > 40) {
+                        place_block = BLOCK_SNOW; goto SET_BLOCK;
+                    } else if (height > -25) {
+                        place_block = BLOCK_GRASS; goto SET_BLOCK;
+                    } else {
+                        place_block = BLOCK_SAND; goto SET_BLOCK;
+                    }
+                } else {
+                    place_block = BLOCK_AIR; goto SET_BLOCK;
+                }
+
+                SET_BLOCK:
+                blocks[chunk_3d_to_1d(bx,by,bz)] = place_block;
+
+                if (block_defs[place_block].opaque == false) {
+                    continue;
+                }
+
+                vec3l world_coorindates = world_block_chunk_to_posl(bx,by,bz, spread(c.key));
+                world_update_surface_y(cm, spread(world_coorindates));
+
+            }
+        }
     }
     return c;
 }
@@ -198,9 +316,7 @@ chunk generate_v1(chunk_manager *cm, int x, int y, int z) {
 
         block_tag place_block;
 
-        if (cave_carve_density < cave_cutoff) {
-            place_block = BLOCK_AIR; goto SET_BLOCK;
-        }
+        
 
         float height;
         if (cliff_carve_density < 1) {
@@ -244,7 +360,7 @@ chunk generate_v1(chunk_manager *cm, int x, int y, int z) {
         }
 
 
-        vec3l world_coorindates = world_block_chunk_to_posl(block_pos, c.key);
+        vec3l world_coorindates = world_block_chunk_to_posl(spread(block_pos), spread(c.key));
         world_update_surface_y(cm, spread(world_coorindates));
     }
         
@@ -252,13 +368,15 @@ chunk generate_v1(chunk_manager *cm, int x, int y, int z) {
 }
 
 void chunk_test() {
-    assert_int_equal("0 corner", 0, chunk_3d_to_1d((vec3i){0,0,0}));
+    /*
+    assert_int_equal("0 corner", 0, chunk_3d_to_1d(0,0,0));
     assert_int_equal("r3 corner", CHUNK_MAX_3 + CHUNK_MAX_2 + CHUNK_MAX, chunk_3d_to_1d((vec3i){CHUNK_MAX,CHUNK_MAX,CHUNK_MAX}));
     assert_int_equal("r1 corner", CHUNK_MAX, chunk_3d_to_1d((vec3i){0, 0,CHUNK_MAX}));
     assert_int_equal("r11 corner", CHUNK_MAX + 1, chunk_3d_to_1d((vec3i){0, 1, 0}));
     assert_int_equal("r2 corner", CHUNK_MAX_2, chunk_3d_to_1d((vec3i){0,CHUNK_MAX,0}));
     assert_int_equal("r2+1 corner", CHUNK_MAX*CHUNK_RADIX + CHUNK_MAX, chunk_3d_to_1d((vec3i){0,CHUNK_MAX,CHUNK_MAX}));
     assert_int_equal("r2+1+1 corner", CHUNK_RADIX_2 + CHUNK_MAX_2 + CHUNK_MAX, chunk_3d_to_1d((vec3i){1,CHUNK_MAX,CHUNK_MAX}));
+    */
 
     vec3i pos3d = chunk_1d_to_3d(0);
     assert_int_equal("0x", 0, pos3d.x);

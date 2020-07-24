@@ -43,6 +43,7 @@ int main(int argc, char** argv) {
     int w = 2560;
     int h = 1440;
     camera cam = fly_camera();
+    cam.pos = (vec3s) {1000,100,1000};
     window_context *wc = window_init("sick game", &w, &h, &cam);
     graphics_context *gc = graphics_init(&w, &h, &cam);
 
@@ -65,7 +66,58 @@ int main(int argc, char** argv) {
     cm.loaded_dimensions = (vec3i) {14,9,14};
     int nchunks = cm.loaded_dimensions.x * cm.loaded_dimensions.y * cm.loaded_dimensions.z;
 //    cm.gen_func = generate_flat;
-    cm.gen_func = generate_v1;
+    cm.gen_func = generate_v2;
+
+    // world gen parameters
+    noise2d_params p = {0};
+    arrpush(p.height_amplitude, 100);
+    arrpush(p.height_amplitude, 80);
+    arrpush(p.height_amplitude, 60);
+    arrpush(p.height_amplitude, 40);
+    arrpush(p.height_amplitude, 20);
+    arrpush(p.height_amplitude, 10);
+    arrpush(p.height_amplitude, 5);
+/*    
+    arrpush(p.height_frequency, 0.001);
+    arrpush(p.height_frequency, 0.002);
+    arrpush(p.height_frequency, 0.004);
+    arrpush(p.height_frequency, 0.008);
+    arrpush(p.height_frequency, 0.0016);
+*/  
+/*
+    arrpush(p.height_frequency, 0.008);
+    arrpush(p.height_frequency, 0.0016);
+    arrpush(p.height_frequency, 0.0032);
+    arrpush(p.height_frequency, 0.0064);
+    arrpush(p.height_frequency, 0.0128);
+*/
+
+    arrpush(p.height_frequency, 0.0001);
+    arrpush(p.height_frequency, 0.0004);
+    arrpush(p.height_frequency, 0.0016);
+    arrpush(p.height_frequency, 0.0064);
+    arrpush(p.height_frequency, 0.0256);
+    arrpush(p.height_frequency, 0.0512);
+    arrpush(p.height_frequency, 0.1024);
+
+/*
+    arrpush(p.height_frequency, 0.0032);
+    arrpush(p.height_frequency, 0.0064);
+    arrpush(p.height_frequency, 0.0128);
+    arrpush(p.height_frequency, 0.0256);
+    arrpush(p.height_frequency, 0.0512);
+    */
+
+    arrpush(p.smooth_amplitude, 0.5);
+    arrpush(p.smooth_amplitude, 0.25);
+    arrpush(p.smooth_amplitude, 0.125);
+
+    arrpush(p.smooth_frequency, 0.001);
+    arrpush(p.smooth_frequency, 0.002);
+    arrpush(p.smooth_frequency, 0.004);
+
+    cm.noise_params = p;
+
     cam.pos = (vec3s) {0, 0, 0};
 
     cam.front = (vec3s) {0, 0, -1};
@@ -89,10 +141,10 @@ int main(int argc, char** argv) {
     while (!glfwWindowShouldClose(wc->window)) {
         frame_counter++;
 
-        int load_amt = cm_load_n(&cm, cam.pos, 3);
+        int load_amt = cm_load_n(&cm, cam.pos, 6);
         total_genned += load_amt;
         if (load_amt == 0) {
-            int light_amt = cm_light_n(&cm, cam.pos, 3);
+            int light_amt = cm_light_n(&cm, cam.pos, 6);
             total_lit += light_amt;
             if (light_amt == 0) {
                 total_meshed += cm_mesh_n(&cm, cam.pos, 8);

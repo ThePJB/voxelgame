@@ -45,42 +45,42 @@ block_definition block_defs[NUM_BLOCKS] = {
 };
 
 // Converting positions
-vec3i world_posl_to_chunk(vec3l pos) {
+vec3i world_posl_to_chunk(int gx, int gy, int gz) {
     return (vec3i) {
-        pos.x >> CHUNK_RADIX_LOG2,
-        pos.y >> CHUNK_RADIX_LOG2,
-        pos.z >> CHUNK_RADIX_LOG2,
+        gx >> CHUNK_RADIX_LOG2,
+        gy >> CHUNK_RADIX_LOG2,
+        gz >> CHUNK_RADIX_LOG2,
     };
 }
 
-vec3i_pair world_posl_to_block_chunk(vec3l pos) {
+vec3i_pair world_posl_to_block_chunk(int gx, int gy, int gz) {
     vec3i_pair ret;
     return (vec3i_pair) {
         (vec3i) {
-            mod(pos.x, CHUNK_RADIX),
-            mod(pos.y, CHUNK_RADIX),
-            mod(pos.z, CHUNK_RADIX),
+            mod(gx, CHUNK_RADIX),
+            mod(gy, CHUNK_RADIX),
+            mod(gz, CHUNK_RADIX),
         },
         (vec3i) {
-            pos.x >> CHUNK_RADIX_LOG2,
-            pos.y >> CHUNK_RADIX_LOG2,
-            pos.z >> CHUNK_RADIX_LOG2,
+            gx >> CHUNK_RADIX_LOG2,
+            gy >> CHUNK_RADIX_LOG2,
+            gz >> CHUNK_RADIX_LOG2,
         },
     };
 }
 
-vec3l world_block_chunk_to_posl(vec3i block, vec3i chunk) {
+vec3l world_block_chunk_to_posl(int bx, int by, int bz, int cx, int cy, int cz) {
     return (vec3l) {
-        chunk.x * CHUNK_RADIX + block.x,
-        chunk.y * CHUNK_RADIX + block.y,
-        chunk.z * CHUNK_RADIX + block.z,
+        cx * CHUNK_RADIX + bx,
+        cy * CHUNK_RADIX + by,
+        cz * CHUNK_RADIX + bz,
     };
 }
 
 // -------------------- world getblock setblock
 
 maybe_block_tag world_get_block(chunk_manager *cm, vec3l pos) {
-    vec3i_pair coords = world_posl_to_block_chunk(pos);
+    vec3i_pair coords = world_posl_to_block_chunk(spread(pos));
     int idx = hmgeti(cm->chunk_hm, coords.r);
 
     if (idx == -1) {
@@ -88,15 +88,15 @@ maybe_block_tag world_get_block(chunk_manager *cm, vec3l pos) {
         return (maybe_block_tag) {0, false};
     }
 
-    return (maybe_block_tag) {cm->chunk_hm[idx].blocks[chunk_3d_to_1d(coords.l)], true};  
+    return (maybe_block_tag) {cm->chunk_hm[idx].blocks[chunk_3d_to_1d(spread(coords.l))], true};  
 }
 
 void world_set_block(chunk_manager *cm, vec3l pos, block_tag new_block) {    
-    vec3i_pair coords = world_posl_to_block_chunk(pos);
+    vec3i_pair coords = world_posl_to_block_chunk(spread(pos));
     vec3i block_coords = coords.l;
     vec3i chunk_coords = coords.r;
     int chunk_idx = hmgeti(cm->chunk_hm, chunk_coords);
-    int block_idx = chunk_3d_to_1d(block_coords);
+    int block_idx = chunk_3d_to_1d(spread(block_coords));
 
 
     if (chunk_idx == -1) {

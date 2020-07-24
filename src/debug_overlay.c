@@ -10,8 +10,8 @@ void draw_debug_info(float dt, camera cam, window_context *wc, chunk_manager *cm
     int y = 10;
 
     vec3l in_block = vec3s_to_vec3l(cam.pos);
-    vec3i block_coords = world_posl_to_block_chunk(in_block).l;
-    vec3i chunk_coords = world_posl_to_block_chunk(in_block).r;
+    vec3i block_coords = world_posl_to_block_chunk(spread(in_block)).l;
+    vec3i chunk_coords = world_posl_to_block_chunk(spread(in_block)).r;
 
     pick_info lookat = pick_block(cm, cam.pos, cam.front, 9);
 

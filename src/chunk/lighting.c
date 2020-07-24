@@ -191,7 +191,7 @@ void light_propagate_sky(chunk_manager *cm, int32_t x, int32_t y, int32_t z) {
 }
 
 void light_issue_remesh(chunk_manager *cm, vec3l pos) {
-    vec3i_pair coords = world_posl_to_block_chunk(pos);
+    vec3i_pair coords = world_posl_to_block_chunk(spread(pos));
     if (coords.l.x == 0) {
         vec3i update_coords = vec3i_add(coords.r, unit_vec3i[DIR_MX]);
         chunk *c = hmgetp(cm->chunk_hm, update_coords);
@@ -228,10 +228,9 @@ void light_issue_remesh(chunk_manager *cm, vec3l pos) {
 // - adds all the light values of each light source and updates
 // - if at highest point in chunk and its surface chunk, perform skylight calculations
 //      actually thats not that correct becasue 
-void light_initialize_for_chunk(chunk_manager *cm, int x, int y, int z) {
+void light_initialize_for_chunk(chunk_manager *cm, int cx, int cy, int cz) {
     
-    vec3i chunk_pos = {x,y,z};
-
+    vec3i chunk_pos = {cx,cy,cz};
     int chunk_idx = hmgeti(cm->chunk_hm, chunk_pos);
     
     if (chunk_idx == -1) {
@@ -240,29 +239,23 @@ void light_initialize_for_chunk(chunk_manager *cm, int x, int y, int z) {
     } 
 
     for (int bx = 0; bx < CHUNK_RADIX; bx++) {
-        int32_t global_block_x = bx + x * CHUNK_RADIX;
+        int32_t global_block_x = bx + cx * CHUNK_RADIX;
         for (int bz = 0; bz < CHUNK_RADIX; bz++) {
-            int32_t global_block_z = bz + z * CHUNK_RADIX;
+            int32_t global_block_z = bz + cz * CHUNK_RADIX;
 
             int32_t surface_y = world_get_surface_y(cm, global_block_x, global_block_z).value;
 
             for (int by = 0; by < CHUNK_RADIX; by++) {
-                int32_t global_block_y = by + y * CHUNK_RADIX;
+                int32_t global_block_y = by + cy * CHUNK_RADIX;
 
-                vec3i block_pos = (vec3i){bx,by,bz};
-                //print_vec3i(block_pos);
-                int idx = chunk_3d_to_1d(block_pos);
-                //printf("fix lighting index %d\n", idx);
+                int idx = chunk_3d_to_1d(bx,by,bz);
 
-
-                //printf("%d\n", chunk_idx);
                 chunk *c = &cm->chunk_hm[chunk_idx];
                 block_tag block = c->blocks[idx];
-                //printf("%u\n", (uint16_t)block);
 
                 uint8_t lum = block_defs[block].luminance;
                 if (lum > 0) {
-                    vec3l world_block_pos = world_block_chunk_to_posl(block_pos, (vec3i){x,y,z});
+                    vec3l world_block_pos = world_block_chunk_to_posl(bx, by, bz, cx,cy,cz);
                     light_add(cm, lum, global_block_x, global_block_y, global_block_z);
                 }
 
@@ -271,9 +264,9 @@ void light_initialize_for_chunk(chunk_manager *cm, int x, int y, int z) {
                 }
             }
 
-            // so we run the sunlight propagation algorithm at the highest y point in this chunk,
+            // so we run the sunlight propagation algorithm at the highest cy point in this chunk,
             // if this chunk is the one with the surface (highest opauqe block)
-            if (floor_div(surface_y, CHUNK_RADIX) == y) {
+            if (floor_div(surface_y, CHUNK_RADIX) == cy) {
                 light_propagate_sky(cm, global_block_x, CHUNK_MAX, global_block_z);
             }
         }
@@ -287,7 +280,7 @@ void light_initialize_for_chunk(chunk_manager *cm, int x, int y, int z) {
 
 
 void light_set_block(chunk_manager *cm, vec3l pos, uint8_t illumination) {
-    vec3i_pair coords = world_posl_to_block_chunk(pos);
+    vec3i_pair coords = world_posl_to_block_chunk(spread(pos));
     int idx = hmgeti(cm->chunk_hm, coords.r);
     
     if (idx < 0) {
@@ -295,12 +288,12 @@ void light_set_block(chunk_manager *cm, vec3l pos, uint8_t illumination) {
         return;
     }
 
-    //light_issue_remesh(cm, pos);
-    cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(coords.l)] = illumination;
+    light_issue_remesh(cm, pos);
+    cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(spread(coords.l))] = illumination;
 }
 
 void light_set_sky(chunk_manager *cm, vec3l pos, uint8_t illumination) {
-    vec3i_pair coords = world_posl_to_block_chunk(pos);
+    vec3i_pair coords = world_posl_to_block_chunk(spread(pos));
     int idx = hmgeti(cm->chunk_hm, coords.r);
     
     if (idx < 0) {
@@ -309,12 +302,12 @@ void light_set_sky(chunk_manager *cm, vec3l pos, uint8_t illumination) {
     }
 
     //light_issue_remesh(cm, pos);
-    cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(coords.l)] = illumination;
+    cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(spread(coords.l))] = illumination;
 }
 
 maybe_uint8_t light_get_block(chunk_manager *cm, vec3l pos) {
 
-    vec3i_pair coords = world_posl_to_block_chunk(pos);
+    vec3i_pair coords = world_posl_to_block_chunk(spread(pos));
 
     int idx = hmgeti(cm->chunk_hm, coords.r);
     
@@ -323,12 +316,12 @@ maybe_uint8_t light_get_block(chunk_manager *cm, vec3l pos) {
         return (maybe_uint8_t) {255, false};
     }
 
-    return (maybe_uint8_t) {cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(coords.l)], true};
+    return (maybe_uint8_t) {cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(spread(coords.l))], true};
 }
 
 maybe_uint8_t light_get_sky(chunk_manager *cm, vec3l pos) {
 
-    vec3i_pair coords = world_posl_to_block_chunk(pos);
+    vec3i_pair coords = world_posl_to_block_chunk(spread(pos));
 
     int idx = hmgeti(cm->chunk_hm, coords.r);
     if (idx < 0) {
@@ -336,56 +329,5 @@ maybe_uint8_t light_get_sky(chunk_manager *cm, vec3l pos) {
         return (maybe_uint8_t) {255, false};
     }
 
-    return (maybe_uint8_t) {cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(coords.l)], true};
+    return (maybe_uint8_t) {cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(spread(coords.l))], true};
 }
-
-/*
-maybe_uint8_t light_get_block(chunk_manager *cm, vec3l pos) {
-    static vec3i last_called_with_chunk = {INT32_MAX, INT32_MAX, INT32_MAX}; // im assuming this only ran once
-    static int idx = -1;
-
-    vec3i_pair coords = world_posl_to_block_chunk(pos);
-    if (coords.r.x == last_called_with_chunk.x && 
-        coords.r.y == last_called_with_chunk.y &&
-        coords.r.z == last_called_with_chunk.z) {
-
-        // hit means we dont need to look chunk up in hashtable
-        
-
-        } else {
-            idx = hmgeti(cm->chunk_hm, coords.r);
-            last_called_with_chunk = coords.r;
-        }
-    
-    if (idx < 0) {
-        //printf("tried getting illumination of an unloaded chunk %d %d %d\n", spread(coords.r));
-        return (maybe_uint8_t) {255, false};
-    }
-
-    return (maybe_uint8_t) {cm->chunk_hm[idx].block_light_levels[chunk_3d_to_1d(coords.l)], true};
-}
-
-maybe_uint8_t light_get_sky(chunk_manager *cm, vec3l pos) {
-    static vec3i last_called_with_chunk = {INT32_MAX, INT32_MAX, INT32_MAX}; // im assuming this only ran once
-    static int idx = -1;
-
-    vec3i_pair coords = world_posl_to_block_chunk(pos);
-    if (coords.r.x == last_called_with_chunk.x && 
-        coords.r.y == last_called_with_chunk.y &&
-        coords.r.z == last_called_with_chunk.z) {
-
-        // hit means we dont need to look chunk up in hashtable
-        
-
-        } else {
-            idx = hmgeti(cm->chunk_hm, coords.r);
-            last_called_with_chunk = coords.r;
-        }
-    if (idx < 0) {
-        //printf("tried getting illumination of an unloaded chunk %d %d %d\n", spread(coords.r));
-        return (maybe_uint8_t) {255, false};
-    }
-
-    return (maybe_uint8_t) {cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(coords.l)], true};
-}
-*/
