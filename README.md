@@ -1,8 +1,14 @@
 # Voxel Game
 ## Dependencies
  * freetype
+   * `apt install libfreetype6-dev`
  * glfw
- * im pretty sure thats it
+   * `apt install libglfw3-dev`
+ * cglm
+   * `git clone https://github.com/recp/cglm.git`
+   * `make`
+   * `make install`
+ * opengl
 
 ## Controls
  * Change block: Q,E
