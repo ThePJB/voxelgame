@@ -12,6 +12,7 @@ LDFLAGS = -lGL -lglfw -ldl -lm -lfreetype
 
 # obj depends on corresponding c and all headers
 obj/%.o: src/%.c $(headers)
+	mkdir -p obj/chunk
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 voxelgame: $(obj)

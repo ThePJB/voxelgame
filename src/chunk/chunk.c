@@ -105,11 +105,17 @@ float generate_height(struct osn_context *osn, float x, float z, noise2d_params 
     }
     smooth += 0.5;
 
-    for (int i = 0; i < arrlen(p.height_amplitude); i++) {
-        height += p.height_amplitude[i] * open_simplex_noise2(osn, p.height_frequency[i] * x, p.height_frequency[i] * z);
+    for (int i = 0; i < arrlen(p.lf_height_amplitude); i++) {
+        height += p.lf_height_amplitude[i] * open_simplex_noise2(osn, p.lf_height_frequency[i] * x, p.lf_height_frequency[i] * z);
     }
 
-    return smooth*height;
+    float hf_height = 0;
+
+    for (int i = 0; i < arrlen(p.hf_height_amplitude); i++) {
+        hf_height += p.hf_height_amplitude[i] * open_simplex_noise2(osn, p.hf_height_frequency[i] * x, p.hf_height_frequency[i] * z);
+    }
+
+    return height + smooth*hf_height;
     //return height;
 }
 

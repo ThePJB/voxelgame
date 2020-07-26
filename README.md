@@ -6,9 +6,14 @@
    * `apt install libglfw3-dev`
  * cglm
    * `git clone https://github.com/recp/cglm.git`
+   * `sh autogen.sh`
+   * `./configure`
    * `make`
    * `make install`
  * opengl
+
+## Building
+`make`
 
 ## Controls
  * Change block: Q,E

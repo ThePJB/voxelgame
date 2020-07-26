@@ -38,7 +38,7 @@ void draw_lookat_cube(vec3s cam_pos, vec3s cam_front, graphics_context *c, pick_
 }
 
 bool enable_debug = false;
-bool load_chunks = false;
+bool load_chunks = true;
 
 int main(int argc, char** argv) {
     int w = 2560;
@@ -75,25 +75,23 @@ int main(int argc, char** argv) {
 
     // world gen parameters
     noise2d_params p = {0};
-    arrpush(p.height_amplitude, 400);
-    arrpush(p.height_amplitude, 200);
-    arrpush(p.height_amplitude, 100);
-    arrpush(p.height_amplitude, 50);
-    arrpush(p.height_amplitude, 25);
-    arrpush(p.height_amplitude, 12.5);
-    arrpush(p.height_amplitude, 6.25);
+    arrpush(p.lf_height_amplitude, 300);
+    arrpush(p.lf_height_amplitude, 150);
+    arrpush(p.hf_height_amplitude, 50);
+    arrpush(p.hf_height_amplitude, 25);
+    arrpush(p.hf_height_amplitude, 12.5);
+    arrpush(p.hf_height_amplitude, 6.25);
 /*
     arrpush(p.height_frequency, 0.0008);
     arrpush(p.height_frequency, 0.0016);
     arrpush(p.height_frequency, 0.0032);
 */
-    arrpush(p.height_frequency, 0.004);
-    arrpush(p.height_frequency, 0.0016);
-    arrpush(p.height_frequency, 0.0064);
-    arrpush(p.height_frequency, 0.0128);
-    arrpush(p.height_frequency, 0.0256);
-    arrpush(p.height_frequency, 0.0512);
-    arrpush(p.height_frequency, 0.1024);
+    arrpush(p.lf_height_frequency, 0.001);
+    arrpush(p.lf_height_frequency, 0.004);
+    arrpush(p.hf_height_frequency, 0.0064);
+    arrpush(p.hf_height_frequency, 0.0128);
+    arrpush(p.hf_height_frequency, 0.0256);
+    arrpush(p.hf_height_frequency, 0.0512);
 
     arrpush(p.smooth_amplitude, 0.5);
     arrpush(p.smooth_amplitude, 0.25);

@@ -38,8 +38,13 @@
 
 
 typedef struct {
-    float *height_amplitude;
-    float *height_frequency;
+    // not affected by smoothing
+    float *lf_height_amplitude;
+    float *lf_height_frequency;
+    
+    // yes affected by smoothing
+    float *hf_height_amplitude;
+    float *hf_height_frequency;
 
     float *smooth_amplitude;
     float *smooth_frequency;

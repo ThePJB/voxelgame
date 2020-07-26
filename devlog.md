@@ -381,3 +381,8 @@ janitor stuff:
     generation
 
     
+
+    build and run guide: cglm as well
+    and flags
+
+    make the obj and obj/chunk folders bastard
