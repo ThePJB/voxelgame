@@ -83,6 +83,9 @@ camera update_camera(GLFWwindow* window, camera cam, float dt) {
         if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) {
             cam_speed *= 8;
         }
+        if (glfwGetKey(window, GLFW_KEY_LEFT_ALT)) {
+            cam_speed *= 100;
+        }
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             move(&cam.pos, glms_vec3_scale(cam.front, cam_speed));

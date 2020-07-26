@@ -50,7 +50,6 @@ typedef struct {
 
 graphics_context *graphics_init(int *w, int *h, camera *cam);
 
-void pre_draw(graphics_context *c);
 void draw_2d_image(graphics_context *gc, unsigned int texture, int x, int y, int w, int h);
 void draw_mesh(graphics_context *c, mesh m, vec3s translate, vec3s rotate_axis, float rotate_amt);
 uint32_t get_vram_usage();

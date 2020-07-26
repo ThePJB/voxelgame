@@ -134,7 +134,13 @@ void cm_update(chunk_manager *cm, vec3s pos) {
 }
 
 void cm_lod_update(chunk_manager *cm, vec3s pos) {
-    vec3i in_chunk = world_pos_to_chunk(pos);
+    //vec3i in_chunk = world_pos_to_chunk(pos);
+    vec3i in_chunk = {
+        (int)pos.x >> LODMESH_LOG2,
+        (int)pos.y >> LODMESH_LOG2,
+        (int)pos.z >> LODMESH_LOG2,
+    };
+
     int32_t_pair lod_min = {in_chunk.x - cm->lod_dimensions.l/2, in_chunk.z - cm->lod_dimensions.r/2};
     int32_t_pair lod_max = {in_chunk.x + cm->lod_dimensions.l/2, in_chunk.z + cm->lod_dimensions.r/2};
 
@@ -151,7 +157,7 @@ void cm_lod_update(chunk_manager *cm, vec3s pos) {
             int32_t_pair lod_pos = {x,z};
             int i = hmgeti(cm->lodmesh_hm, lod_pos);
             if (i == -1) {
-                lodmesh m = lodmesh_generate(cm->osn, cm->noise_params, 4, x, z);
+                lodmesh m = lodmesh_generate(cm->osn, cm->noise_params, 16, x, z);
                 hmputs(cm->lodmesh_hm, m);
             }
         }

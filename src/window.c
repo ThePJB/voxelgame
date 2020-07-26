@@ -147,4 +147,5 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     *(wc.w) = width;
     *(wc.h) = height;
     glViewport(0,0,width,height);
+    printf("resize to %d, %d\n", width, height);
 }

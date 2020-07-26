@@ -50,8 +50,8 @@ lodmesh lodmesh_generate(struct osn_context *osn, noise2d_params p, int n, int c
     float *buf = 0;
 
     // figure out x and z of each coordinate
-    float ox = CHUNK_RADIX * cx;
-    float oz = CHUNK_RADIX * cz;
+    float ox = LODMESH_CHUNK_RADIX * cx;
+    float oz = LODMESH_CHUNK_RADIX * cz;
 
 
     for (int x = 0; x < n; x++) {
@@ -65,31 +65,31 @@ lodmesh lodmesh_generate(struct osn_context *osn, noise2d_params p, int n, int c
             vec3s v3 = {0};
 
             // lower triangle
-            v2.x = ox + ((float)(x+1)*CHUNK_RADIX) / n;
-            v2.z = oz + (float)(z*CHUNK_RADIX) / n;
+            v2.x = ox + ((float)(x+1)*LODMESH_CHUNK_RADIX) / n;
+            v2.z = oz + (float)(z*LODMESH_CHUNK_RADIX) / n;
             v2.y = generate_height(osn, v2.x, v2.z, p);
 
-            v1.x = ox + ((float)x*CHUNK_RADIX) / n;
-            v1.z = oz + ((float)z*CHUNK_RADIX) / n;
+            v1.x = ox + ((float)x*LODMESH_CHUNK_RADIX) / n;
+            v1.z = oz + ((float)z*LODMESH_CHUNK_RADIX) / n;
             v1.y = generate_height(osn, v1.x, v1.z, p);
 
-            v3.x = ox + ((float)x*CHUNK_RADIX) / n;
-            v3.z = oz + ((float)(z+1)*CHUNK_RADIX) / n;
+            v3.x = ox + ((float)x*LODMESH_CHUNK_RADIX) / n;
+            v3.z = oz + ((float)(z+1)*LODMESH_CHUNK_RADIX) / n;
             v3.y = generate_height(osn, v3.x, v3.z, p);
 
             buf = push_triangle(buf, v2, v1, v3, colour, colour, colour);
 
             // upper triangle
-            v2.x = ox + ((float)x+1)*CHUNK_RADIX / n;
-            v2.z = oz + ((float)z)*CHUNK_RADIX / n;
+            v2.x = ox + ((float)x+1)*LODMESH_CHUNK_RADIX / n;
+            v2.z = oz + ((float)z)*LODMESH_CHUNK_RADIX / n;
             v2.y = generate_height(osn, v2.x, v2.z, p);
 
-            v1.x = ox + ((float)x + 1)*CHUNK_RADIX / n;
-            v1.z = oz + ((float)z + 1)*CHUNK_RADIX / n;
+            v1.x = ox + ((float)x + 1)*LODMESH_CHUNK_RADIX / n;
+            v1.z = oz + ((float)z + 1)*LODMESH_CHUNK_RADIX / n;
             v1.y = generate_height(osn, v1.x, v1.z, p);
 
-            v3.x = ox + ((float)x)*CHUNK_RADIX / n;
-            v3.z = oz + ((float)z+1)*CHUNK_RADIX / n;
+            v3.x = ox + ((float)x)*LODMESH_CHUNK_RADIX / n;
+            v3.z = oz + ((float)z+1)*LODMESH_CHUNK_RADIX / n;
             v3.y = generate_height(osn, v3.x, v3.z, p);
 
             buf = push_triangle(buf, v1, v2, v3, colour, colour, colour);

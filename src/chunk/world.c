@@ -148,57 +148,6 @@ void world_set_block(chunk_manager *cm, vec3l pos, block_tag new_block) {
 }
 
 
-
-
-// draw
-
-void world_draw(chunk_manager *cm, graphics_context *ctx) {
-    glBindTexture(GL_TEXTURE_2D, ctx->atlas);
-
-    glUseProgram(ctx->lodmesh_program);
-
-
-    for (int idx = 0; idx < hmlen(cm->lodmesh_hm); idx++) {
-        lodmesh *m = &cm->lodmesh_hm[idx];
-
-        mat4s model = GLMS_MAT4_IDENTITY_INIT;
-        /*
-        model = glms_translate(model, (vec3s){
-            m->key.l*CHUNK_RADIX, 
-            0,
-            m->key.r*CHUNK_RADIX, 
-        });
-        */
-
-        glUniformMatrix4fv(glGetUniformLocation(ctx->lodmesh_program, "model"), 1, GL_FALSE, model.raw[0]);
-        glBindVertexArray(m->vao);
-        glDrawArrays(GL_TRIANGLES, 0, m->num_triangles * 3);
-
-        //printf("drawing %u %d hmlen %d\n", m->vao, m->num_triangles, hmlen(cm->lodmesh_hm));
-    }
-
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glUseProgram(ctx->chunk_program);
-
-    for (int idx = 0; idx < hmlen(cm->chunk_hm); idx++) {
-        chunk *c = &cm->chunk_hm[idx];
-        if (c->needs_remesh) {
-            cm_mesh_chunk(cm, spread(c->key));
-        }
-
-        mat4s model = GLMS_MAT4_IDENTITY_INIT;
-        model = glms_translate(model, (vec3s){
-            c->key.x*CHUNK_RADIX + 0.5, 
-            c->key.y*CHUNK_RADIX + 0.5, 
-            c->key.z*CHUNK_RADIX + 0.5,
-        });
-
-        glUniformMatrix4fv(glGetUniformLocation(ctx->mesh_program, "model"), 1, GL_FALSE, model.raw[0]);
-        glBindVertexArray(c->vao);
-        glDrawArrays(GL_TRIANGLES, 0, c->num_triangles * 3);
-    }
-}
-
 maybe_int32_t world_get_surface_y(chunk_manager *cm, int32_t x, int32_t z) {
     int surface_map_idx;
     int32_t_pair surface_key = {x, z};

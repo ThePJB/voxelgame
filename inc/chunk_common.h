@@ -15,6 +15,9 @@
 #include "graphics.h"
 #include "stb_ds.h"
 
+#define LODMESH_LOG2 8
+#define LODMESH_CHUNK_RADIX 256
+
 #define CHUNK_RADIX_LOG2 4
 #define CHUNK_RADIX 16
 #define CHUNK_RADIX_2 (CHUNK_RADIX*CHUNK_RADIX)
@@ -48,6 +51,9 @@ typedef struct {
 
     float *smooth_amplitude;
     float *smooth_frequency;
+
+    float *cave_tendency_amplitude;
+    float *cave_tendency_frequency;
 } noise2d_params;
 
 
@@ -154,8 +160,6 @@ void world_set_block(chunk_manager *cm, vec3l pos, block_tag b);
 maybe_int32_t world_get_surface_y(chunk_manager *cm, int32_t x, int32_t z);
 void world_update_surface_y(chunk_manager *cm, int32_t x, int32_t y, int32_t z);
 
-
-void world_draw(chunk_manager *cm, graphics_context *c);
 void world_test();
 void world_benchmark();
 
@@ -172,14 +176,11 @@ void light_set_sky(chunk_manager *cm, vec3l pos, uint8_t illumination);
 void light_initialize_for_chunk(chunk_manager *cm, int x, int y, int z);
 void light_add(chunk_manager *cm, uint8_t luminance, long x, long y, long z);
 void light_delete(chunk_manager *cm, long x, long y, long z);
-//void cm_update_light_for_block_deletion(chunk_manager *cm, long x, long y, long z);
-//void cm_update_light_for_block_placement(chunk_manager *cm, long x, long y, long z);
 void light_issue_remesh(chunk_manager *cm, vec3l pos);
 void light_propagate_sky(chunk_manager *cm, int32_t x, int32_t y, int32_t z);
 
 // picking
 pick_info pick_block(chunk_manager *world, vec3s pos, vec3s facing, float max_distance);
-
 
 // lodmesh
 lodmesh lodmesh_generate(struct osn_context *osn, noise2d_params p, int n, int cx, int cz);

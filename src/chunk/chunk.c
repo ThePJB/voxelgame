@@ -103,7 +103,7 @@ float generate_height(struct osn_context *osn, float x, float z, noise2d_params 
     for (int i = 0; i < arrlen(p.smooth_amplitude); i++) {
         smooth += p.smooth_amplitude[i] * open_simplex_noise2(osn, p.smooth_frequency[i] * x, p.smooth_frequency[i] * z);
     }
-    smooth += 0.5;
+    smooth += 1;
 
     for (int i = 0; i < arrlen(p.lf_height_amplitude); i++) {
         height += p.lf_height_amplitude[i] * open_simplex_noise2(osn, p.lf_height_frequency[i] * x, p.lf_height_frequency[i] * z);
@@ -115,7 +115,7 @@ float generate_height(struct osn_context *osn, float x, float z, noise2d_params 
         hf_height += p.hf_height_amplitude[i] * open_simplex_noise2(osn, p.hf_height_frequency[i] * x, p.hf_height_frequency[i] * z);
     }
 
-    return height + smooth*hf_height;
+    return height + smooth*hf_height + 500;
     //return height;
 }
 
@@ -131,9 +131,20 @@ chunk generate_v2(chunk_manager *cm, int x, int y, int z) {
 
     c.key = (vec3i) {x,y,z};
 
+    const int snow_height = 300;
+
     float chunk_x = x*CHUNK_RADIX;
     float chunk_y = y*CHUNK_RADIX;
-    float chunk_z = z*CHUNK_RADIX;   
+    float chunk_z = z*CHUNK_RADIX;  
+
+    // fast path for air chunks
+    const float air_fast_path_safety_factor = 32; // if this is too low there will be artifacts
+    if (generate_height(cm->osn, chunk_x, chunk_z, cm->noise_params) + air_fast_path_safety_factor < chunk_y) {
+        // air happens to be 0 already
+        // block light happens to be 0 already
+        memset(sky_light, SKY_LIGHT_FULL, CHUNK_RADIX_3 * sizeof(uint8_t));
+        return c;
+    }
 
     for (int bx = 0; bx < CHUNK_RADIX; bx++) {
         float gx = bx + chunk_x;
@@ -150,29 +161,39 @@ chunk generate_v2(chunk_manager *cm, int x, int y, int z) {
 
                 // dont waste time generating caves in the sky
                 if (gy < height + 1) {
-                    float cave_carve_density = 0;
 
-                    float A_cave = 20;
-                    float f_cave = 0.05;
+                    float cave_tendency_2d = 0.5;
 
-                    cave_carve_density += A_cave * open_simplex_noise3(cm->osn, f_cave*gx, f_cave*gy, f_cave*gz);
-                    A_cave /= 2;
-                    f_cave *= 2;
-
-                    cave_carve_density += A_cave * open_simplex_noise3(cm->osn, f_cave*gx, f_cave*gy, f_cave*gz);
-                    A_cave /= 2;
-                    f_cave *= 2;
-
-                    float cave_cutoff = remap(64, -80, -10, 2, by);
-
-
-                    if (cave_carve_density < cave_cutoff) {
-                        place_block = BLOCK_AIR; goto SET_BLOCK;
+                    for (int i = 0; i < arrlen(cm->noise_params.cave_tendency_amplitude); i++) {
+                        cave_tendency_2d += cm->noise_params.cave_tendency_amplitude[i] * open_simplex_noise2(cm->osn, 
+                            cm->noise_params.cave_tendency_frequency[i] * x, cm->noise_params.cave_tendency_frequency[i] * z);
                     }
-                            
 
-                    if (cave_carve_density < cave_cutoff + 0.05 && gy < height) {
-                        place_block = BLOCK_GEMS; goto SET_BLOCK;
+                    if (cave_tendency_2d > 0.5) {
+                        float cave_carve_density = 0;
+
+                        float A_cave = 20;
+                        float f_cave = 0.05;
+
+                        cave_carve_density += A_cave * open_simplex_noise3(cm->osn, f_cave*gx, f_cave*gy, f_cave*gz);
+                        A_cave /= 2;
+                        f_cave *= 2;
+
+                        cave_carve_density += A_cave * open_simplex_noise3(cm->osn, f_cave*gx, f_cave*gy, f_cave*gz);
+                        A_cave /= 2;
+                        f_cave *= 2;
+
+                        float cave_cutoff = remap(64, -80, -10, 2, by);
+
+
+                        if (cave_carve_density*cave_tendency_2d < cave_cutoff) {
+                            place_block = BLOCK_AIR; goto SET_BLOCK;
+                        }
+                                
+
+                        if (cave_carve_density*cave_tendency_2d < cave_cutoff + 0.05 && gy < height) {
+                            place_block = BLOCK_GEMS; goto SET_BLOCK;
+                        }
                     }
                 }
 
@@ -190,7 +211,7 @@ chunk generate_v2(chunk_manager *cm, int x, int y, int z) {
                     }
                 } else if (gy < height + 0.5) {
                     // top layer
-                    if (height > 40) {
+                    if (height > snow_height) {
                         place_block = BLOCK_SNOW; goto SET_BLOCK;
                     } else if (height > -25) {
                         place_block = BLOCK_GRASS; goto SET_BLOCK;

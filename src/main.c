@@ -17,6 +17,8 @@
 
 #include "chunk_common.h"
 
+#include "draw.h"
+
 #define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
 
@@ -25,16 +27,7 @@ chunk_manager cm = {0};
 chunk_manager *cmp = &cm;
 
 void draw_lookat_cube(vec3s cam_pos, vec3s cam_front, graphics_context *c, pick_info p) {
-    if (p.success) {
-        glDepthFunc(GL_LEQUAL);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-        draw_mesh(c,  c->cube, (vec3s) {p.coords.x + 0.5, p.coords.y + 0.5, p.coords.z + 0.5}, (vec3s){0}, 0);
-
-        glDepthFunc(GL_LESS);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    }
+    
 }
 
 bool enable_debug = false;
@@ -44,8 +37,59 @@ int main(int argc, char** argv) {
     int w = 2560;
     int h = 1440;
 
+
+    // world gen parameters
+    noise2d_params p = {0};
+    arrpush(p.lf_height_amplitude, 1000);
+    arrpush(p.lf_height_amplitude, 500);
+    arrpush(p.lf_height_amplitude, 250);
+
+    arrpush(p.hf_height_amplitude, 125);
+
+    arrpush(p.hf_height_amplitude, 75);
+    arrpush(p.hf_height_amplitude, 40);
+    arrpush(p.hf_height_amplitude, 20);
+    arrpush(p.hf_height_amplitude, 10);
+/*
+    arrpush(p.height_frequency, 0.0008);
+    arrpush(p.height_frequency, 0.0016);
+    arrpush(p.height_frequency, 0.0032);
+*/
+    arrpush(p.lf_height_frequency, 0.00016);
+    arrpush(p.lf_height_frequency, 0.00032);
+    arrpush(p.lf_height_frequency, 0.00064);
+
+    arrpush(p.hf_height_frequency, 0.00128);
+
+    arrpush(p.hf_height_frequency, 0.00256);
+    arrpush(p.hf_height_frequency, 0.00512);
+    arrpush(p.hf_height_frequency, 0.01024);
+    arrpush(p.hf_height_frequency, 0.02048);
+
+    arrpush(p.smooth_amplitude, 0.5);
+    arrpush(p.smooth_amplitude, 0.25);
+    arrpush(p.smooth_amplitude, 0.125);
+
+    arrpush(p.smooth_frequency, 0.001);
+    arrpush(p.smooth_frequency, 0.002);
+    arrpush(p.smooth_frequency, 0.004);
+
+
+    arrpush(p.cave_tendency_amplitude, 0.5);
+    
+    arrpush(p.cave_tendency_frequency, 0.02);
+
+
+    cm.noise_params = p;
+
+    open_simplex_noise(123456789, &cm.osn);
+
+
     camera cam = fly_camera();
-    cam.pos = (vec3s) {1000,100,1000};
+    float spawn_x = 2000;
+    float spawn_z = 2000;
+    float spawn_y = generate_height(cm.osn, spawn_x, spawn_z, p) + 2;
+    cam.pos = (vec3s) {spawn_x, spawn_y, spawn_z};
     cam.front = (vec3s) {0, 0, -1};
 
     window_context *wc = window_init("sick game", &w, &h, &cam);
@@ -66,42 +110,12 @@ int main(int argc, char** argv) {
 
     text_init(gc);
     //cm.world_noise = chunk_rngs_init(123456789);
-    open_simplex_noise(123456789, &cm.osn);
-    cm.loaded_dimensions = (vec3i) {8,8,8};
-    cm.lod_dimensions = (int32_t_pair) {80,80};
+    cm.loaded_dimensions = (vec3i) {10,10, 10};
+    cm.lod_dimensions = (int32_t_pair) {80, 80};
     int nchunks = cm.loaded_dimensions.x * cm.loaded_dimensions.y * cm.loaded_dimensions.z;
 //    cm.gen_func = generate_flat;
     cm.gen_func = generate_v2;
 
-    // world gen parameters
-    noise2d_params p = {0};
-    arrpush(p.lf_height_amplitude, 300);
-    arrpush(p.lf_height_amplitude, 150);
-    arrpush(p.hf_height_amplitude, 50);
-    arrpush(p.hf_height_amplitude, 25);
-    arrpush(p.hf_height_amplitude, 12.5);
-    arrpush(p.hf_height_amplitude, 6.25);
-/*
-    arrpush(p.height_frequency, 0.0008);
-    arrpush(p.height_frequency, 0.0016);
-    arrpush(p.height_frequency, 0.0032);
-*/
-    arrpush(p.lf_height_frequency, 0.001);
-    arrpush(p.lf_height_frequency, 0.004);
-    arrpush(p.hf_height_frequency, 0.0064);
-    arrpush(p.hf_height_frequency, 0.0128);
-    arrpush(p.hf_height_frequency, 0.0256);
-    arrpush(p.hf_height_frequency, 0.0512);
-
-    arrpush(p.smooth_amplitude, 0.5);
-    arrpush(p.smooth_amplitude, 0.25);
-    arrpush(p.smooth_amplitude, 0.125);
-
-    arrpush(p.smooth_frequency, 0.001);
-    arrpush(p.smooth_frequency, 0.002);
-    arrpush(p.smooth_frequency, 0.004);
-
-    cm.noise_params = p;
 
 
     if (load_chunks) {
@@ -126,6 +140,8 @@ int main(int argc, char** argv) {
     int total_meshed = 0;
 
     int frame_counter = 0;
+
+    printf("cm from main: %p\n", &cm);
 
     while (!glfwWindowShouldClose(wc->window)) {
         frame_counter++;
@@ -155,24 +171,8 @@ int main(int argc, char** argv) {
 
         cam = update_camera(wc->window, cam, dt);
 
-        pre_draw(gc);
-        
-        world_draw(&cm, gc);
+        draw(gc, wc, &cm);
 
-        pick_info lookat = pick_block(&cm, cam.pos, cam.front, 9);
-        draw_lookat_cube(cam.pos, cam.front, gc, lookat);
-
-        if (wc->show_info) {
-            draw_debug_info(dt, cam, wc, &cm);
-        }            
-
-        // good reticle
-        const int rscale = 2;
-        draw_2d_image(gc, gc->reticle, w/2 - 5*rscale, h/2 - 5*rscale, 10*rscale, 10*rscale);
-
-        // end draw
-        glBindVertexArray(0);
-        glUseProgram(0);
         glfwSwapBuffers(wc->window);
         glfwPollEvents();        
     }
