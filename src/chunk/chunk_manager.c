@@ -172,31 +172,18 @@ int cm_load_n(chunk_manager *cm, vec3s pos, int n) {
     vec3i load_min = vec3i_sub(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
     vec3i load_max = vec3i_add(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
     
-    in_chunk = (vec3i) {0,0,0};
-
-    int i = 0;
     int amt_actually_loaded = 0;
     // does it load n per frame or n-1
     while (arrlen(cm->load_list) > 0 && amt_actually_loaded < n) {
-        vec3i k = cm->load_list[i];
+        vec3i k = arrpop(cm->load_list);
 
         // check that it hasnt been loaded yet and that we still want it loaded
         // (meaning its still in the loading volume)
-        if (hmgeti(cm->chunk_hm, k) < 0) {
-            if (vec3i_bounded_inclusive(load_max, load_min, in_chunk)) {
-                printf("load max %d %d %d load min %d %d %d in %d %d %d\n", spread(load_max), spread(load_min), spread(in_chunk));
-                cm_load_chunk(cm, spread(k));
-                arrpush(cm->light_list, k);
-                amt_actually_loaded++;
-            } else {
-                printf("dont need to load this one since you moved\n");
-            }
+        if (hmgeti(cm->chunk_hm, k) < 0 && vec3i_bounded_inclusive(load_max, load_min, k)) {
+            cm_load_chunk(cm, spread(k));
+            arrpush(cm->light_list, k);
+            amt_actually_loaded++;
         }
-        i++;
-    }
-    int del_amt = min(i, arrlen(cm->load_list));
-    if (i > 0) {
-        arrdeln(cm->load_list, 0, del_amt);    
     }
 
     return amt_actually_loaded;
@@ -211,20 +198,15 @@ int cm_light_n(chunk_manager *cm, vec3s pos, int n) {
     int amt_actually_loaded = 0;
     // does it load n per frame or n-1
     while (arrlen(cm->light_list) > 0 && amt_actually_loaded < n) {
-        vec3i k = cm->light_list[i];
+        vec3i k = arrpop(cm->light_list);
 
         // check that it hasnt been loaded yet and that we still want it loaded
         // (meaning its still in the loading volume)
-        if (hmgeti(cm->chunk_hm, k) > -1 && vec3i_bounded_inclusive(load_max, load_min, in_chunk)) {
+        if (hmgeti(cm->chunk_hm, k) > -1) {
             light_initialize_for_chunk(cm, spread(k));
             arrpush(cm->mesh_list, k);
             amt_actually_loaded++;
         }
-        i++;
-    }
-    int del_amt = min(i, arrlen(cm->light_list));
-    if (i > 0) {
-        arrdeln(cm->light_list, 0, del_amt);    
     }
 
     return amt_actually_loaded;
@@ -235,23 +217,17 @@ int cm_mesh_n(chunk_manager *cm, vec3s pos, int n) {
     vec3i load_min = vec3i_sub(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
     vec3i load_max = vec3i_add(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
 
-    int i = 0;
     int amt_actually_loaded = 0;
     // does it load n per frame or n-1
     while (arrlen(cm->mesh_list) > 0 && amt_actually_loaded < n) {
-        vec3i k = cm->mesh_list[i];
+        vec3i k = arrpop(cm->mesh_list);
 
         // check that it hasnt been loaded yet and that we still want it loaded
         // (meaning its still in the loading volume)
-        if (hmgeti(cm->chunk_hm, k) > -1 && vec3i_bounded_inclusive(load_max, load_min, in_chunk)) {
+        if (hmgeti(cm->chunk_hm, k) > -1) {
             cm_mesh_chunk(cm, spread(k));
             amt_actually_loaded++;
         }
-        i++;
-    }
-    int del_amt = min(i, arrlen(cm->mesh_list));
-    if (i > 0) {
-        arrdeln(cm->mesh_list, 0, del_amt);    
     }
 
     return amt_actually_loaded;
