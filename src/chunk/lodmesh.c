@@ -1,52 +1,48 @@
 #include "chunk_common.h"
 
+float *push_vertex(float *buf, vec3s v, vec3s n, noise2d_params p) {
 
-// its a fair abstraction to think about 1 triangle at a time
-float *push_triangle(float *buf, vec3s v1, vec3s v2, vec3s v3, vec3s v1c, vec3s v2c, vec3s v3c) {
-    vec3s a = glms_vec3_sub(v3, v2);
-    vec3s b = glms_vec3_sub(v1, v2);
-    vec3s n = glms_normalize(glms_vec3_cross(a,b));
+    vec3s c;
 
-    // push vertices
-    arrpush(buf, v1.x);
-    arrpush(buf, v1.y);
-    arrpush(buf, v1.z);
+    if (v.y > p.snow_above_height) {
+        c = (vec3s) {0.9, 0.9, 0.9};
+    } else if (v.y <= p.water_below_height) {
+        c = (vec3s) {0.4, 0.4, 0.8};
+    } else if (v.y < p.sand_below_height) {
+        c = (vec3s) {0.7, 0.7, 0.1};
+    } else {
+        // grass
+        c = (vec3s) {0.4, 0.8, 0.5};
+    }
+
+    arrpush(buf, v.x);
+    arrpush(buf, v.y);
+    arrpush(buf, v.z);
+
+    arrpush(buf, c.x);
+    arrpush(buf, c.y);
+    arrpush(buf, c.z);
+
     arrpush(buf, n.x);
     arrpush(buf, n.y);
     arrpush(buf, n.z);
-    arrpush(buf, v1c.x);
-    arrpush(buf, v1c.y);
-    arrpush(buf, v1c.z);
-
-    arrpush(buf, v2.x);
-    arrpush(buf, v2.y);
-    arrpush(buf, v2.z);
-    arrpush(buf, n.x);
-    arrpush(buf, n.y);
-    arrpush(buf, n.z);
-    arrpush(buf, v2c.x);
-    arrpush(buf, v2c.y);
-    arrpush(buf, v2c.z);
-
-    arrpush(buf, v3.x);
-    arrpush(buf, v3.y);
-    arrpush(buf, v3.z);
-    arrpush(buf, n.x);
-    arrpush(buf, n.y);
-    arrpush(buf, n.z);
-    arrpush(buf, v3c.x);
-    arrpush(buf, v3c.y);
-    arrpush(buf, v3c.z);
 
     return buf;
 }
 
+vec3s calc_normal(vec3s v1, vec3s v2, vec3s v3) {
+    vec3s a = glms_vec3_sub(v3, v2);
+    vec3s b = glms_vec3_sub(v1, v2);
+    vec3s n = glms_normalize(glms_vec3_cross(a,b));
+
+    return n;
+}
 
 /*
 Generates a low def mesh for a chunk by sampling the height function n+1 points a side
 Equivalently, makes N^2 quads
 */
-lodmesh lodmesh_generate(struct osn_context *osn, noise2d_params p, int n, int cx, int cz) {
+lodmesh lodmesh_generate(struct osn_context *osn, noise2d_params p, int s, int cx, int cz) {
     float *buf = 0;
 
     // figure out x and z of each coordinate
@@ -54,45 +50,62 @@ lodmesh lodmesh_generate(struct osn_context *osn, noise2d_params p, int n, int c
     float oz = LODMESH_CHUNK_RADIX * cz;
 
 
-    for (int x = 0; x < n; x++) {
-        for (int z = 0; z < n; z++) {
-            vec3s colour = {0.3, 0.9, 0.4};
-
-
+    for (int x = 0; x < s; x++) {
+        for (int z = 0; z < s; z++) {
 
             vec3s v1 = {0};
             vec3s v2 = {0};
             vec3s v3 = {0};
+            
+            vec3s v1c = {0};
+            vec3s v2c = {0};
+            vec3s v3c = {0};
 
             // lower triangle
-            v2.x = ox + ((float)(x+1)*LODMESH_CHUNK_RADIX) / n;
-            v2.z = oz + (float)(z*LODMESH_CHUNK_RADIX) / n;
-            v2.y = generate_height(osn, v2.x, v2.z, p);
-
-            v1.x = ox + ((float)x*LODMESH_CHUNK_RADIX) / n;
-            v1.z = oz + ((float)z*LODMESH_CHUNK_RADIX) / n;
+            v1.x = ox + ((float)x*LODMESH_CHUNK_RADIX) / s;
+            v1.z = oz + ((float)z*LODMESH_CHUNK_RADIX) / s;
             v1.y = generate_height(osn, v1.x, v1.z, p);
 
-            v3.x = ox + ((float)x*LODMESH_CHUNK_RADIX) / n;
-            v3.z = oz + ((float)(z+1)*LODMESH_CHUNK_RADIX) / n;
+            v2.x = ox + ((float)(x+1)*LODMESH_CHUNK_RADIX) / s;
+            v2.z = oz + (float)(z*LODMESH_CHUNK_RADIX) / s;
+            v2.y = generate_height(osn, v2.x, v2.z, p);
+
+            v3.x = ox + ((float)x*LODMESH_CHUNK_RADIX) / s;
+            v3.z = oz + ((float)(z+1)*LODMESH_CHUNK_RADIX) / s;
             v3.y = generate_height(osn, v3.x, v3.z, p);
 
-            buf = push_triangle(buf, v2, v1, v3, colour, colour, colour);
+            v1.y = max(v1.y, p.water_below_height);
+            v2.y = max(v2.y, p.water_below_height);
+            v3.y = max(v3.y, p.water_below_height);
 
+            vec3s n = calc_normal(v2, v1, v3);
+            buf = push_vertex(buf, v2, n, p);
+            buf = push_vertex(buf, v1, n, p);
+            buf = push_vertex(buf, v3, n, p);
+            
             // upper triangle
-            v2.x = ox + ((float)x+1)*LODMESH_CHUNK_RADIX / n;
-            v2.z = oz + ((float)z)*LODMESH_CHUNK_RADIX / n;
-            v2.y = generate_height(osn, v2.x, v2.z, p);
-
-            v1.x = ox + ((float)x + 1)*LODMESH_CHUNK_RADIX / n;
-            v1.z = oz + ((float)z + 1)*LODMESH_CHUNK_RADIX / n;
+            v1.x = ox + ((float)(x+1)*LODMESH_CHUNK_RADIX) / s;
+            v1.z = oz + ((float)(z+1)*LODMESH_CHUNK_RADIX) / s;
             v1.y = generate_height(osn, v1.x, v1.z, p);
 
-            v3.x = ox + ((float)x)*LODMESH_CHUNK_RADIX / n;
-            v3.z = oz + ((float)z+1)*LODMESH_CHUNK_RADIX / n;
-            v3.y = generate_height(osn, v3.x, v3.z, p);
+/*
+            v2.x = ox + ((float)(x+1)*LODMESH_CHUNK_RADIX) / s;
+            v2.z = oz + (float)(z*LODMESH_CHUNK_RADIX) / s;
+            v2.y = generate_height(osn, v2.x, v2.z, p);
 
-            buf = push_triangle(buf, v1, v2, v3, colour, colour, colour);
+            v3.x = ox + ((float)x*LODMESH_CHUNK_RADIX) / s;
+            v3.z = oz + ((float)(z+1)*LODMESH_CHUNK_RADIX) / s;
+            v3.y = generate_height(osn, v3.x, v3.z, p);
+*/
+            v1.y = max(v1.y, p.water_below_height);
+//            v2.y = max(v2.y, p.water_below_height);
+//            v3.y = max(v3.y, p.water_below_height);
+
+            n = calc_normal(v1, v2, v3);
+            buf = push_vertex(buf, v1, n, p);
+            buf = push_vertex(buf, v2, n, p);
+            buf = push_vertex(buf, v3, n, p);
+
         }
     }
 
@@ -118,13 +131,13 @@ lodmesh lodmesh_generate(struct osn_context *osn, noise2d_params p, int n, int c
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
     glEnableVertexAttribArray(0);
 
-    // normal
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3*sizeof(float)));
-    glEnableVertexAttribArray(1);
-
     // colour
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(6*sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(2);
+
+    // normal
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(6*sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);

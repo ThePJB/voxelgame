@@ -15,6 +15,7 @@ typedef enum __attribute__ ((__packed__)) {
     BLOCK_SAND,
     BLOCK_PLANKS,
     BLOCK_GEMS,
+    BLOCK_WATER,
     // BLOCK_UNKNOWN, todo use this, and look up block opacity
     NUM_BLOCKS,
 } block_tag;
@@ -24,6 +25,12 @@ typedef struct {
     uint8_t luminance;
 } block_definition;
 
+/*
+maybe block defs should be, opacity: 
+    OPAQUE, TRANSPARENT_PARTIAL, TRANSPARENT_FULL
+and pickable
+and meshing clusters of these needs to work properly
 
+*/
 
 #endif

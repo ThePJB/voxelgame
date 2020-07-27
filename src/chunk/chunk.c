@@ -131,19 +131,30 @@ chunk generate_v2(chunk_manager *cm, int x, int y, int z) {
 
     c.key = (vec3i) {x,y,z};
 
-    const int snow_height = 300;
+    int snow_height = cm->noise_params.snow_above_height;
+    int waterlevel = cm->noise_params.water_below_height;
+    int sandlevel = cm->noise_params.sand_below_height;
+
+    const float fast_path_safety_factor = 32; // if this is too low there will be artifacts
 
     float chunk_x = x*CHUNK_RADIX;
     float chunk_y = y*CHUNK_RADIX;
     float chunk_z = z*CHUNK_RADIX;  
 
     // fast path for air chunks
-    const float air_fast_path_safety_factor = 32; // if this is too low there will be artifacts
-    if (generate_height(cm->osn, chunk_x, chunk_z, cm->noise_params) + air_fast_path_safety_factor < chunk_y) {
-        // air happens to be 0 already
-        // block light happens to be 0 already
-        memset(sky_light, SKY_LIGHT_FULL, CHUNK_RADIX_3 * sizeof(uint8_t));
-        return c;
+    if (chunk_y > (generate_height(cm->osn, chunk_x, chunk_z, cm->noise_params) + fast_path_safety_factor)) {
+        if (chunk_y > waterlevel) {
+            // air happens to be 0 already
+            // block light happens to be 0 already
+            memset(sky_light, SKY_LIGHT_FULL, CHUNK_RADIX_3 * sizeof(uint8_t));
+            return c;
+        } else if (chunk_y < waterlevel - 16) {
+            memset(blocks, BLOCK_WATER, sizeof(block_tag));
+            // skylight 0
+            // blocklight 0
+            return c;
+        }
+        
     }
 
     for (int bx = 0; bx < CHUNK_RADIX; bx++) {
@@ -197,29 +208,34 @@ chunk generate_v2(chunk_manager *cm, int x, int y, int z) {
                     }
                 }
 
-                
-
-                // grass and stuff
-                if (gy < height - 4) {
-                    place_block = BLOCK_STONE; goto SET_BLOCK;
-                } else if (gy < height - 0.5) {
-                    // not stone layers
-                    if (height > -25) {
-                        place_block = BLOCK_DIRT; goto SET_BLOCK;
+                if (gy > height) {
+                    // above 2d heightmap: either water or air goes here
+                    if (gy < waterlevel) {
+                        place_block = BLOCK_WATER; goto SET_BLOCK;
                     } else {
-                        place_block = BLOCK_SAND; goto SET_BLOCK;
-                    }
-                } else if (gy < height + 0.5) {
-                    // top layer
-                    if (height > snow_height) {
-                        place_block = BLOCK_SNOW; goto SET_BLOCK;
-                    } else if (height > -25) {
-                        place_block = BLOCK_GRASS; goto SET_BLOCK;
-                    } else {
-                        place_block = BLOCK_SAND; goto SET_BLOCK;
+                        place_block = BLOCK_AIR; goto SET_BLOCK;
                     }
                 } else {
-                    place_block = BLOCK_AIR; goto SET_BLOCK;
+                    // select based on how far below we are, lowest first
+                    if (gy < height - 4) {
+                        place_block = BLOCK_STONE; goto SET_BLOCK;
+                    } else if (gy < height - 0.5) {
+                        // not stone layers
+                        if (height > sandlevel) {
+                            place_block = BLOCK_DIRT; goto SET_BLOCK;
+                        } else {
+                            place_block = BLOCK_SAND; goto SET_BLOCK;
+                        }
+                    } else if (gy < height + 0.5) {
+                        // top layer
+                        if (height > snow_height) {
+                            place_block = BLOCK_SNOW; goto SET_BLOCK;
+                        } else if (height > sandlevel) {
+                            place_block = BLOCK_GRASS; goto SET_BLOCK;
+                        } else {
+                            place_block = BLOCK_SAND; goto SET_BLOCK;
+                        }
+                    }
                 }
 
                 SET_BLOCK:

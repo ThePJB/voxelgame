@@ -61,3 +61,7 @@ can probably seriously optimize world gen by having a priority queue and, using 
 -----------------------------------------------------
 
 also why does reticle still squish stupidly? it could relate to the smelly way that window and stuff is glued together
+
+you know if block defs were in block.h that would be sensible
+
+also texture atlas is still handled pretty retardedly

@@ -54,6 +54,12 @@ typedef struct {
 
     float *cave_tendency_amplitude;
     float *cave_tendency_frequency;
+
+    int snow_above_height;
+    int dirt_above_height;
+    int sand_below_height;
+    int water_below_height;
+
 } noise2d_params;
 
 

@@ -40,6 +40,10 @@ block_definition block_defs[NUM_BLOCKS] = {
     {
         .opaque = true,
         .luminance = 6,
+    },    
+    {
+        .opaque = false,
+        .luminance = 0,
     },
 
 };

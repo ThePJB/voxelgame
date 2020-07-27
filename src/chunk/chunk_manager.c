@@ -172,6 +172,7 @@ int cm_load_n(chunk_manager *cm, vec3s pos, int n) {
     vec3i load_min = vec3i_sub(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
     vec3i load_max = vec3i_add(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
     
+    in_chunk = (vec3i) {0,0,0};
 
     int i = 0;
     int amt_actually_loaded = 0;
@@ -181,10 +182,15 @@ int cm_load_n(chunk_manager *cm, vec3s pos, int n) {
 
         // check that it hasnt been loaded yet and that we still want it loaded
         // (meaning its still in the loading volume)
-        if (hmgeti(cm->chunk_hm, k) < 0 && vec3i_bounded_inclusive(load_max, load_min, in_chunk)) {
-            cm_load_chunk(cm, spread(k));
-            arrpush(cm->light_list, k);
-            amt_actually_loaded++;
+        if (hmgeti(cm->chunk_hm, k) < 0) {
+            if (vec3i_bounded_inclusive(load_max, load_min, in_chunk)) {
+                printf("load max %d %d %d load min %d %d %d in %d %d %d\n", spread(load_max), spread(load_min), spread(in_chunk));
+                cm_load_chunk(cm, spread(k));
+                arrpush(cm->light_list, k);
+                amt_actually_loaded++;
+            } else {
+                printf("dont need to load this one since you moved\n");
+            }
         }
         i++;
     }
@@ -284,6 +290,14 @@ void cm_test() {
 
     int i = hmgeti(lm_hm, m.key);
     assert_int_equal("hmgeti 0 in", 0, i);
+
+    assert_bool_equal("bounded inclusive 1", vec3i_bounded_inclusive((vec3i){10,10,10}, (vec3i){-10,-10,-10}, (vec3i){0,0,0}), true);
+    assert_bool_equal("bounded inclusive 1b", vec3i_bounded_inclusive((vec3i){10,10,10}, (vec3i){-10,-10,-10}, (vec3i){0,20,0}), false);
+    assert_bool_equal("bounded inclusive 1b", vec3i_bounded_inclusive((vec3i){10,10,10}, (vec3i){-10,-10,-10}, (vec3i){0,0,20}), false);
+    assert_bool_equal("bounded inclusive 1a", vec3i_bounded_inclusive((vec3i){10,10,10}, (vec3i){-10,-10,-10}, (vec3i){20,0,0}), false);
+    assert_bool_equal("bounded inclusive 2", vec3i_bounded_inclusive((vec3i){10,10,10}, (vec3i){-10,-10,-10}, (vec3i){20,20,20}), false);
+    assert_bool_equal("bounded inclusive 3", vec3i_bounded_inclusive((vec3i){10,10,10}, (vec3i){0,0,0}, (vec3i){-5,-5,-5}), false);
+    assert_bool_equal("bounded inclusive 4", vec3i_bounded_inclusive((vec3i){63,6,87}, (vec3i){53,-4,77}, (vec3i){58,1,82}), true);
     
 
 

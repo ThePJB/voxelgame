@@ -79,6 +79,10 @@ int main(int argc, char** argv) {
     
     arrpush(p.cave_tendency_frequency, 0.02);
 
+    p.snow_above_height = 300;
+    p.dirt_above_height = -20;
+    p.sand_below_height = -20;
+    p.water_below_height = -25;
 
     cm.noise_params = p;
 
@@ -87,7 +91,7 @@ int main(int argc, char** argv) {
 
     camera cam = fly_camera();
     float spawn_x = 2000;
-    float spawn_z = 2000;
+    float spawn_z = 300;
     float spawn_y = generate_height(cm.osn, spawn_x, spawn_z, p) + 2;
     cam.pos = (vec3s) {spawn_x, spawn_y, spawn_z};
     cam.front = (vec3s) {0, 0, -1};
