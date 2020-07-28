@@ -63,5 +63,36 @@ can probably seriously optimize world gen by having a priority queue and, using 
 also why does reticle still squish stupidly? it could relate to the smelly way that window and stuff is glued together
 
 you know if block defs were in block.h that would be sensible
+maybe can static it
 
 also texture atlas is still handled pretty retardedly
+
+idk if graphics context is that necessary
+
+maybe for tweaking worldgen the amplitudes are easier than the frequencies
+
+
+else if its 0..180 its day - clear blue sky
+else if its 180+theta_s .. 360 - theta_s its night - dark sky
+else if its below 270 its morning twilight
+else its evening twilight
+
+anyway morning and evening twilight are the same
+
+so for base sky colour maybe just lerp
+but also make some gradient sunlight thing
+
+
+might chuck in the sun
+so the uniform to the shader will be solar angle
+intensity is like lerp night sky to day sky
+
+
+sky: procedural sun,moon,stars,sky,sunset just for a bit of a laff?
+
+
+cool this light stuff is basically working. I should also change skylight effect on blocks. shader needs to take block light and sky light and then uniform dayness
+and level is max(block_light, dayness * skylight)
+
+
+oh have planetary motion and eclipses and shit that would be fucking awesome!

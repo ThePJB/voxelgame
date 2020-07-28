@@ -115,7 +115,7 @@ float generate_height(struct osn_context *osn, float x, float z, noise2d_params 
         hf_height += p.hf_height_amplitude[i] * open_simplex_noise2(osn, p.hf_height_frequency[i] * x, p.hf_height_frequency[i] * z);
     }
 
-    return height + smooth*hf_height + 500;
+    return height + smooth*hf_height + 100;
     //return height;
 }
 
@@ -208,7 +208,7 @@ chunk generate_v2(chunk_manager *cm, int x, int y, int z) {
                     }
                 }
 
-                if (gy > height) {
+                if (gy > height + 0.5) {
                     // above 2d heightmap: either water or air goes here
                     if (gy < waterlevel) {
                         place_block = BLOCK_WATER; goto SET_BLOCK;

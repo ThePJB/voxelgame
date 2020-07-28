@@ -25,6 +25,7 @@
  * reload chunk: 4
  * move camera: wasd
  * sprint: left control
+ * super ultra sprint: left alt
 
 # Planned features (out of date disregard)
 ## Optimization

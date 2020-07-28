@@ -7,6 +7,9 @@
 
 
 // ------------------------ math
+#define RAD_TO_DEG 57.295779513082320876798154814105f
+#define DEG_TO_RAD 0.017453292519943295769236907684886f
+
 int floor_div(int a, int b);
 int32_t fast_floorf(float x);
 int32_t fast_floord(double x);

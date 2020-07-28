@@ -7,7 +7,7 @@ float *push_vertex(float *buf, vec3s v, vec3s n, noise2d_params p) {
     if (v.y > p.snow_above_height) {
         c = (vec3s) {0.9, 0.9, 0.9};
     } else if (v.y <= p.water_below_height) {
-        c = (vec3s) {0.4, 0.4, 0.8};
+        c = (vec3s) {0.2, 0.4, 1};
     } else if (v.y < p.sand_below_height) {
         c = (vec3s) {0.7, 0.7, 0.1};
     } else {

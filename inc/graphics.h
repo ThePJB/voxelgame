@@ -42,6 +42,8 @@ typedef struct {
     // test cube
     mesh cube;
 
+    mesh skybox;
+
     unsigned int tromp;
     unsigned int spoderman;
     unsigned int atlas;

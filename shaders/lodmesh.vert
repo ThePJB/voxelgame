@@ -9,7 +9,7 @@ out vec3 colour;
 
 out float tvalue;
 
-const float bluedist = 2000;
+const float bluedist = 1000;
 
 uniform mat4 view;
 uniform mat4 projection;

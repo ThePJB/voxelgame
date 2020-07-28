@@ -32,6 +32,7 @@ void draw_lookat_cube(vec3s cam_pos, vec3s cam_front, graphics_context *c, pick_
 
 bool enable_debug = false;
 bool load_chunks = true;
+bool fast_forward = false;
 
 int main(int argc, char** argv) {
     int w = 2560;
@@ -40,8 +41,8 @@ int main(int argc, char** argv) {
 
     // world gen parameters
     noise2d_params p = {0};
-    arrpush(p.lf_height_amplitude, 1000);
-    arrpush(p.lf_height_amplitude, 500);
+    arrpush(p.lf_height_amplitude, 250);
+    arrpush(p.lf_height_amplitude, 250);
     arrpush(p.lf_height_amplitude, 250);
 
     arrpush(p.hf_height_amplitude, 125);
@@ -98,6 +99,7 @@ int main(int argc, char** argv) {
 
     window_context *wc = window_init("sick game", &w, &h, &cam);
     graphics_context *gc = graphics_init(&w, &h, &cam);
+    draw_context *dc = draw_init();
 
     if (argc == 2 && !strcmp(argv[1], "--test")) {
         chunk_test();
@@ -144,6 +146,8 @@ int main(int argc, char** argv) {
     int total_meshed = 0;
 
     int frame_counter = 0;
+    float solar_angle = 0;
+
 
     printf("cm from main: %p\n", &cm);
 
@@ -168,6 +172,12 @@ int main(int argc, char** argv) {
         if (glfwGetKey(wc->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(wc->window, true);
         }
+        if (glfwGetKey(wc->window, GLFW_KEY_5) == GLFW_PRESS) {
+            fast_forward = true;
+        } else {
+            fast_forward = false;
+        }
+
         float time = glfwGetTime();
         dt = time - last;
         wc->dt = dt;
@@ -175,7 +185,18 @@ int main(int argc, char** argv) {
 
         cam = update_camera(wc->window, cam, dt);
 
-        draw(gc, wc, &cm);
+        if (fast_forward) {
+            solar_angle += dt * 20;
+        } else {
+            solar_angle += dt * 1;
+        }
+
+        while (solar_angle > 360) {
+            solar_angle -= 360;
+        }
+
+        printf("solar angle %f\n", solar_angle);
+        draw(dc, gc, wc, &cm, solar_angle);
 
         glfwSwapBuffers(wc->window);
         glfwPollEvents();        

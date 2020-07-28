@@ -200,7 +200,7 @@ uint32_t get_ram_usage() {
 }
 
 float lerp(float a, float b, float t) {
-    return a*1-t + b*t;
+    return a*(1-t) + b*t;
 }
 
 float unlerp(float a, float b, float t) {
@@ -330,5 +330,13 @@ void test_util() {
         vec3l_queue_push(&vq, (vec3l) {0, i, 0});
     }
     assert_int_equal("320 queue len", 320, vec3l_queue_len(&vq));
+
+    assert_float_equal("unlerp1", unlerp(180, 192, 186), 0.5);
+    assert_float_equal("unlerp2", unlerp(10, -10, 0), 0.5);
+    assert_float_equal("unlerp3", unlerp(10, -30, 0), 0.25);
+    assert_float_equal("lerp1", lerp(10, 20, 0), 10);
+    assert_float_equal("lerp2", lerp(10, 20, 0.5), 15);
+    assert_float_equal("lerp3", lerp(10, 20, 1), 20);
+    assert_float_equal("remap twilight 1", remap(180, 200, 0.5, 1, 190), 0.75);
 
 }

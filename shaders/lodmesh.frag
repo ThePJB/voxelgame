@@ -5,22 +5,21 @@ in float tvalue;
 
 out vec4 FragColour;
 
-//uniform vec3 light;
-const vec3 distant_blue = vec3(0.4, 0.5, 0.8);
+uniform vec3 light_dir;
+uniform float dayness;
 
-vec3 light = normalize(vec3(1, 2, 0));
+const vec3 distant_blue = vec3(0.4, 0.5, 0.8);
 
 float texture_w = 10; 
 
 
 void main(){
+    float brightness = 0.3 + dayness * 0.7;
+    float facing_ratio = dot(light_dir, normal);
+    facing_ratio = 0.7 + 0.3*facing_ratio;    
 
-    float brightness = dot(light, normal);
-    brightness = 0.5 + brightness/2;    
+    vec3 adjustedColour = mix(colour, distant_blue, tvalue);
+    adjustedColour = facing_ratio * brightness * adjustedColour;
 
-    vec3 adjustedColour = brightness * colour;
-
-    vec3 finalColour = mix(adjustedColour, distant_blue, tvalue);
-
-    FragColour = vec4(finalColour, 1);
+    FragColour = vec4(adjustedColour, 1);
 }

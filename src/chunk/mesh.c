@@ -73,7 +73,8 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
                 if (msky_light.ok) {
                     sky_light = msky_light.value;
                 }
-                buf[vertex_idx++] = unlerp(0, light_max, max(block_light, sky_light));
+                buf[vertex_idx++] = unlerp(0, light_max, block_light);
+                buf[vertex_idx++] = unlerp(0, light_max, sky_light);
             }
         }
     }
@@ -82,7 +83,7 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
     c->num_triangles =  vertex_idx / (VERT_STRIDE+2) / 3;
     //printf("meshed chunk, %d triangles\n", num_triangles);
 
-    const int num_attribs_per_vertex = 10;
+    const int num_attribs_per_vertex = 11;
 
     // bind vao and vertix attribs
     glBindVertexArray(c->vao);
@@ -108,6 +109,9 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
     // light level
     glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, num_attribs_per_vertex * sizeof(float), (void*)(9 * sizeof(float)));
     glEnableVertexAttribArray(4);
+
+    glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, num_attribs_per_vertex * sizeof(float), (void*)(10 * sizeof(float)));
+    glEnableVertexAttribArray(5);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
