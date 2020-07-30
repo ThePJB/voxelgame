@@ -102,14 +102,14 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
         pick_info p = pick_block(cmp, wc.cam->pos, wc.cam->front, 9);
         vec3l new_coords = vec3l_add(p.coords, unit_vec3l[p.normal_dir]);
-        if (p.success) world_set_block(cmp, new_coords, place_block);
+        if (p.success) world_set_block(cmp, spread(new_coords), place_block);
         
         //enable_debug = false;
 
     } else if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS) {
         printf("rmb\n");
         pick_info p = pick_block(cmp, wc.cam->pos, wc.cam->front, 9);
-        if (p.success) world_set_block(cmp, p.coords,BLOCK_AIR);
+        if (p.success) world_set_block(cmp, spread(p.coords), BLOCK_AIR);
     }
 }
 

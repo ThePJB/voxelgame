@@ -44,6 +44,14 @@ block_definition block_defs[NUM_BLOCKS] = {
     {
         .opaque = false,
         .luminance = 0,
+    },    
+    {
+        .opaque = true,
+        .luminance = 0,
+    },
+    {
+        .opaque = true,
+        .luminance = 0,
     },
 
 };
@@ -83,8 +91,8 @@ vec3l world_block_chunk_to_posl(int bx, int by, int bz, int cx, int cy, int cz) 
 
 // -------------------- world getblock setblock
 
-maybe_block_tag world_get_block(chunk_manager *cm, vec3l pos) {
-    vec3i_pair coords = world_posl_to_block_chunk(spread(pos));
+maybe_block_tag world_get_block(chunk_manager *cm, int gx, int gy, int gz) {
+    vec3i_pair coords = world_posl_to_block_chunk(gx, gy, gz);
     int idx = hmgeti(cm->chunk_hm, coords.r);
 
     if (idx == -1) {
@@ -95,8 +103,8 @@ maybe_block_tag world_get_block(chunk_manager *cm, vec3l pos) {
     return (maybe_block_tag) {cm->chunk_hm[idx].blocks[chunk_3d_to_1d(spread(coords.l))], true};  
 }
 
-void world_set_block(chunk_manager *cm, vec3l pos, block_tag new_block) {    
-    vec3i_pair coords = world_posl_to_block_chunk(spread(pos));
+void world_set_block(chunk_manager *cm, int gx, int gy, int gz, block_tag new_block) {    
+    vec3i_pair coords = world_posl_to_block_chunk(gx, gy, gz);
     vec3i block_coords = coords.l;
     vec3i chunk_coords = coords.r;
     int chunk_idx = hmgeti(cm->chunk_hm, chunk_coords);
@@ -124,26 +132,26 @@ void world_set_block(chunk_manager *cm, vec3l pos, block_tag new_block) {
 
     if (new_luminance > 0 && old_luminance == 0) {
         // previously not luminous, now luminous
-        light_add(cm, new_luminance, spread(pos));
+        light_add(cm, new_luminance, gx, gy, gz);
 
     } else if (old_luminance > 0 && new_luminance == 0) {
         // previously luminous, now not
-        light_delete(cm, spread(pos));
+        light_delete(cm, gx, gy, gz);
 
     } else if (old_opaque && !new_opaque) {
         // deleted a block that may have been obstructing light
-        light_delete(cm, spread(pos));
+        light_delete(cm, gx, gy, gz);
         //cm_update_light_for_block_deletion(cm, spread(pos));
 
     } else if (new_opaque && !old_opaque) {
         // placed a block that may now obstruct light
-        light_delete(cm, spread(pos));
+        light_delete(cm, gx, gy, gz);
         //cm_update_light_for_block_placement(cm, spread(pos));
 
     }
 
     if (block_defs[new_block].opaque) {
-        world_update_surface_y(cm, spread(pos));
+        world_update_surface_y(cm, gx, gy, gz);
     } else {
         // TODO remove highest block 
     }

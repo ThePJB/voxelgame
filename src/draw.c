@@ -77,7 +77,7 @@ void draw(draw_context *dc, graphics_context *gc, window_context *wc, chunk_mana
         dayness = remap((360 - twilight_angle), 360, 0, 1, solar_angle);
     }
 
-    printf("dayness %f\n", dayness);
+    //printf("dayness %f\n", dayness);
 
     // I should probably compute all time of day trig uniforms etc here and pass it in
     // as uniform so its not bug prone

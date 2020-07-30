@@ -8,12 +8,13 @@ out vec4 FragColour;
 uniform sampler2D ourTexture;
 uniform vec3 light;
 
-float texture_w = 10; 
+float texture_h = 10; 
+float texture_w = 20; 
 
 void main(){
    float texture_y = 1 - normal.y;
 
-   vec2 thisTexCoords = vec2(TexCoord.x + texture_x, TexCoord.y + texture_y) / texture_w;
+   vec2 thisTexCoords = vec2((TexCoord.x + texture_x) / texture_w, (TexCoord.y + texture_y) / texture_h);
    vec4 tex = texture(ourTexture, thisTexCoords);
    FragColour = vec4(tex.xyz*light_level, 1);
 }

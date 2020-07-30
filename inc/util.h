@@ -22,6 +22,13 @@ float lerp(float a, float b, float t);
 float unlerp(float a, float b, float t);
 float remap(float prev_lower, float prev_upper, float new_lower, float new_upper, float a);
 
+// ------------------------ random numbers
+void util_srand(unsigned int);
+int util_rand_intn(int min, int max);
+float util_rand_floatn(float min, float max);
+
+
+
 // ------------------------- vectors
 typedef struct {
     int32_t x;
@@ -105,6 +112,7 @@ MKPAIR(vec3l);
 MKPAIR(vec3i);
 MKPAIR(int);
 MKPAIR(int32_t);
+MKPAIR(float);
 
 #define MKMAYBE(T) typedef struct {T value; bool ok;} maybe_##T
 MKMAYBE(int32_t);

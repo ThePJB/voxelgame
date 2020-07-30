@@ -13,6 +13,7 @@
 #include "block.h"
 #include "util.h"
 #include "graphics.h"
+//#include "stb.h"
 #include "stb_ds.h"
 
 #define LODMESH_LOG2 8
@@ -55,21 +56,15 @@ typedef struct {
     float *cave_tendency_amplitude;
     float *cave_tendency_frequency;
 
+    float *treeness_amplitude;
+    float *treeness_frequency;
+
     int snow_above_height;
     int dirt_above_height;
     int sand_below_height;
     int water_below_height;
 
 } noise2d_params;
-
-
-typedef struct {
-    noise2d noise_lf_heightmap;
-    noise2d noise_hf_heightmap;
-    noise2d noise_smoothness;
-    noise3d noise_cliff_carver;
-    noise3d noise_cave_carver;
-} chunk_rngs;
 
 // Information that the chunk cares about (would be saved)
 typedef struct {
@@ -160,8 +155,8 @@ vec3i world_posl_to_chunk(int gx, int gy, int gz);
 
 
 // access
-maybe_block_tag world_get_block(chunk_manager *cm, vec3l pos);
-void world_set_block(chunk_manager *cm, vec3l pos, block_tag b);
+maybe_block_tag world_get_block(chunk_manager *cm, int gx, int gy, int gz);
+void world_set_block(chunk_manager *cm, int gx, int gy, int gz, block_tag b);
 
 maybe_int32_t world_get_surface_y(chunk_manager *cm, int32_t x, int32_t z);
 void world_update_surface_y(chunk_manager *cm, int32_t x, int32_t y, int32_t z);

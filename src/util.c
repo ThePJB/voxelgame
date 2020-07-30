@@ -6,6 +6,9 @@
 
 #include "util.h"
 
+//#define STB_DEFINE
+//#include "stb.h"
+
 vec3i unit_vec3i[NUM_DIRS] = {
     (vec3i) {1,0,0},
     (vec3i) {-1,0,0},
@@ -282,6 +285,21 @@ int vec3l_queue_len(vec3l_queue *vq) {
     } else {
         return size_tentative + vq->size;
     }
+}
+
+void util_srand(unsigned int seed) {
+    //stb_srand(seed);
+    srand(seed);
+}
+
+int util_rand_intn(int min, int max) {
+    return rand() % (max-min) + min;
+    //return stb_rand() % (max-min) + min;
+}
+
+float util_rand_floatn(float min, float max) {
+    return rand() / (double)RAND_MAX * (max-min) + min;
+    //return stb_frand() * (max-min) + min;
 }
 
 void test_util() {

@@ -28,7 +28,7 @@ void draw_debug_info(float dt, camera cam, window_context *wc, chunk_manager *cm
 
     if (lookat.success) {
         sprintf(buf, "Lookat block: {%d %d %d}, type: %d light: %u", 
-            spread(lookat.coords), world_get_block(cm, lookat.coords).value,
+            spread(lookat.coords), world_get_block(cm, spread(lookat.coords)).value,
             light_get_block(cm, lookat.coords).value);
     } else {
         sprintf(buf, "Lookat block: none");
@@ -71,7 +71,7 @@ void draw_debug_info(float dt, camera cam, window_context *wc, chunk_manager *cm
     draw_text(buf, 10, y, debug_text);
     y += 100;
 
-    maybe_block_tag in_block_type = world_get_block(cm, in_block);
+    maybe_block_tag in_block_type = world_get_block(cm, spread(in_block));
     if (in_block_type.ok) {
         sprintf(buf, "Block ur in: %d", in_block_type.value);
     } else {

@@ -42,7 +42,7 @@ void finish_propagating(chunk_manager *cm) {
 
         for (direction dir = 0; dir < NUM_DIRS; dir++) {
             vec3l neighbour_pos = vec3l_add(current_pos, unit_vec3l[dir]);
-            block_tag neighbour_block = world_get_block(cm, neighbour_pos).value;
+            block_tag neighbour_block = world_get_block(cm, spread(neighbour_pos)).value;
             block_definition neighbour_props = block_defs[neighbour_block];
 
             if (neighbour_props.opaque || neighbour_props.luminance == 255) {
@@ -69,7 +69,7 @@ void finish_propagating_sunlight(chunk_manager *cm) {
 
         for (direction dir = 0; dir < NUM_DIRS; dir++) {
             vec3l neighbour_pos = vec3l_add(current_pos, unit_vec3l[dir]);
-            block_tag neighbour_block = world_get_block(cm, neighbour_pos).value;
+            block_tag neighbour_block = world_get_block(cm, spread(neighbour_pos)).value;
             block_definition neighbour_props = block_defs[neighbour_block];
             maybe_uint8_t neighbour_sunlight = light_get_sky(cm, neighbour_pos);
 
@@ -82,7 +82,6 @@ void finish_propagating_sunlight(chunk_manager *cm) {
             if (dir == DIR_MY && current_sunlight.value == SKY_LIGHT_FULL) {
                 light_set_sky(cm, neighbour_pos, current_sunlight.value);
                 vec3l_queue_push(&sunlight_queue, neighbour_pos);
-                //printf("sunlight propagate down\n");
             } else if (neighbour_sunlight.value < current_sunlight.value - 1) {
                 light_set_sky(cm, neighbour_pos, current_sunlight.value - 1);
                 vec3l_queue_push(&sunlight_queue, neighbour_pos);
@@ -102,7 +101,7 @@ void finish_deleting(chunk_manager *cm) {
 
         for (direction dir = 0; dir < NUM_DIRS; dir++) {
             vec3l neighbour_pos = vec3l_add(current_pos, unit_vec3l[dir]);
-            block_tag neighbour_block = world_get_block(cm, neighbour_pos).value;
+            block_tag neighbour_block = world_get_block(cm, spread(neighbour_pos)).value;
             maybe_uint8_t neighbour_illumination = light_get_block(cm, neighbour_pos);
 
             if (block_defs[neighbour_block].luminance > 0) {
@@ -136,7 +135,7 @@ void finish_deleting_sunlight(chunk_manager *cm) {
 
         for (direction dir = 0; dir < NUM_DIRS; dir++) {
             vec3l neighbour_pos = vec3l_add(current_pos, unit_vec3l[dir]);
-            block_tag neighbour_block = world_get_block(cm, neighbour_pos).value;
+            block_tag neighbour_block = world_get_block(cm, spread(neighbour_pos)).value;
             maybe_uint8_t neighbour_sunlight = light_get_sky(cm, neighbour_pos);
 
             if (block_defs[neighbour_block].opaque || 
@@ -224,19 +223,17 @@ void light_issue_remesh(chunk_manager *cm, vec3l pos) {
 }
 
 
-// So this is to perform the initial lighting calcs for a chunk if its generated
-// - adds all the light values of each light source and updates
-// - if at highest point in chunk and its surface chunk, perform skylight calculations
-//      actually thats not that correct becasue 
 void light_initialize_for_chunk(chunk_manager *cm, int cx, int cy, int cz) {
-    
+
     vec3i chunk_pos = {cx,cy,cz};
     int chunk_idx = hmgeti(cm->chunk_hm, chunk_pos);
-    
+
     if (chunk_idx == -1) {
         printf("trying to fix lighting of nonexistent chunk?\n");
         return;
     } 
+
+    chunk *c = &cm->chunk_hm[chunk_idx];
 
     for (int bx = 0; bx < CHUNK_RADIX; bx++) {
         int32_t global_block_x = bx + cx * CHUNK_RADIX;
@@ -244,40 +241,56 @@ void light_initialize_for_chunk(chunk_manager *cm, int cx, int cy, int cz) {
             int32_t global_block_z = bz + cz * CHUNK_RADIX;
 
             int32_t surface_y = world_get_surface_y(cm, global_block_x, global_block_z).value;
+            int32_t surface_y_px = world_get_surface_y(cm, global_block_x+1, global_block_z).value;
+            int32_t surface_y_pz = world_get_surface_y(cm, global_block_x, global_block_z+1).value;
+            int32_t surface_y_mx = world_get_surface_y(cm, global_block_x-1, global_block_z).value;
+            int32_t surface_y_mz = world_get_surface_y(cm, global_block_x, global_block_z-1).value;
 
             for (int by = 0; by < CHUNK_RADIX; by++) {
                 int32_t global_block_y = by + cy * CHUNK_RADIX;
-
                 int idx = chunk_3d_to_1d(bx,by,bz);
-
-                chunk *c = &cm->chunk_hm[chunk_idx];
-                block_tag block = c->blocks[idx];
-
-                uint8_t lum = block_defs[block].luminance;
-                if (lum > 0) {
-                    vec3l world_block_pos = world_block_chunk_to_posl(bx, by, bz, cx,cy,cz);
-                    light_add(cm, lum, global_block_x, global_block_y, global_block_z);
+                
+                uint8_t l = block_defs[c->blocks[idx]].luminance;
+                if (l > 0) {
+                    light_add(cm, l, global_block_x, global_block_y, global_block_z);
                 }
 
-                if (global_block_y > surface_y) {
+                vec3l global_pos = {global_block_x, global_block_y, global_block_z};
+                vec3l global_pos_px = {global_block_x+1, global_block_y, global_block_z};
+                vec3l global_pos_pz = {global_block_x, global_block_y, global_block_z+1};
+                vec3l global_pos_mx = {global_block_x-1, global_block_y, global_block_z};
+                vec3l global_pos_mz = {global_block_x, global_block_y, global_block_z-1};
+
+                if(global_block_y > surface_y) {
                     c->sky_light_levels[idx] = SKY_LIGHT_FULL;
+                    
+                    // also maybe do & ok & opaque
+                    if (surface_y_px > global_block_y) {
+                        vec3l_queue_push(&sunlight_queue, global_pos_px);
+                        light_set_sky(cm, global_pos_px, SKY_LIGHT_FULL - 1);
+                    }                    
+                    if (surface_y_pz > global_block_y) {
+                        vec3l_queue_push(&sunlight_queue, global_pos_pz);
+                        light_set_sky(cm, global_pos_pz, SKY_LIGHT_FULL - 1);
+                    }                    
+                    if (surface_y_mx > global_block_y) {
+                        vec3l_queue_push(&sunlight_queue, global_pos_mx);
+                        light_set_sky(cm, global_pos_mx, SKY_LIGHT_FULL - 1);
+                    }                    
+                    if (surface_y_mz > global_block_y) {
+                        vec3l_queue_push(&sunlight_queue, global_pos_mz);
+                        light_set_sky(cm, global_pos_mz, SKY_LIGHT_FULL - 1);
+                    }
+                    
                 }
-            }
-
-            // so we run the sunlight propagation algorithm at the highest cy point in this chunk,
-            // if this chunk is the one with the surface (highest opauqe block)
-            if (floor_div(surface_y, CHUNK_RADIX) == cy) {
-                light_propagate_sky(cm, global_block_x, CHUNK_MAX, global_block_z);
             }
         }
     }
+    finish_propagating_sunlight(cm);
 }
 
 
-
 // basic structure access
-
-
 
 void light_set_block(chunk_manager *cm, vec3l pos, uint8_t illumination) {
     vec3i_pair coords = world_posl_to_block_chunk(spread(pos));
@@ -301,7 +314,7 @@ void light_set_sky(chunk_manager *cm, vec3l pos, uint8_t illumination) {
         return;
     }
 
-    //light_issue_remesh(cm, pos);
+    light_issue_remesh(cm, pos);
     cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(spread(coords.l))] = illumination;
 }
 

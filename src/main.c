@@ -19,8 +19,13 @@
 
 #include "draw.h"
 
+//#define STB_DEFINE
+//#include "stb.h"
+
 #define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
+
+
 
 
 chunk_manager cm = {0};
@@ -33,6 +38,14 @@ void draw_lookat_cube(vec3s cam_pos, vec3s cam_front, graphics_context *c, pick_
 bool enable_debug = false;
 bool load_chunks = true;
 bool fast_forward = false;
+
+double cum_mesh_time = 0;
+double cum_gen_time = 0;
+double cum_light_time = 0;
+
+double max_mesh_time = 0;
+double max_gen_time = 0;
+double max_light_time = 0;
 
 int main(int argc, char** argv) {
     int w = 2560;
@@ -79,6 +92,10 @@ int main(int argc, char** argv) {
     arrpush(p.cave_tendency_amplitude, 0.5);
     
     arrpush(p.cave_tendency_frequency, 0.02);
+
+    arrpush(p.treeness_amplitude, 30);
+    
+    arrpush(p.treeness_frequency, 0.005);
 
     p.snow_above_height = 300;
     p.dirt_above_height = -20;
@@ -148,7 +165,6 @@ int main(int argc, char** argv) {
     int frame_counter = 0;
     float solar_angle = 0;
 
-
     printf("cm from main: %p\n", &cm);
 
     while (!glfwWindowShouldClose(wc->window)) {
@@ -165,7 +181,7 @@ int main(int argc, char** argv) {
         }
 
         if (frame_counter % 60 == 0) {
-            printf("loaded %d lit %d meshed %d\n", total_genned, total_lit, total_meshed);
+            //printf("loaded %d lit %d meshed %d\n", total_genned, total_lit, total_meshed);
         }
         
         
@@ -195,7 +211,7 @@ int main(int argc, char** argv) {
             solar_angle -= 360;
         }
 
-        printf("solar angle %f\n", solar_angle);
+        //printf("solar angle %f\n", solar_angle);
         draw(dc, gc, wc, &cm, solar_angle);
 
         glfwSwapBuffers(wc->window);
@@ -203,6 +219,14 @@ int main(int argc, char** argv) {
     }
 
     glfwTerminate();
+
+    printf("cum gen time: %f\n", cum_gen_time);
+    printf("cum light time: %f\n", cum_light_time);
+    printf("cum mesh time: %f\n", cum_mesh_time);
+
+    printf("max gen time: %f\n", max_gen_time);
+    printf("max light time: %f\n", max_light_time);
+    printf("max mesh time: %f\n", max_mesh_time);
 
     return 0;
 }

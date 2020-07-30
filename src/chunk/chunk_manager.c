@@ -165,6 +165,14 @@ void cm_lod_update(chunk_manager *cm, vec3s pos) {
 
 }
 
+extern double cum_mesh_time;
+extern double cum_gen_time;
+extern double cum_light_time;
+
+extern double max_mesh_time;
+extern double max_gen_time;
+extern double max_light_time;
+
 // todo priority queue and some heuristic
 // or maybe hashmap
 int cm_load_n(chunk_manager *cm, vec3s pos, int n) {
@@ -175,6 +183,7 @@ int cm_load_n(chunk_manager *cm, vec3s pos, int n) {
     int amt_actually_loaded = 0;
     // does it load n per frame or n-1
     while (arrlen(cm->load_list) > 0 && amt_actually_loaded < n) {
+        double tstart = glfwGetTime();
         vec3i k = arrpop(cm->load_list);
 
         // check that it hasnt been loaded yet and that we still want it loaded
@@ -184,6 +193,11 @@ int cm_load_n(chunk_manager *cm, vec3s pos, int n) {
             arrpush(cm->light_list, k);
             amt_actually_loaded++;
         }
+        double tend = glfwGetTime();
+        double dt = tend - tstart;
+        
+        cum_gen_time += dt;
+        max_gen_time = max(max_gen_time, dt);
     }
 
     return amt_actually_loaded;
@@ -198,6 +212,7 @@ int cm_light_n(chunk_manager *cm, vec3s pos, int n) {
     int amt_actually_loaded = 0;
     // does it load n per frame or n-1
     while (arrlen(cm->light_list) > 0 && amt_actually_loaded < n) {
+        double tstart = glfwGetTime();
         vec3i k = arrpop(cm->light_list);
 
         // check that it hasnt been loaded yet and that we still want it loaded
@@ -207,6 +222,11 @@ int cm_light_n(chunk_manager *cm, vec3s pos, int n) {
             arrpush(cm->mesh_list, k);
             amt_actually_loaded++;
         }
+        double tend = glfwGetTime();
+        double dt = tend - tstart;
+        
+        cum_light_time += dt;
+        max_light_time = max(max_light_time, dt);
     }
 
     return amt_actually_loaded;
@@ -220,6 +240,8 @@ int cm_mesh_n(chunk_manager *cm, vec3s pos, int n) {
     int amt_actually_loaded = 0;
     // does it load n per frame or n-1
     while (arrlen(cm->mesh_list) > 0 && amt_actually_loaded < n) {
+        double tstart = glfwGetTime();
+
         vec3i k = arrpop(cm->mesh_list);
 
         // check that it hasnt been loaded yet and that we still want it loaded
@@ -228,6 +250,11 @@ int cm_mesh_n(chunk_manager *cm, vec3s pos, int n) {
             cm_mesh_chunk(cm, spread(k));
             amt_actually_loaded++;
         }
+        double tend = glfwGetTime();
+        double dt = tend - tstart;
+        
+        cum_mesh_time += dt;
+        max_mesh_time = max(max_mesh_time, dt);
     }
 
     return amt_actually_loaded;
