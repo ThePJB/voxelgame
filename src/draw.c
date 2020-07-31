@@ -33,13 +33,13 @@ draw_context *draw_init() {
     glGenBuffers(1, &dc.sun_vbo);
 
     float sun_vertices[] = {
-        0,0,10,
-        0,1,10,
-        1,0,10,
+        -1,-1,10,
+        -1,1,10,
+        1,-1,10,
 
         1,1,10,
-        0,1,10,
-        1,0,10,
+        -1,1,10,
+        1,-1,10,
     };
 
     glBindVertexArray(dc.sun_vao);
@@ -67,15 +67,30 @@ void draw(draw_context *dc, graphics_context *gc, window_context *wc, chunk_mana
     };
     
     float dayness;
+    float sunriseness;
+
     if (solar_angle < 180) {
+        // day
         dayness = 1;
+        sunriseness = max(
+            remap(0, twilight_angle, 1, 0, solar_angle),  // end of sunrise
+            remap(180 - twilight_angle, 180, 0, 1, solar_angle) // beginning of sunset
+        );
     } else if (solar_angle < 180 + twilight_angle) {
+        // sunset
         dayness = remap(180, 180 + twilight_angle, 1, 0, solar_angle);
+        sunriseness = dayness;
     } else if (solar_angle < (360 - twilight_angle)) {
+        // night
         dayness = 0;
+        sunriseness = 0;
     } else {
+        // sunrise
         dayness = remap((360 - twilight_angle), 360, 0, 1, solar_angle);
+        sunriseness = dayness;
     }
+
+    sunriseness = max(sunriseness, 0);
 
     //printf("dayness %f\n", dayness);
 
@@ -102,6 +117,7 @@ void draw(draw_context *dc, graphics_context *gc, window_context *wc, chunk_mana
     glUniformMatrix4fv(glGetUniformLocation(dc->skybox_program, "projection"), 1, GL_FALSE, projection.raw[0]);
     glUniform1f(glGetUniformLocation(dc->skybox_program, "solar_angle"), solar_angle);
     glUniform1f(glGetUniformLocation(dc->skybox_program, "dayness"), dayness);
+    glUniform1f(glGetUniformLocation(dc->skybox_program, "sunriseness"), sunriseness);
     glBindVertexArray(dc->skybox_vao);
     glDrawArrays(GL_TRIANGLES, 0, triangles_in_cube * 3);
 
