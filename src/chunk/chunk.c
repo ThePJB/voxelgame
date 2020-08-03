@@ -100,18 +100,67 @@ float generate_height(struct osn_context *osn, float x, float z, noise2d_params 
     return height + smooth*hf_height + 100;
 }
 
-chunk generate_v2(chunk_manager *cm, int x, int y, int z) {
+void chunk_decorate(chunk_manager *cm, int chunk_x, int chunk_y, int chunk_z) {
+    vec3i chunk_coords = {
+        chunk_x,
+        chunk_y,
+        chunk_z,
+    };
+
+    chunk_x = chunk_x * CHUNK_RADIX;
+    chunk_y = chunk_y * CHUNK_RADIX;
+    chunk_z = chunk_z * CHUNK_RADIX;
+
+    // peace out if this isnt the chunk at surface level
+    maybe_int32_t central_height = world_get_surface_y(cm, chunk_x + CHUNK_RADIX/2, chunk_z + CHUNK_RADIX/2);
+    if (!central_height.ok) {
+        return;
+    }
+    if (central_height.value < chunk_y || central_height.value > chunk_y + CHUNK_RADIX) {
+        return;
+    }
+
+    // treeness just gonna sample once per chunk
+    float treeness = generate_sample_fractal_noise(cm->osn, chunk_x + CHUNK_RADIX/2, chunk_z + CHUNK_RADIX/2, cm->noise_params.treeness_amplitude, cm->noise_params.treeness_frequency);
+    if (treeness < 0) return;
+    util_srand(chunk_coords.x + chunk_coords.y * 31 + chunk_coords.z * 217);
+    int num_trees = treeness;
+    for (int i = 0; i < num_trees; i++) {
+        int tree_x = util_rand_intn(chunk_x, chunk_x + CHUNK_RADIX);
+        int tree_z = util_rand_intn(chunk_z, chunk_z + CHUNK_RADIX);
+        maybe_int32_t maybe_tree_y = world_get_surface_y(cm, tree_x, tree_z);
+        if (!maybe_tree_y.ok) {
+            continue;
+        }
+        int tree_y = maybe_tree_y.value;
+        maybe_block_tag base = world_get_block(cm, tree_x, tree_y, tree_z);
+        if (base.ok && base.value == BLOCK_GRASS) {
+            generate_tree(cm, tree_x, tree_y, tree_z);
+        }
+    }
+
+}
+
+chunk chunk_initialize(int x, int y, int z) {
     block_tag *blocks = calloc(sizeof(block_tag), CHUNK_RADIX_3);
     uint8_t *block_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
     uint8_t *sky_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
     chunk c = {0}; 
-    
     c.blocks = blocks;
     c.sky_light_levels = sky_light;
     c.block_light_levels = block_light;
 
+    glGenVertexArrays(1, &c.vao);
+    glGenBuffers(1, &c.vbo);
+    glGenVertexArrays(1, &c.water_vao);
+    glGenBuffers(1, &c.water_vbo);
+
     c.key = (vec3i) {x,y,z};
 
+    return c;
+}
+
+void chunk_generate(chunk_manager *cm, int x, int y, int z) {
     int snow_height = cm->noise_params.snow_above_height;
     int waterlevel = cm->noise_params.water_below_height;
     int sandlevel = cm->noise_params.sand_below_height;
@@ -122,18 +171,21 @@ chunk generate_v2(chunk_manager *cm, int x, int y, int z) {
     float chunk_y = y*CHUNK_RADIX;
     float chunk_z = z*CHUNK_RADIX;  
 
+    vec3i chunk_coords = {x,y,z};
+    chunk *c = hmgetp(cm->chunk_hm, chunk_coords);
+
     // fast path for air chunks
     if (chunk_y > (generate_height(cm->osn, chunk_x, chunk_z, cm->noise_params) + fast_path_safety_factor)) {
         if (chunk_y > waterlevel) {
             // air happens to be 0 already
             // block light happens to be 0 already
-            memset(sky_light, SKY_LIGHT_FULL, CHUNK_RADIX_3 * sizeof(uint8_t));
-            return c;
+            memset(c->sky_light_levels, SKY_LIGHT_FULL, CHUNK_RADIX_3 * sizeof(uint8_t));
+            return;
         } else if (chunk_y < waterlevel - 16) {
-            memset(blocks, BLOCK_WATER, sizeof(block_tag));
+            memset(c->blocks, BLOCK_WATER, sizeof(block_tag));
             // skylight 0
             // blocklight 0
-            return c;
+            return;
         }
         
     }
@@ -220,50 +272,18 @@ chunk generate_v2(chunk_manager *cm, int x, int y, int z) {
                 }
 
                 SET_BLOCK:
-                blocks[chunk_3d_to_1d(bx,by,bz)] = place_block;
+                c->blocks[chunk_3d_to_1d(bx,by,bz)] = place_block;
 
                 if (block_defs[place_block].opaque == false) {
                     continue;
                 }
 
-                vec3l world_coorindates = world_block_chunk_to_posl(bx,by,bz, spread(c.key));
+                vec3l world_coorindates = world_block_chunk_to_posl(bx,by,bz, spread(chunk_coords));
                 world_update_surface_y(cm, spread(world_coorindates));
 
             }
         }
     }
-
-    
-    // peace out if this isnt the chunk at surface level
-    maybe_int32_t central_height = world_get_surface_y(cm, chunk_x + CHUNK_RADIX/2, chunk_z + CHUNK_RADIX/2);
-    if (!central_height.ok) {
-        return c;
-    }
-    if (central_height.value < chunk_y || central_height.value > chunk_y + CHUNK_RADIX) {
-        return c;
-    }
-
-    // treeness just gonna sample once per chunk
-    float treeness = generate_sample_fractal_noise(cm->osn, chunk_x + CHUNK_RADIX/2, chunk_z + CHUNK_RADIX/2, cm->noise_params.treeness_amplitude, cm->noise_params.treeness_frequency);
-    if (treeness < 0) return c;
-    util_srand(c.key.x + c.key.y * 31 + c.key.z * 217);
-    int num_trees = treeness;
-
-    for (int i = 0; i < num_trees; i++) {
-        int tree_x = util_rand_intn(chunk_x, chunk_x + CHUNK_RADIX);
-        int tree_z = util_rand_intn(chunk_z, chunk_z + CHUNK_RADIX);
-        maybe_int32_t maybe_tree_y = world_get_surface_y(cm, tree_x, tree_z);
-        if (!maybe_tree_y.ok) {
-            continue;
-        }
-        int tree_y = maybe_tree_y.value;
-        maybe_block_tag base = world_get_block(cm, tree_x, tree_y, tree_z);
-        if (base.ok && base.value == BLOCK_GRASS) {
-            generate_tree(cm, tree_x, tree_y, tree_z);
-        }
-    }
-
-    return c;
 }
 
 void generate_tree(chunk_manager *cm, int gx, int gy, int gz) {
@@ -300,45 +320,45 @@ void generate_tree(chunk_manager *cm, int gx, int gy, int gz) {
     int leaf_start = util_rand_intn(1, 3);
 
     for (int i = 1; i <= height; i++) {
-        world_set_block(cm, gx, gy + i, gz, trunk);
+        world_set_block_without_lighting(cm, gx, gy + i, gz, trunk);
         if (i > leaf_start) {
-            world_set_block(cm, gx + 1, gy + i, gz, leaves);
-            world_set_block(cm, gx, gy + i, gz + 1, leaves);
-            world_set_block(cm, gx - 1, gy + i, gz, leaves);
-            world_set_block(cm, gx, gy + i, gz - 1, leaves);
+            world_set_block_without_lighting(cm, gx + 1, gy + i, gz, leaves);
+            world_set_block_without_lighting(cm, gx, gy + i, gz + 1, leaves);
+            world_set_block_without_lighting(cm, gx - 1, gy + i, gz, leaves);
+            world_set_block_without_lighting(cm, gx, gy + i, gz - 1, leaves);
 
             if (i < height - 1) {
-                world_set_block(cm, gx + 1, gy + i, gz + 1, leaves);
-                world_set_block(cm, gx + 1, gy + i, gz - 1, leaves);
-                world_set_block(cm, gx - 1, gy + i, gz + 1, leaves);
-                world_set_block(cm, gx - 1, gy + i, gz - 1, leaves);
+                world_set_block_without_lighting(cm, gx + 1, gy + i, gz + 1, leaves);
+                world_set_block_without_lighting(cm, gx + 1, gy + i, gz - 1, leaves);
+                world_set_block_without_lighting(cm, gx - 1, gy + i, gz + 1, leaves);
+                world_set_block_without_lighting(cm, gx - 1, gy + i, gz - 1, leaves);
             }
 
             if (i < height - 2) {
-                world_set_block(cm, gx + 2, gy + i, gz + 1, leaves);
-                world_set_block(cm, gx + 2, gy + i, gz - 1, leaves);
-                world_set_block(cm, gx - 2, gy + i, gz + 1, leaves);
-                world_set_block(cm, gx - 2, gy + i, gz - 1, leaves);                
+                world_set_block_without_lighting(cm, gx + 2, gy + i, gz + 1, leaves);
+                world_set_block_without_lighting(cm, gx + 2, gy + i, gz - 1, leaves);
+                world_set_block_without_lighting(cm, gx - 2, gy + i, gz + 1, leaves);
+                world_set_block_without_lighting(cm, gx - 2, gy + i, gz - 1, leaves);                
                 
-                world_set_block(cm, gx + 2, gy + i, gz + 0, leaves);
-                world_set_block(cm, gx + 2, gy + i, gz - 0, leaves);
-                world_set_block(cm, gx - 2, gy + i, gz + 0, leaves);
-                world_set_block(cm, gx - 2, gy + i, gz - 0, leaves);
+                world_set_block_without_lighting(cm, gx + 2, gy + i, gz + 0, leaves);
+                world_set_block_without_lighting(cm, gx + 2, gy + i, gz - 0, leaves);
+                world_set_block_without_lighting(cm, gx - 2, gy + i, gz + 0, leaves);
+                world_set_block_without_lighting(cm, gx - 2, gy + i, gz - 0, leaves);
                 
-                world_set_block(cm, gx + 2, gy + i, gz + 2, leaves);
-                world_set_block(cm, gx + 2, gy + i, gz - 2, leaves);
-                world_set_block(cm, gx - 2, gy + i, gz + 2, leaves);
-                world_set_block(cm, gx - 2, gy + i, gz - 2, leaves);
+                world_set_block_without_lighting(cm, gx + 2, gy + i, gz + 2, leaves);
+                world_set_block_without_lighting(cm, gx + 2, gy + i, gz - 2, leaves);
+                world_set_block_without_lighting(cm, gx - 2, gy + i, gz + 2, leaves);
+                world_set_block_without_lighting(cm, gx - 2, gy + i, gz - 2, leaves);
 
-                world_set_block(cm, gx + 1, gy + i, gz + 2, leaves);
-                world_set_block(cm, gx + 1, gy + i, gz - 2, leaves);
-                world_set_block(cm, gx - 1, gy + i, gz + 2, leaves);
-                world_set_block(cm, gx - 1, gy + i, gz - 2, leaves);                
+                world_set_block_without_lighting(cm, gx + 1, gy + i, gz + 2, leaves);
+                world_set_block_without_lighting(cm, gx + 1, gy + i, gz - 2, leaves);
+                world_set_block_without_lighting(cm, gx - 1, gy + i, gz + 2, leaves);
+                world_set_block_without_lighting(cm, gx - 1, gy + i, gz - 2, leaves);                
                 
-                world_set_block(cm, gx + 0, gy + i, gz + 2, leaves);
-                world_set_block(cm, gx + 0, gy + i, gz - 2, leaves);
-                world_set_block(cm, gx - 0, gy + i, gz + 2, leaves);
-                world_set_block(cm, gx - 0, gy + i, gz - 2, leaves);
+                world_set_block_without_lighting(cm, gx + 0, gy + i, gz + 2, leaves);
+                world_set_block_without_lighting(cm, gx + 0, gy + i, gz - 2, leaves);
+                world_set_block_without_lighting(cm, gx - 0, gy + i, gz + 2, leaves);
+                world_set_block_without_lighting(cm, gx - 0, gy + i, gz - 2, leaves);
             }
         }
 
@@ -347,172 +367,9 @@ void generate_tree(chunk_manager *cm, int gx, int gy, int gz) {
     world_set_block(cm, gx, gy + 1 + height, gz, leaves);
 }
 
-chunk generate_v1(chunk_manager *cm, int x, int y, int z) {
-    block_tag *blocks = calloc(sizeof(block_tag), CHUNK_RADIX_3);
-    uint8_t *block_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
-    uint8_t *sky_light = calloc(sizeof(uint8_t), CHUNK_RADIX_3);
-    chunk c = {0};
-    c.blocks = blocks;
-    c.sky_light_levels = sky_light;
-    c.block_light_levels = block_light;
 
-    c.key = (vec3i) {x,y,z};
-
-    float chunk_x = x*CHUNK_RADIX;
-    float chunk_y = y*CHUNK_RADIX;
-    float chunk_z = z*CHUNK_RADIX;
-
-    for (int idx = 0; idx < CHUNK_RADIX_3; idx++) {
-        vec3i block_pos = chunk_1d_to_3d(idx);
-
-        double block_x = chunk_x + block_pos.x;
-        double block_y = chunk_y + block_pos.y;
-        double block_z = chunk_z + block_pos.z;
-        
-        // useful sampled thingies
-        float height_low = 0;
-        float height_high = 0;
-        float cliff_carve_density = 0; // partial carving
-        float cave_carve_density = 0; // complete carving
-        float cave_cutoff_coefficient;
-    
-        // used within sampling
-        float domain_warp_x;
-        float domain_warp_y;
-        float domain_warp_z;
-
-        float freq_coefficient; // smoother areas and rougher areas
-        float A_fc = 2;
-        float f_fc = 0.001;
-        freq_coefficient = A_fc * open_simplex_noise2(cm->osn, f_fc*block_x, f_fc*block_z);
-        freq_coefficient += 1;
-
-        float A_height = 80;
-        float f_height = 0.004;
-
-        float vec = 0;
-        float vecm = 1234;
-
-    /*
-        float A_cliff = 20;
-        float f_cliff = 0.03;
-
-        cliff_carve_density += A_cliff * open_simplex_noise2(cm->osn, vec + f_cliff*block_x, vec + f_cliff*block_z);
-        A_cliff /= 2;
-        f_cliff *= 2;
-        vec *= vecm;
-        cliff_carve_density += A_cliff * open_simplex_noise2(cm->osn, vec + f_cliff*block_x, vec + f_cliff*block_z);
-        A_cliff /= 2;
-        f_cliff *= 2;
-        vec *= vecm;
-        cliff_carve_density += A_cliff * open_simplex_noise2(cm->osn, vec + f_cliff*block_x, vec + f_cliff*block_z);
-        A_cliff /= 2;
-        f_cliff *= 2;
-        vec *= vecm;
-        */
-
-        height_low += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
-        A_height /= 2;
-        f_height *= 2;
-        height_low += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
-        A_height /= 2;
-        f_height *= 2;
-        height_low += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
-        A_height /= 2;
-        f_height *= 2;
-
-        height_high += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
-        A_height /= 2;
-        f_height *= 2;
-        height_high += A_height * open_simplex_noise2(cm->osn, vec + freq_coefficient*f_height*block_x, vec + freq_coefficient*f_height*block_z);
-        A_height /= 2;
-        f_height *= 2;
-
-        float A_cave = 20;
-        float f_cave = 0.05;
-
-        cave_carve_density += A_cave * open_simplex_noise3(cm->osn, vec + f_cave*block_x, f_cave*block_y, vec + f_cave*block_z);
-        A_cave /= 2;
-        f_cave *= 2;
-        vec *= vecm;
-        cave_carve_density += A_cave * open_simplex_noise3(cm->osn, vec + f_cave*block_x, f_cave*block_y, vec + f_cave*block_z);
-        A_cave /= 2;
-        f_cave *= 2;
-        vec *= vecm;
-
-        // a bit of high freq does really make the caves pop though
-
-
-        //float height_low = n2d_sample(&noise.noise_lf_heightmap, block_x, block_z);
-        //float height_high = n2d_sample(&noise.noise_hf_heightmap, block_x, block_z);
-        //float cliff_carve_density = n3d_sample(&noise.noise_cliff_carver, block_x, block_y, block_z);
-        //float cave_carve_density = n3d_sample(&noise.noise_cliff_carver, block_x, block_y, block_z);
-
-        float cave_cutoff = remap(64, -80, -10, 2, block_y);
-
-        block_tag place_block;
-
-        
-
-        float height;
-        if (cliff_carve_density < 1) {
-            height = height_low;
-        } else {
-            height = height_low + height_high;
-        }
-
-        if (cave_carve_density < cave_cutoff + 0.05 && block_y < height) {
-            place_block = BLOCK_GEMS; goto SET_BLOCK;
-        }
-
-        // grass and stuff
-        if (block_y < height - 4) {
-            place_block = BLOCK_STONE; goto SET_BLOCK;
-        } else if (block_y < height - 0.5) {
-            // not stone layers
-            if (height > -25) {
-                place_block = BLOCK_DIRT; goto SET_BLOCK;
-            } else {
-                place_block = BLOCK_SAND; goto SET_BLOCK;
-            }
-        } else if (block_y < height + 0.5) {
-            // top layer
-            if (height > 40) {
-                place_block = BLOCK_SNOW; goto SET_BLOCK;
-            } else if (height > -25) {
-                place_block = BLOCK_GRASS; goto SET_BLOCK;
-            } else {
-                place_block = BLOCK_SAND; goto SET_BLOCK;
-            }
-        } else {
-            place_block = BLOCK_AIR; goto SET_BLOCK;
-        }
-    
-        SET_BLOCK:
-        blocks[idx] = place_block;
-
-        if (block_defs[place_block].opaque == false) {
-            continue;
-        }
-
-
-        vec3l world_coorindates = world_block_chunk_to_posl(spread(block_pos), spread(c.key));
-        world_update_surface_y(cm, spread(world_coorindates));
-    }
-        
-    return c;
-}
 
 void chunk_test() {
-    /*
-    assert_int_equal("0 corner", 0, chunk_3d_to_1d(0,0,0));
-    assert_int_equal("r3 corner", CHUNK_MAX_3 + CHUNK_MAX_2 + CHUNK_MAX, chunk_3d_to_1d((vec3i){CHUNK_MAX,CHUNK_MAX,CHUNK_MAX}));
-    assert_int_equal("r1 corner", CHUNK_MAX, chunk_3d_to_1d((vec3i){0, 0,CHUNK_MAX}));
-    assert_int_equal("r11 corner", CHUNK_MAX + 1, chunk_3d_to_1d((vec3i){0, 1, 0}));
-    assert_int_equal("r2 corner", CHUNK_MAX_2, chunk_3d_to_1d((vec3i){0,CHUNK_MAX,0}));
-    assert_int_equal("r2+1 corner", CHUNK_MAX*CHUNK_RADIX + CHUNK_MAX, chunk_3d_to_1d((vec3i){0,CHUNK_MAX,CHUNK_MAX}));
-    assert_int_equal("r2+1+1 corner", CHUNK_RADIX_2 + CHUNK_MAX_2 + CHUNK_MAX, chunk_3d_to_1d((vec3i){1,CHUNK_MAX,CHUNK_MAX}));
-    */
 
     vec3i pos3d = chunk_1d_to_3d(0);
     assert_int_equal("0x", 0, pos3d.x);

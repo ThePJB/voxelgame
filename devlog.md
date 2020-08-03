@@ -152,3 +152,25 @@ but yeah its 1000x better now and 5x faster. so good
 
 todo next time make trees not terrible: pink noise & chunk crossing & not loading and meshing chunks for no reason please and thank you
 maybe pine trees on snow :)
+
+
+---
+
+meshing of water is fixed, no apply it to lighting of water so darkness happens and then try cloud blocks (or glass)
+
+freeze meshing and stuff until finished generating
+maybe lighting updates do it and something else idk
+
+handshake the chunks again
+
+pq for the queues
+
+tree dynamic range
+
+and extend block definitions to include solid
+what if we stored a float per vertex then light could be smooth
+we already put that much on gpu
+and materials could interact a certain way with it
+and it could fall off in a nice log curve or something
+
+voxel clouds

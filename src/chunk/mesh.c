@@ -3,6 +3,16 @@
 #define VERT_STRIDE 8
 
 #define MESHING_BUF_SIZE 409600 * 5
+
+const int direction_to_3d_offset[] = {
+    PLUS_X,
+    MINUS_X,
+    PLUS_Y,
+    MINUS_Y,
+    PLUS_Z,
+    MINUS_Z
+};
+
 void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
     //printf("meshing chunk %d %d %d\n", x, y, z);
 
@@ -10,6 +20,7 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
     chunk *c = &cm->chunk_hm[chunk_idx];
     c->needs_remesh = false;
     float buf[MESHING_BUF_SIZE] = {0};
+    float water_buf[MESHING_BUF_SIZE] = {0};
 
     int vertex_idx = 0;
     const float cube_verts[] = 
@@ -20,33 +31,33 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
             continue;
         }
 
-        vec3i coords = chunk_1d_to_3d(idx);
+        vec3i block_local_coords = chunk_1d_to_3d(idx);
 
         for (direction face = 0; face < NUM_DIRS; face++) {
             // Skip occluded faces
-            if (face == DIR_PX && neighbour_exists(coords, PLUS_X) && c->blocks[idx + PLUS_X] != BLOCK_AIR) {
-                continue;
-            } else if (face == DIR_MX && neighbour_exists(coords, MINUS_X) && c->blocks[idx + MINUS_X] != BLOCK_AIR) {
-                continue;
-            } else if (face == DIR_PY && neighbour_exists(coords, PLUS_Y) && c->blocks[idx + PLUS_Y] != BLOCK_AIR) {
-                continue;
-            } else if (face == DIR_MY && neighbour_exists(coords, MINUS_Y) && c->blocks[idx + MINUS_Y] != BLOCK_AIR) {
-                continue;
-            } else if (face == DIR_PZ && neighbour_exists(coords, PLUS_Z) && c->blocks[idx + PLUS_Z] != BLOCK_AIR) {
-                continue;
-            } else if (face == DIR_MZ && neighbour_exists(coords, MINUS_Z) && c->blocks[idx + MINUS_Z] != BLOCK_AIR) {
-                continue;
-            }
+            int neighbour_idx = idx + direction_to_3d_offset[face];
+            if (neighbour_exists(block_local_coords, direction_to_3d_offset[face])) {
+                block_definition this_properties = block_defs[c->blocks[idx]];
+                block_definition that_properties = block_defs[c->blocks[neighbour_idx]];
 
+                if (c->blocks[idx] == c->blocks[neighbour_idx]) {
+                    continue;
+                } else if (this_properties.opaque && that_properties.opaque) {
+                    continue;
+                }
+
+            } 
+            
+            
             for (int cube_vert = 0; cube_vert < 6; cube_vert++) {
 
                 // walk the cube verts
                 const float *current_vert = &(cube_verts[face * 6 * VERT_STRIDE + cube_vert * VERT_STRIDE]);
                 
                 // push to the vertex buffer
-                buf[vertex_idx++] = current_vert[0] + coords.x; // x pos
-                buf[vertex_idx++] = current_vert[1] + coords.y; // y pos 
-                buf[vertex_idx++] = current_vert[2] + coords.z; // z pos
+                buf[vertex_idx++] = current_vert[0] + block_local_coords.x; // x pos
+                buf[vertex_idx++] = current_vert[1] + block_local_coords.y; // y pos 
+                buf[vertex_idx++] = current_vert[2] + block_local_coords.z; // z pos
                 buf[vertex_idx++] = current_vert[3]; // normal x
                 buf[vertex_idx++] = current_vert[4]; // normal y
                 buf[vertex_idx++] = current_vert[5]; // normal z

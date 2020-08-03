@@ -71,13 +71,22 @@ typedef struct {
     vec3i key; // chunk pos, for hashtable
     unsigned int vao;
     unsigned int vbo;
+    
+    unsigned int water_vao;
+    unsigned int water_vbo;
+    // is this the kind of thing where u could have a chunk vao and voxel vbo and water vbo?
+    
     int num_triangles;
     block_tag *blocks;
     uint8_t *block_light_levels;
     uint8_t *sky_light_levels;
     
     bool needs_remesh;
+    bool finished_loading;
+    
     int loaded_4con_neighbours;
+
+    int32_t chunk_seed;
     
 } chunk;
 
@@ -107,11 +116,13 @@ typedef struct chunk_manager {
 
     vec3i loaded_dimensions;
     int32_t_pair lod_dimensions;
+
     vec3i *load_list;
+    vec3i *decorate_list;
     vec3i *light_list;
     vec3i *mesh_list;
 
-    chunk (*gen_func)(struct chunk_manager *cm, int chunk_x, int chunk_y, int chunk_z);
+    void (*gen_func)(struct chunk_manager *cm, int chunk_x, int chunk_y, int chunk_z);
 
 } chunk_manager;
 
@@ -121,26 +132,28 @@ typedef struct {
     direction normal_dir;
 } pick_info;
 
-
-block_definition block_defs[NUM_BLOCKS];
+//block_definition block_defs[NUM_BLOCKS];
 
 MKMAYBE(block_tag);
 
 // low level -- chunks
 //chunk_rngs chunk_rngs_init(int64_t seed);
-chunk generate_v1(chunk_manager *cm, int x, int y, int z);
-chunk generate_v2(chunk_manager *cm, int x, int y, int z);
+chunk chunk_initialize(int x, int y, int z);
+void chunk_generate(chunk_manager *cm, int cx, int cy, int cz);
+void chunk_decorate(chunk_manager *cm, int cx, int cy, int cz);
+
 void update_highest_block(chunk_manager *cm, int32_t x, int32_t y, int32_t z);
 int chunk_3d_to_1d(int x, int y, int z);
 vec3i chunk_1d_to_3d(int idx);
 void chunk_print(chunk c);
 void chunk_test();
-chunk generate_flat(chunk_manager *cm, int chunk_x, int chunk_y, int chunk_z);
+
 float generate_height(struct osn_context *osn, float x, float z, noise2d_params p);
 
 // chunk manager
 void cm_update(chunk_manager *cm, vec3s pos);           // queue up chunks to load
 int cm_load_n(chunk_manager *cm, vec3s pos, int n);    // load a limited number of chunks
+int cm_decorate_n(chunk_manager *cm, vec3s pos, int n);    // decorate a limited number of chunks
 int cm_light_n(chunk_manager *cm, vec3s pos, int n);    // light a limited number of chunks
 int cm_mesh_n(chunk_manager *cm, vec3s pos, int n); // mesh n
 bool neighbour_exists(vec3i pos, int direction);
@@ -157,6 +170,7 @@ vec3i world_posl_to_chunk(int gx, int gy, int gz);
 // access
 maybe_block_tag world_get_block(chunk_manager *cm, int gx, int gy, int gz);
 void world_set_block(chunk_manager *cm, int gx, int gy, int gz, block_tag b);
+void world_set_block_without_lighting(chunk_manager *cm, int gx, int gy, int gz, block_tag new_block);
 
 maybe_int32_t world_get_surface_y(chunk_manager *cm, int32_t x, int32_t z);
 void world_update_surface_y(chunk_manager *cm, int32_t x, int32_t y, int32_t z);

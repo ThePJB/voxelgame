@@ -31,8 +31,16 @@
 chunk_manager cm = {0};
 chunk_manager *cmp = &cm;
 
-void draw_lookat_cube(vec3s cam_pos, vec3s cam_front, graphics_context *c, pick_info p) {
-    
+const int load_amt = 10;
+const int decorate_amt = 20;
+const int light_amt = 12;
+const int mesh_amt = 20;
+
+void do_jobs(vec3s pos) {
+    if (cm_load_n(cmp, pos, load_amt)) return;
+    if (cm_decorate_n(cmp, pos, decorate_amt)) return;
+    if (cm_light_n(cmp, pos, light_amt)) return;
+    if (cm_mesh_n(cmp, pos, mesh_amt)) return;
 }
 
 bool enable_debug = false;
@@ -42,10 +50,12 @@ bool fast_forward = false;
 double cum_mesh_time = 0;
 double cum_gen_time = 0;
 double cum_light_time = 0;
+double cum_decorate_time = 0;
 
 double max_mesh_time = 0;
 double max_gen_time = 0;
 double max_light_time = 0;
+double max_decorate_time = 0;
 
 int main(int argc, char** argv) {
     int w = 2560;
@@ -110,7 +120,7 @@ int main(int argc, char** argv) {
     camera cam = fly_camera();
     float spawn_x = 2000;
     float spawn_z = 300;
-    float spawn_y = generate_height(cm.osn, spawn_x, spawn_z, p) + 2;
+    float spawn_y = max(generate_height(cm.osn, spawn_x, spawn_z, p) + 2, cm.noise_params.water_below_height);
     cam.pos = (vec3s) {spawn_x, spawn_y, spawn_z};
     cam.front = (vec3s) {0, 0, -1};
 
@@ -133,11 +143,11 @@ int main(int argc, char** argv) {
 
     text_init(gc);
     //cm.world_noise = chunk_rngs_init(123456789);
-    cm.loaded_dimensions = (vec3i) {10,10, 10};
+    cm.loaded_dimensions = (vec3i) {16,16, 16};
     cm.lod_dimensions = (int32_t_pair) {80, 80};
     int nchunks = cm.loaded_dimensions.x * cm.loaded_dimensions.y * cm.loaded_dimensions.z;
 //    cm.gen_func = generate_flat;
-    cm.gen_func = generate_v2;
+    cm.gen_func = chunk_generate;
 
 
 
@@ -152,6 +162,7 @@ int main(int argc, char** argv) {
 
     // initial load etc
     cm_load_n(&cm, cam.pos, nchunks);
+    cm_decorate_n(&cm, cam.pos, nchunks);
     cm_light_n(&cm, cam.pos, nchunks);
     cm_mesh_n(&cm, cam.pos, nchunks);
 
@@ -167,18 +178,10 @@ int main(int argc, char** argv) {
 
     printf("cm from main: %p\n", &cm);
 
+
     while (!glfwWindowShouldClose(wc->window)) {
         frame_counter++;
-
-        int load_amt = cm_load_n(&cm, cam.pos, 6);
-        total_genned += load_amt;
-        if (load_amt == 0) {
-            int light_amt = cm_light_n(&cm, cam.pos, 6);
-            total_lit += light_amt;
-            if (light_amt == 0) {
-                total_meshed += cm_mesh_n(&cm, cam.pos, 8);
-            }
-        }
+        do_jobs(cam.pos); // loading meshing etc
 
         if (frame_counter % 60 == 0) {
             //printf("loaded %d lit %d meshed %d\n", total_genned, total_lit, total_meshed);
@@ -223,10 +226,12 @@ int main(int argc, char** argv) {
     printf("cum gen time: %f\n", cum_gen_time);
     printf("cum light time: %f\n", cum_light_time);
     printf("cum mesh time: %f\n", cum_mesh_time);
+    printf("cum decorate time: %f\n", cum_decorate_time);
 
     printf("max gen time: %f\n", max_gen_time);
     printf("max light time: %f\n", max_light_time);
     printf("max mesh time: %f\n", max_mesh_time);
+    printf("max decorate time: %f\n", max_decorate_time);
 
     return 0;
 }

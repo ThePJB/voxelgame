@@ -1,60 +1,5 @@
 #include "chunk_common.h"
 
-block_definition block_defs[NUM_BLOCKS] = {
-    {
-        .opaque = false,
-        .luminance = 0,
-    },
-    {
-        .opaque = true,
-        .luminance = 0,
-    },
-    {
-        .opaque = true,
-        .luminance = 0,
-    },
-    {
-        .opaque = true,
-        .luminance = 0,
-    },
-    {
-        .opaque = true,
-        .luminance = 0,
-    },
-    {
-        .opaque = true,
-        .luminance = 0,
-    },
-    {
-        .opaque = true,
-        .luminance = 0,
-    },
-    {
-        .opaque = true,
-        .luminance = 0,
-    },
-    {
-        .opaque = true,
-        .luminance = 8,
-    },
-    {
-        .opaque = true,
-        .luminance = 6,
-    },    
-    {
-        .opaque = false,
-        .luminance = 0,
-    },    
-    {
-        .opaque = true,
-        .luminance = 0,
-    },
-    {
-        .opaque = true,
-        .luminance = 0,
-    },
-
-};
 
 // Converting positions
 vec3i world_posl_to_chunk(int gx, int gy, int gz) {
@@ -159,6 +104,39 @@ void world_set_block(chunk_manager *cm, int gx, int gy, int gz, block_tag new_bl
     c->needs_remesh = true;
 }
 
+void world_set_block_without_lighting(chunk_manager *cm, int gx, int gy, int gz, block_tag new_block) {    
+    vec3i_pair coords = world_posl_to_block_chunk(gx, gy, gz);
+    vec3i block_coords = coords.l;
+    vec3i chunk_coords = coords.r;
+    int chunk_idx = hmgeti(cm->chunk_hm, chunk_coords);
+    int block_idx = chunk_3d_to_1d(spread(block_coords));
+
+
+    if (chunk_idx == -1) {
+        // not loaded
+        return;
+    }
+
+    chunk *c = &cm->chunk_hm[chunk_idx];
+
+    block_tag old_block = c->blocks[block_idx];
+    c->blocks[block_idx] = new_block;
+
+    uint8_t new_luminance = block_defs[new_block].luminance;
+    uint8_t old_luminance = block_defs[old_block].luminance;
+
+    bool new_opaque = block_defs[new_block].opaque;
+    bool old_opaque = block_defs[old_block].opaque;
+
+    if (block_defs[new_block].opaque) {
+        world_update_surface_y(cm, gx, gy, gz);
+    } else {
+        // TODO remove highest block 
+    }
+    
+    //c->needs_remesh = true; // maybe this will make artifacts but lets see
+}
+
 
 maybe_int32_t world_get_surface_y(chunk_manager *cm, int32_t x, int32_t z) {
     int surface_map_idx;
@@ -209,7 +187,7 @@ void world_benchmark(int n) {
 
     open_simplex_noise(123456789, &cm.osn);
     cm.loaded_dimensions = (vec3i) {n,n,n};
-    cm.gen_func = generate_v1;
+    cm.gen_func = chunk_generate;
     //cm.gen_func = generate_flat;
 
     cm_update(&cm, (vec3s) {0,0,0});

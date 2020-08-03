@@ -59,18 +59,13 @@ void neighbour_unhandshake(chunk_manager *cm, vec3i neighbour_pos) {
 }
 
 
-
 void cm_load_chunk(chunk_manager *cm, int x, int y, int z) {
-    chunk new_chunk = cm->gen_func(cm, x, y, z);
+    chunk new_chunk = chunk_initialize(x,y,z);
     hmputs(cm->chunk_hm, new_chunk);
+    cm->gen_func(cm, x, y, z);
 
     int idx = hmgeti(cm->chunk_hm, ((vec3i){x,y,z}));
     chunk *c = &cm->chunk_hm[idx];
-
-    glGenVertexArrays(1, &c->vao);
-    glGenBuffers(1, &c->vbo);
-
-    c->block_light_levels = calloc(CHUNK_RADIX_3, sizeof(uint8_t));
 
     /*
     neighbour_handshake(cm, c, (vec3i){x+1, y, z});
@@ -168,10 +163,12 @@ void cm_lod_update(chunk_manager *cm, vec3s pos) {
 extern double cum_mesh_time;
 extern double cum_gen_time;
 extern double cum_light_time;
+extern double cum_decorate_time;
 
 extern double max_mesh_time;
 extern double max_gen_time;
 extern double max_light_time;
+extern double max_decorate_time;
 
 // todo priority queue and some heuristic
 // or maybe hashmap
@@ -190,7 +187,7 @@ int cm_load_n(chunk_manager *cm, vec3s pos, int n) {
         // (meaning its still in the loading volume)
         if (hmgeti(cm->chunk_hm, k) < 0 && vec3i_bounded_inclusive(load_max, load_min, k)) {
             cm_load_chunk(cm, spread(k));
-            arrpush(cm->light_list, k);
+            arrpush(cm->decorate_list, k);
             amt_actually_loaded++;
         }
         double tend = glfwGetTime();
@@ -198,6 +195,34 @@ int cm_load_n(chunk_manager *cm, vec3s pos, int n) {
         
         cum_gen_time += dt;
         max_gen_time = max(max_gen_time, dt);
+    }
+
+    return amt_actually_loaded;
+}
+
+int cm_decorate_n(chunk_manager *cm, vec3s pos, int n) {
+    vec3i in_chunk = world_pos_to_chunk(pos);
+    vec3i load_min = vec3i_sub(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
+    vec3i load_max = vec3i_add(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
+    
+    int amt_actually_loaded = 0;
+    // does it load n per frame or n-1
+    while (arrlen(cm->decorate_list) > 0 && amt_actually_loaded < n) {
+        double tstart = glfwGetTime();
+        vec3i k = arrpop(cm->decorate_list);
+
+        // check that it hasnt been loaded yet and that we still want it loaded
+        // (meaning its still in the loading volume)
+        if (hmgeti(cm->chunk_hm, k) > -1) {
+            chunk_decorate(cm, spread(k));
+            arrpush(cm->light_list, k);
+            amt_actually_loaded++;
+        }
+        double tend = glfwGetTime();
+        double dt = tend - tstart;
+        
+        cum_decorate_time += dt;
+        max_decorate_time = max(max_gen_time, dt);
     }
 
     return amt_actually_loaded;

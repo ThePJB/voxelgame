@@ -26,6 +26,63 @@ typedef struct {
     uint8_t luminance;
 } block_definition;
 
+
+static block_definition block_defs[NUM_BLOCKS] = {
+    {
+        .opaque = false,
+        .luminance = 0,
+    },
+    {
+        .opaque = true,
+        .luminance = 0,
+    },
+    {
+        .opaque = true,
+        .luminance = 0,
+    },
+    {
+        .opaque = true,
+        .luminance = 0,
+    },
+    {
+        .opaque = true,
+        .luminance = 0,
+    },
+    {
+        .opaque = true,
+        .luminance = 0,
+    },
+    {
+        .opaque = true,
+        .luminance = 0,
+    },
+    {
+        .opaque = true,
+        .luminance = 0,
+    },
+    {
+        .opaque = true,
+        .luminance = 8,
+    },
+    {
+        .opaque = true,
+        .luminance = 6,
+    },    
+    {
+        .opaque = false,
+        .luminance = 0,
+    },    
+    {
+        .opaque = true,
+        .luminance = 0,
+    },
+    {
+        .opaque = true,
+        .luminance = 0,
+    },
+
+};
+
 /*
 maybe block defs should be, opacity: 
     OPAQUE, TRANSPARENT_PARTIAL, TRANSPARENT_FULL
