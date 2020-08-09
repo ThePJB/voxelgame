@@ -67,8 +67,8 @@ int signum(float x) {
     }
 }
 
-float min(float a, float b) { return a < b? a : b; }
-float max(float a, float b) { return a > b? a : b; }
+//float min(float a, float b) { return a < b? a : b; }
+//float max(float a, float b) { return a > b? a : b; }
 
 void print_vec3i(vec3i a) {
     printf("{%d %d %d}", spread(a));
@@ -150,7 +150,7 @@ void assert_vec3i_equal(char *desc, vec3i a, int bx, int by, int bz) {
     if (a.x == bx && a.y == by && a.z == bz) {
         printf("{%d %d %d} == {%d %d %d}\t -- \t pass", a.x, a.y, a.z, bx, by, bz);
     } else {
-        printf("{%d %d %d} != {%d %d %d}\t -- \t pass", a.x, a.y, a.z, bx, by, bz);        
+        printf("{%d %d %d} != {%d %d %d}\t -- \t fail", a.x, a.y, a.z, bx, by, bz);        
     }
     printf("\n\033[037m");
 }

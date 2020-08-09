@@ -18,6 +18,7 @@
 #include "chunk_common.h"
 
 #include "draw.h"
+#include "priority_queue.h"
 
 //#define STB_DEFINE
 //#include "stb.h"
@@ -31,7 +32,7 @@
 chunk_manager cm = {0};
 chunk_manager *cmp = &cm;
 
-const int load_amt = 10;
+const int load_amt = 5;
 const int decorate_amt = 20;
 const int light_amt = 12;
 const int mesh_amt = 20;
@@ -133,6 +134,7 @@ int main(int argc, char** argv) {
         world_test();
         test_util();
         cm_test();
+        test_priority_queue();
         exit(0);
     } else if (argc == 3 && !strcmp(argv[1], "--profile")) {
         int n = atoi(argv[2]);

@@ -16,6 +16,8 @@
 //#include "stb.h"
 #include "stb_ds.h"
 
+#include "priority_queue.h"
+
 #define LODMESH_LOG2 8
 #define LODMESH_CHUNK_RADIX 256
 
@@ -81,6 +83,7 @@ typedef struct {
     uint8_t *block_light_levels;
     uint8_t *sky_light_levels;
     
+    bool initial_lighting_done;
     bool needs_remesh;
     bool finished_loading;
     
@@ -117,10 +120,10 @@ typedef struct chunk_manager {
     vec3i loaded_dimensions;
     int32_t_pair lod_dimensions;
 
-    vec3i *load_list;
-    vec3i *decorate_list;
-    vec3i *light_list;
-    vec3i *mesh_list;
+    vec3i_priority_queue load_queue;
+    vec3i* decorate_list;
+    vec3i* light_list;
+    vec3i* mesh_list;
 
     void (*gen_func)(struct chunk_manager *cm, int chunk_x, int chunk_y, int chunk_z);
 

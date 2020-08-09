@@ -174,3 +174,34 @@ and materials could interact a certain way with it
 and it could fall off in a nice log curve or something
 
 voxel clouds
+
+---------------
+
+pq is half working, just gotta debug it and should be sweet
+
+-------------
+
+pq and handshakes and stuff are back in
+
+i can do a bit of a tidy up of the code and figure out why its not perfect eg still loading things out of order
+maybe it needs to be 8 connected
+get some emtrics on whats taking the longest like if its lighting again or something
+
+
+-----------------
+
+chunk loading strategy:
+3 states
+ * fuck it we just need to load: take the hit to like 10fps         (16/frame)
+ * keep up with exploring: visible chunks only, some hit ok 40fps   (4/frame)
+ * background: chunks that probably aren't visible: no hit          (1/frame)
+
+a heuristic that be used to implement:
+ * energy = 16
+ * load chunk: energy -= (1 if priority X, 4 if priority Y and 16 if priority Z)
+
+potential problem is chunks just pile up and dont get loaded?
+dont actually need to load chunks if they are below a certain priority (far and out of sight)
+
+what if we actually just measured the ms budged and tried to implement in accordance with above
+eg how long is the typical draw call section taking, prediction, and how long are the average chunks taking, ok keep it below 99% to miss or something

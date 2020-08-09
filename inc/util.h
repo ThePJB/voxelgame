@@ -13,8 +13,11 @@
 int floor_div(int a, int b);
 int32_t fast_floorf(float x);
 int32_t fast_floord(double x);
-float min(float a, float b);
-float max(float a, float b);
+#define min(A,B) (A < B ? A : B)
+#define max(A,B) (A > B ? A : B)
+
+//float min(float a, float b);
+//float max(float a, float b);
 int mod(int val, int modulus);
 int signum(float x);
 bool fequals(float a, float b);

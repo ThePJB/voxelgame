@@ -235,6 +235,8 @@ void light_initialize_for_chunk(chunk_manager *cm, int cx, int cy, int cz) {
 
     chunk *c = &cm->chunk_hm[chunk_idx];
 
+    c->initial_lighting_done = true;
+
     for (int bx = 0; bx < CHUNK_RADIX; bx++) {
         int32_t global_block_x = bx + cx * CHUNK_RADIX;
         for (int bz = 0; bz < CHUNK_RADIX; bz++) {
@@ -314,6 +316,10 @@ void light_set_sky(chunk_manager *cm, vec3l pos, uint8_t illumination) {
         return;
     }
 
+    if (!cm->chunk_hm[idx].initial_lighting_done) {
+        return;
+    }
+
     light_issue_remesh(cm, pos);
     cm->chunk_hm[idx].sky_light_levels[chunk_3d_to_1d(spread(coords.l))] = illumination;
 }
@@ -337,7 +343,7 @@ maybe_uint8_t light_get_sky(chunk_manager *cm, vec3l pos) {
     vec3i_pair coords = world_posl_to_block_chunk(spread(pos));
 
     int idx = hmgeti(cm->chunk_hm, coords.r);
-    if (idx < 0) {
+    if (idx < 0 || !cm->chunk_hm[idx].initial_lighting_done) {
         //printf("tried getting illumination of an unloaded chunk %d %d %d\n", spread(coords.r));
         return (maybe_uint8_t) {255, false};
     }
