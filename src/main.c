@@ -26,23 +26,10 @@
 #define STB_DS_IMPLEMENTATION
 #include "stb_ds.h"
 
-
-
-
 chunk_manager cm = {0};
 chunk_manager *cmp = &cm;
 
 const int load_amt = 5;
-const int decorate_amt = 20;
-const int light_amt = 12;
-const int mesh_amt = 20;
-
-void do_jobs(vec3s pos) {
-    if (cm_load_n(cmp, pos, load_amt)) return;
-    if (cm_decorate_n(cmp, pos, decorate_amt)) return;
-    if (cm_light_n(cmp, pos, light_amt)) return;
-    if (cm_mesh_n(cmp, pos, mesh_amt)) return;
-}
 
 bool enable_debug = false;
 bool load_chunks = true;
@@ -145,7 +132,7 @@ int main(int argc, char** argv) {
 
     text_init(gc);
     //cm.world_noise = chunk_rngs_init(123456789);
-    cm.loaded_dimensions = (vec3i) {16,16, 16};
+    cm.loaded_dimensions = (vec3i) {24, 24, 24};
     cm.lod_dimensions = (int32_t_pair) {80, 80};
     int nchunks = cm.loaded_dimensions.x * cm.loaded_dimensions.y * cm.loaded_dimensions.z;
 //    cm.gen_func = generate_flat;
@@ -162,12 +149,6 @@ int main(int argc, char** argv) {
         //printf("%d. vao: %d, vbo: %d, num tris: %d\n", i, cm.lodmesh_hm[i].vao, cm.lodmesh_hm[i].vbo, cm.lodmesh_hm[i].num_triangles);
     }
 
-    // initial load etc
-    cm_load_n(&cm, cam.pos, nchunks);
-    cm_decorate_n(&cm, cam.pos, nchunks);
-    cm_light_n(&cm, cam.pos, nchunks);
-    cm_mesh_n(&cm, cam.pos, nchunks);
-
     float last = 0;
     float dt = 0;
     
@@ -180,15 +161,13 @@ int main(int argc, char** argv) {
 
     printf("cm from main: %p\n", &cm);
 
-
     while (!glfwWindowShouldClose(wc->window)) {
         frame_counter++;
-        do_jobs(cam.pos); // loading meshing etc
+        cm_load_n(cmp, cam.pos, load_amt);
 
         if (frame_counter % 60 == 0) {
             //printf("loaded %d lit %d meshed %d\n", total_genned, total_lit, total_meshed);
         }
-        
         
         if (glfwGetKey(wc->window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(wc->window, true);

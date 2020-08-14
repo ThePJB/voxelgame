@@ -205,3 +205,14 @@ dont actually need to load chunks if they are below a certain priority (far and 
 
 what if we actually just measured the ms budged and tried to implement in accordance with above
 eg how long is the typical draw call section taking, prediction, and how long are the average chunks taking, ok keep it below 99% to miss or something
+
+
+todo have a separate unloading volume size (bigger) so if ur in 1 area it doesnt thrash chunks
+
+how to manage settings
+just have a global somewhere? then its authoritative and dont need to maintain stupid pointers everywhere
+then it can be updated from a menu or a file or something
+
+wait how am i sampling surface_hm for chunks that arent loaded yet
+im amazed that this even seems to be working
+probably better to sample height 2d

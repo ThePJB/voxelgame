@@ -1,5 +1,6 @@
 #include "chunk_common.h"
 
+float priority(float height, vec3s player_pos, vec3i chunk_coords);
 
 bool vec3i_bounded_inclusive(vec3i upper, vec3i lower, vec3i a) {
     return (a.x <= upper.x && a.x >= lower.x &&
@@ -122,8 +123,10 @@ void cm_update(chunk_manager *cm, vec3s pos) {
     for (int x = load_min.x; x < load_max.x; x++) {
         for (int y = load_min.y; y < load_max.y; y++) {
             for (int z = load_min.z; z < load_max.z; z++) {
-                if (hmgeti(cm->chunk_hm, ((vec3i){x,y,z})) < 0) {
-                    pq_push(&cm->load_queue, (vec3i){x,y,z}, 1);
+                vec3i chunk_coords = (vec3i){x,y,z};
+                if (hmgeti(cm->chunk_hm, chunk_coords) < 0) {
+                    float height = max(cm->noise_params.water_below_height, generate_height(cm->osn, x*CHUNK_RADIX + CHUNK_RADIX/2, z*CHUNK_RADIX + CHUNK_RADIX/2, cm->noise_params));
+                    pq_push(&cm->load_queue, chunk_coords, priority(height, pos, chunk_coords));
                 }
             }
         }
@@ -172,15 +175,25 @@ extern double max_gen_time;
 extern double max_light_time;
 extern double max_decorate_time;
 
-// todo priority queue and some heuristic
-// or maybe hashmap
+// ppriority calculating heuristic
+// lower = higher priority
 float priority(float height, vec3s player_pos, vec3i chunk_coords) {
-    float chunk_x = chunk_coords.x * CHUNK_RADIX;
-    float chunk_y = chunk_coords.y * CHUNK_RADIX;
-    float chunk_z = chunk_coords.z * CHUNK_RADIX;
+    float chunk_x = chunk_coords.x * CHUNK_RADIX + CHUNK_RADIX/2;
+    float chunk_y = chunk_coords.y * CHUNK_RADIX + CHUNK_RADIX/2;
+    float chunk_z = chunk_coords.z * CHUNK_RADIX + CHUNK_RADIX/2;
 
     float d = (chunk_x - player_pos.x)*(chunk_x - player_pos.x) + (chunk_y - player_pos.y)*(chunk_y - player_pos.y) + (chunk_z - player_pos.z)*(chunk_z - player_pos.z);
-    return d;
+    float dheight = fabs(height - chunk_y);
+    float dheight_coeff;
+    if (dheight < 32) {
+        dheight_coeff = 1;
+    } else if (dheight < 64) {
+        dheight_coeff = 2;
+    } else {
+        dheight_coeff = 32;
+    }
+
+    return d*dheight_coeff;
 }
 
 int cm_load_n(chunk_manager *cm, vec3s pos, int n) {
@@ -206,91 +219,6 @@ int cm_load_n(chunk_manager *cm, vec3s pos, int n) {
         
         cum_gen_time += dt;
         max_gen_time = max(max_gen_time, dt);
-    }
-
-    return amt_actually_loaded;
-}
-
-int cm_decorate_n(chunk_manager *cm, vec3s pos, int n) {
-    vec3i in_chunk = world_pos_to_chunk(pos);
-    vec3i load_min = vec3i_sub(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
-    vec3i load_max = vec3i_add(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
-    
-    int amt_actually_loaded = 0;
-    // does it load n per frame or n-1
-    while (arrlen(cm->decorate_list) > 0 && amt_actually_loaded < n) {
-        double tstart = glfwGetTime();
-        vec3i k = arrpop(cm->decorate_list);
-
-        // check that it hasnt been loaded yet and that we still want it loaded
-        // (meaning its still in the loading volume)
-        if (hmgeti(cm->chunk_hm, k) > -1) {
-            chunk_decorate(cm, spread(k));
-            arrpush(cm->light_list, k);
-            amt_actually_loaded++;
-        }
-        double tend = glfwGetTime();
-        double dt = tend - tstart;
-        
-        cum_decorate_time += dt;
-        max_decorate_time = max(max_gen_time, dt);
-    }
-
-    return amt_actually_loaded;
-}
-
-int cm_light_n(chunk_manager *cm, vec3s pos, int n) {
-    vec3i in_chunk = world_pos_to_chunk(pos);
-    vec3i load_min = vec3i_sub(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
-    vec3i load_max = vec3i_add(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
-
-    int i = 0;
-    int amt_actually_loaded = 0;
-    // does it load n per frame or n-1
-    while (arrlen(cm->light_list) > 0 && amt_actually_loaded < n) {
-        double tstart = glfwGetTime();
-        vec3i k = arrpop(cm->light_list);
-
-        // check that it hasnt been loaded yet and that we still want it loaded
-        // (meaning its still in the loading volume)
-        if (hmgeti(cm->chunk_hm, k) > -1) {
-            light_initialize_for_chunk(cm, spread(k));
-            arrpush(cm->mesh_list, k);
-            amt_actually_loaded++;
-        }
-        double tend = glfwGetTime();
-        double dt = tend - tstart;
-        
-        cum_light_time += dt;
-        max_light_time = max(max_light_time, dt);
-    }
-
-    return amt_actually_loaded;
-}
-
-int cm_mesh_n(chunk_manager *cm, vec3s pos, int n) {
-    vec3i in_chunk = world_pos_to_chunk(pos);
-    vec3i load_min = vec3i_sub(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
-    vec3i load_max = vec3i_add(in_chunk, vec3i_div(cm->loaded_dimensions, 2));
-
-    int amt_actually_loaded = 0;
-    // does it load n per frame or n-1
-    while (arrlen(cm->mesh_list) > 0 && amt_actually_loaded < n) {
-        double tstart = glfwGetTime();
-
-        vec3i k = arrpop(cm->mesh_list);
-
-        // check that it hasnt been loaded yet and that we still want it loaded
-        // (meaning its still in the loading volume)
-        if (hmgeti(cm->chunk_hm, k) > -1) {
-            cm_mesh_chunk(cm, spread(k));
-            amt_actually_loaded++;
-        }
-        double tend = glfwGetTime();
-        double dt = tend - tstart;
-        
-        cum_mesh_time += dt;
-        max_mesh_time = max(max_mesh_time, dt);
     }
 
     return amt_actually_loaded;
