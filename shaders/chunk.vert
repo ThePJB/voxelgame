@@ -6,6 +6,7 @@ layout (location = 3) in float aTexture_x;
 
 layout (location = 4) in float in_light_block;
 layout (location = 5) in float in_light_sky;
+layout (location = 6) in float in_ao;
 
 out vec2 TexCoord;
 out vec4 normal;
@@ -26,5 +27,5 @@ void main(){
 
    float dayness_adjusted = 0.2 + dayness * 0.8;
 
-   light_level = max(in_light_block, in_light_sky * dayness_adjusted);
+   light_level = max(in_light_block, in_light_sky * dayness_adjusted) * in_ao;
 }
