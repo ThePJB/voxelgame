@@ -34,7 +34,7 @@ chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face)
     chunk_quad ret = {0};
 
     int dir_num = face / 2;
-    int dir_sign = (face % 2 == 1) * 2 - 1;
+    int dir_sign = (face % 2 == 0) * 2 - 1;
 
     float vert_pos[3];
     vert_pos[dir_num] = 0.5 * dir_sign; // if its +x we fix x plane to +0.5 etc
@@ -85,7 +85,9 @@ chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face)
             .ao = 0.5,
         };
     }
-    /*
+
+    printf("dir %s, block %d\n", dir_name[face], c->blocks[block_idx]);
+    
     chunk_vert v = ret.verts[0];
     printf("pos %f %f %f\n normal %f %f %f\n texu %f\n texv %f\n block %f\n light %f %f\n ao %f\n",
     v.pos[0], v.pos[1], v.pos[2], v.normal[0], v.normal[1], v.normal[2], v.texu, v.texv, v.block_type, v.light_block, v.light_sky, v.ao);
@@ -106,7 +108,7 @@ chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face)
     v.pos[0], v.pos[1], v.pos[2], v.normal[0], v.normal[1], v.normal[2], v.texu, v.texv, v.block_type, v.light_block, v.light_sky, v.ao);
 
     exit(1);
-    */
+    
 
     return ret;
 }
