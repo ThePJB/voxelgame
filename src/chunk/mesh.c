@@ -8,10 +8,10 @@
 typedef struct {
     float pos[3];
     
-    float normal[3];
-
     float texu;
     float texv;
+
+    float normal[3];
 
     float block_type;
 
@@ -29,8 +29,8 @@ typedef struct {
 
 const int light_max = 16;
 
-
 chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face) {
+    //face = DIR_PZ;
     chunk_quad ret = {0};
 
     int dir_num = face / 2;
@@ -51,8 +51,8 @@ chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face)
         int sign_m = (i == 1 || i == 2) * 2 - 1;
         int sign_n = (i == 0 || i == 1) * 2 - 1;
 
-        vert_pos[(dir_num + 1) % 3] = sign_m * 0.5;
-        vert_pos[(dir_num + 2) % 3] = sign_n * 0.5;
+        vert_pos[(dir_num + 2) % 3] = sign_m * 0.5;
+        vert_pos[(dir_num + 1) % 3] = sign_n * 0.5;
 
         uint8_t block_light = 0;
         uint8_t sky_light = SKY_LIGHT_FULL;
@@ -69,7 +69,7 @@ chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face)
             .pos[0] = vert_pos[0] + block_local_coords.x,
             .pos[1] = vert_pos[1] + block_local_coords.y,
             .pos[2] = vert_pos[2] + block_local_coords.z,
-
+            
             .normal[0] = unit_vec3s[face].raw[0],
             .normal[1] = unit_vec3s[face].raw[1],
             .normal[2] = unit_vec3s[face].raw[2],
@@ -79,36 +79,19 @@ chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face)
             .light_block = unlerp(0, light_max, block_light),
             .light_sky = unlerp(0, light_max, sky_light),
 
-            .ao = 0.5,
+            .ao = 1,
         };
-    }
 
-    // I honestly dont remember why this
-    if (face == DIR_PX || face == DIR_MX) {
-        for (int i = 0; i < 4; i++) {
-            ret.verts[i].texu = 0;
-            ret.verts[i].texv = 0;
-        }   
-    } else if (face == DIR_PY) {
-        for (int i = 0; i < 4; i++) {
-            ret.verts[i].texu = 1;
-            ret.verts[i].texv = 0;
-        }   
-    } else if (face == DIR_MY) {
-        for (int i = 0; i < 4; i++) {
-            ret.verts[i].texu = -1;
-            ret.verts[i].texv = 0;
-        }   
-    } else if (face == DIR_PZ) {
-        for (int i = 0; i < 4; i++) {
-            ret.verts[i].texu = 0;
-            ret.verts[i].texv = 1;
-        }   
-    } else if (face == DIR_MZ) {
-        for (int i = 0; i < 4; i++) {
-            ret.verts[i].texu = 0;
-            ret.verts[i].texv = -1;
-        }   
+        if (face == DIR_MY || face == DIR_PY) {
+            ret.verts[i].texu = vert_pos[0] == 0.5;
+            ret.verts[i].texv = vert_pos[2] == 0.5;
+        } else if (face == DIR_MZ || face == DIR_PZ) {
+            ret.verts[i].texu = vert_pos[0] == 0.5;
+            ret.verts[i].texv = vert_pos[1] == -0.5;
+        } else {
+            ret.verts[i].texu = vert_pos[2] == 0.5;
+            ret.verts[i].texv = vert_pos[1] == -0.5;
+        }
     }
 
 /*
@@ -134,7 +117,9 @@ chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face)
     v.pos[0], v.pos[1], v.pos[2], v.normal[0], v.normal[1], v.normal[2], v.texu, v.texv, v.block_type, v.light_block, v.light_sky, v.ao);
 
     exit(1);
-    */
+*/
+    
+    
 
     return ret;
 }
@@ -207,12 +192,13 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
 
             // push quad to vertex array
             // 0, 1, 3, 1, 2, 3 access pattern im pretty sure
+            // 3, 0, 1, 3, 1, 2, access pattern im pretty sure
+            vertex_idx = mesh_push_vertex(vertex_idx, buf, q.verts[3]);
             vertex_idx = mesh_push_vertex(vertex_idx, buf, q.verts[0]);
             vertex_idx = mesh_push_vertex(vertex_idx, buf, q.verts[1]);
             vertex_idx = mesh_push_vertex(vertex_idx, buf, q.verts[3]);
             vertex_idx = mesh_push_vertex(vertex_idx, buf, q.verts[1]);
             vertex_idx = mesh_push_vertex(vertex_idx, buf, q.verts[2]);
-            vertex_idx = mesh_push_vertex(vertex_idx, buf, q.verts[3]);
 
         }
     }
