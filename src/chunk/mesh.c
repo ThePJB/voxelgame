@@ -74,9 +74,6 @@ chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face)
             .normal[1] = unit_vec3s[face].raw[1],
             .normal[2] = unit_vec3s[face].raw[2],
 
-            .texu = sign_m == 1,
-            .texv = sign_n == 1,
-
             .block_type = c->blocks[block_idx] - 1.0,
 
             .light_block = unlerp(0, light_max, block_light),
@@ -86,6 +83,35 @@ chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face)
         };
     }
 
+    // I honestly dont remember why this
+    if (face == DIR_PX || face == DIR_MX) {
+        for (int i = 0; i < 4; i++) {
+            ret.verts[i].texu = 0;
+            ret.verts[i].texv = 0;
+        }   
+    } else if (face == DIR_PY) {
+        for (int i = 0; i < 4; i++) {
+            ret.verts[i].texu = 1;
+            ret.verts[i].texv = 0;
+        }   
+    } else if (face == DIR_MY) {
+        for (int i = 0; i < 4; i++) {
+            ret.verts[i].texu = -1;
+            ret.verts[i].texv = 0;
+        }   
+    } else if (face == DIR_PZ) {
+        for (int i = 0; i < 4; i++) {
+            ret.verts[i].texu = 0;
+            ret.verts[i].texv = 1;
+        }   
+    } else if (face == DIR_MZ) {
+        for (int i = 0; i < 4; i++) {
+            ret.verts[i].texu = 0;
+            ret.verts[i].texv = -1;
+        }   
+    }
+
+/*
     printf("dir %s, block %d\n", dir_name[face], c->blocks[block_idx]);
     
     chunk_vert v = ret.verts[0];
@@ -108,7 +134,7 @@ chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face)
     v.pos[0], v.pos[1], v.pos[2], v.normal[0], v.normal[1], v.normal[2], v.texu, v.texv, v.block_type, v.light_block, v.light_sky, v.ao);
 
     exit(1);
-    
+    */
 
     return ret;
 }
