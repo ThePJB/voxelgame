@@ -216,3 +216,30 @@ then it can be updated from a menu or a file or something
 wait how am i sampling surface_hm for chunks that arent loaded yet
 im amazed that this even seems to be working
 probably better to sample height 2d
+
+
+-------------------
+
+alright time to add AO
+maybe also clean up the vertex data a bit
+
+direction enum is so important. i wonder what the best way is to actually implement it
+
+like it would be nice to get orthogonal vecs etc.
+can have a fn for that.
+
+should it just get left as a unit vec3i? i can retrieve it easily from the enums anyway
+
+
+make the lodmesh and the chunks get dark the same amount
+
+
+ive gotta somehow map from vertex to (left, corner, right) cubes
+so basically left and right dirs is good
+
+so in +x orientation its
+0 > (+z (i think), +y)
+1 > (-z +y)
+
+wait wait is my ao from the persepective of the opauqe block or the transparent block its in?
+ive done it as if its from the opaque block, i think thats what it is

@@ -156,9 +156,6 @@ float generate_height(struct osn_context *osn, float x, float z, noise2d_params 
 // chunk manager
 void cm_update(chunk_manager *cm, vec3s pos);           // queue up chunks to load
 int cm_load_n(chunk_manager *cm, vec3s pos, int n);    // load a limited number of chunks
-int cm_decorate_n(chunk_manager *cm, vec3s pos, int n);    // decorate a limited number of chunks
-int cm_light_n(chunk_manager *cm, vec3s pos, int n);    // light a limited number of chunks
-int cm_mesh_n(chunk_manager *cm, vec3s pos, int n); // mesh n
 bool neighbour_exists(vec3i pos, int direction);
 void cm_test();
 

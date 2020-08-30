@@ -29,6 +29,25 @@ typedef struct {
 
 const int light_max = 16;
 
+float texu_lookup[] = {0, 1, 1, 0};
+float texv_lookup[] = {0, 0, 1, 1};
+
+
+// this is the one to the left, +1 is right, and center is of course both
+direction dir_ordering[] = {
+    DIR_PZ, DIR_PY, DIR_MZ, DIR_MY, // for verts of +X
+
+};
+
+// returns how many blocks touch this vertex basically
+// unless left and right not not corner, sure
+int vertex_ao(bool left, bool corner, bool right) {
+    if (left && right) {
+        return 0;
+    }
+    return 3 - (left + corner + right);
+}
+
 chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face) {
     //face = DIR_PZ;
     chunk_quad ret = {0};
@@ -50,6 +69,8 @@ chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face)
     for (int i = 0; i < 4; i++) {
         int sign_m = (i == 1 || i == 2) * 2 - 1;
         int sign_n = (i == 0 || i == 1) * 2 - 1;
+
+        
 
         vert_pos[(dir_num + 2) % 3] = sign_m * 0.5;
         vert_pos[(dir_num + 1) % 3] = sign_n * 0.5;
@@ -78,9 +99,9 @@ chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face)
 
             .light_block = unlerp(0, light_max, block_light),
             .light_sky = unlerp(0, light_max, sky_light),
-
-            .ao = 1,
         };
+
+        int j = (i + dir_num) % 4;
 
         if (face == DIR_MY || face == DIR_PY) {
             ret.verts[i].texu = vert_pos[0] == 0.5;
@@ -92,6 +113,25 @@ chunk_quad emit_quad(chunk_manager *cm, chunk *c, int block_idx, direction face)
             ret.verts[i].texu = vert_pos[2] == 0.5;
             ret.verts[i].texv = vert_pos[1] == -0.5;
         }
+
+        direction left_dir = dir_ordering[j];
+        direction right_dir = dir_ordering[(j+1) % 4];
+
+        pos = vec3l_add(pos, unit_vec3l[face]);
+        vec3l left_pos = vec3l_add(pos, unit_vec3l[left_dir]);
+        vec3l right_pos = vec3l_add(pos, unit_vec3l[right_dir]);
+        vec3l center_pos = vec3l_add(left_pos, unit_vec3l[right_dir]);
+        bool left = block_defs[world_get_block(cm, spread(left_pos)).value].opaque;
+        bool center = block_defs[world_get_block(cm, spread(center_pos)).value].opaque;
+        bool right = block_defs[world_get_block(cm, spread(right_pos)).value].opaque;
+        int ao = 0;
+        if (left && right) {
+            ao = 0;
+        } else {
+            ao = 3 - (left + center + right);
+        }
+        ret.verts[i].ao = ao/4.0;
+        
     }
 
 /*
@@ -137,14 +177,7 @@ const int direction_to_3d_offset[] = {
     MINUS_Z
 };
 
-// returns how many blocks touch this vertex basically
-// unless left and right not not corner, sure
-int vertex_ao(bool left, bool corner, bool right) {
-    if (left && right) {
-        return 0;
-    }
-    return 3 - (left + corner + right);
-}
+
 
 int mesh_push_vertex(int vertex_idx, float *vertex_buffer, chunk_vert data) {
     for (int i = 0; i < CHUNK_VERTEX_ATTRS; i++) {

@@ -319,7 +319,7 @@ void generate_tree(chunk_manager *cm, int gx, int gy, int gz) {
     int height = min(headroom, proposed_height);
     int leaf_start = util_rand_intn(1, 3);
 
-    for (int i = 1; i <= height; i++) {
+    for (int i = 0; i <= height; i++) {
         world_set_block_without_lighting(cm, gx, gy + i, gz, trunk);
         if (i > leaf_start) {
             world_set_block_without_lighting(cm, gx + 1, gy + i, gz, leaves);
