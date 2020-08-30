@@ -1,11 +1,12 @@
 #version 460 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTexCoord;
-layout (location = 2) in vec3 aNormal;
-layout (location = 3) in float aTexture_x;
+in vec3 aPos;
+in vec2 aTexCoord;
+in vec3 aNormal;
+in float aTexture_x;
 
-layout (location = 4) in float in_light_block;
-layout (location = 5) in float in_light_sky;
+in float in_light_block;
+in float in_light_sky;
+in float in_ao;
 
 out vec2 TexCoord;
 out vec4 normal;
@@ -26,5 +27,5 @@ void main(){
 
    float dayness_adjusted = 0.2 + dayness * 0.8;
 
-   light_level = max(in_light_block, in_light_sky * dayness_adjusted);
+   light_level = max(in_light_block, in_light_sky * dayness_adjusted * in_ao);
 }

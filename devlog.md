@@ -216,3 +216,11 @@ then it can be updated from a menu or a file or something
 wait how am i sampling surface_hm for chunks that arent loaded yet
 im amazed that this even seems to be working
 probably better to sample height 2d
+
+---------------------
+
+OK hello its time to fix ao
+
+gotta just implement it as lookups
+
+maybe like for each vertex look up left, corner, right

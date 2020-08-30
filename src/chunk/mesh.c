@@ -65,6 +65,9 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
                 buf[vertex_idx++] = current_vert[7]; // normal 
                 buf[vertex_idx++] = c->blocks[idx] - 1.0; // block type 
 
+                float ao = 0.5;
+                buf[vertex_idx++] = ao;
+
                 int light_max = 16;
 
                 vec3i block_pos = chunk_1d_to_3d(idx);
@@ -91,10 +94,10 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
     }
 
     //printf("vertex idx: %d / %d\n", vertex_idx, buflen);
-    c->num_triangles =  vertex_idx / (VERT_STRIDE+2) / 3;
+    c->num_triangles =  vertex_idx / (VERT_STRIDE+3) / 3;
     //printf("meshed chunk, %d triangles\n", num_triangles);
 
-    const int num_attribs_per_vertex = 11;
+    const int num_attribs_per_vertex = 12;
 
     // bind vao and vertix attribs
     glBindVertexArray(c->vao);
@@ -122,7 +125,10 @@ void cm_mesh_chunk(chunk_manager *cm, int x, int y, int z) {
     glEnableVertexAttribArray(4);
 
     glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, num_attribs_per_vertex * sizeof(float), (void*)(10 * sizeof(float)));
-    glEnableVertexAttribArray(5);
+    glEnableVertexAttribArray(5);    
+    
+    glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, num_attribs_per_vertex * sizeof(float), (void*)(11 * sizeof(float)));
+    glEnableVertexAttribArray(6);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
