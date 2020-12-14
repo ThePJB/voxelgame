@@ -74,10 +74,41 @@ typedef enum {
     NUM_DIRS,
 } direction;
 
-vec3i unit_vec3i[NUM_DIRS];
-vec3l unit_vec3l[NUM_DIRS];
-vec3s unit_vec3s[NUM_DIRS];
-char *dir_name[NUM_DIRS];
+static vec3i unit_vec3i[NUM_DIRS] = {
+    (vec3i) {1,0,0},
+    (vec3i) {-1,0,0},
+    (vec3i) {0,1,0},
+    (vec3i) {0,-1,0},
+    (vec3i) {0,0,1},
+    (vec3i) {0,0,-1},
+};
+
+static vec3l unit_vec3l[NUM_DIRS] = {
+    (vec3l) {1,0,0},
+    (vec3l) {-1,0,0},
+    (vec3l) {0,1,0},
+    (vec3l) {0,-1,0},
+    (vec3l) {0,0,1},
+    (vec3l) {0,0,-1},
+};
+
+static vec3s unit_vec3s[NUM_DIRS] = {
+    (vec3s) {1,0,0},
+    (vec3s) {-1,0,0},
+    (vec3s) {0,1,0},
+    (vec3s) {0,-1,0},
+    (vec3s) {0,0,1},
+    (vec3s) {0,0,-1},
+};
+
+static char *dir_name[NUM_DIRS] = {
+    "+X",
+    "-X",
+    "+Y",
+    "-Y",
+    "+Z",
+    "-Z",
+};
 
 
 

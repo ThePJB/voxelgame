@@ -1,8 +1,8 @@
-#version 460 core
-in vec3 aPos;
-in vec2 aTexCoord;
-in vec3 aNormal;
-in float aTexture_x;
+#version 330 core
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec2 aTexCoord;
+layout (location = 2) in vec3 aNormal;
+layout (location = 3) in float aTexture_x;
 
 in float in_light_block;
 in float in_light_sky;

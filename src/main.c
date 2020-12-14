@@ -46,8 +46,8 @@ double max_light_time = 0;
 double max_decorate_time = 0;
 
 int main(int argc, char** argv) {
-    int w = 2560;
-    int h = 1440;
+    int w = 640;
+    int h = 480;
 
 
     // world gen parameters
@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
 
     text_init(gc);
     //cm.world_noise = chunk_rngs_init(123456789);
-    cm.loaded_dimensions = (vec3i) {24, 24, 24};
+    cm.loaded_dimensions = (vec3i) {16, 16, 16};
     cm.lod_dimensions = (int32_t_pair) {80, 80};
     int nchunks = cm.loaded_dimensions.x * cm.loaded_dimensions.y * cm.loaded_dimensions.z;
 //    cm.gen_func = generate_flat;
