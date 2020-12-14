@@ -1,4 +1,4 @@
-#version 460 core
+#version 330 core
 in vec2 TexCoord;
 in vec4 normal;
 in float texture_x;
