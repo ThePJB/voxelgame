@@ -1,5 +1,8 @@
 # Voxel Game
-## Dependencies
+
+![screenshot of excellent game](https://github.com/kennoath/snowkoban/screen.png)
+
+# Dependencies
  * freetype
    * `apt install libfreetype6-dev`
  * glfw
@@ -26,28 +29,3 @@
  * move camera: wasd
  * sprint: left control
  * super ultra sprint: left alt
-
-# Planned features (out of date disregard)
-## Optimization
-- Greedy meshing
-   - to do texturing: need to do modulo of tex coords in frag shader
-   - AO at the same time its a similar calculation
-
-- How much of this data do i actually need to be sending to the GPU, for instance can normals be calced, texture coordinates, can it all just be done in a mesh shader from the raw blocks? nah gotta mesh
-- all 1 type chunks
-
-## Micro world gen
-- how about cliffs and caves. maybe use a small amount of 3d?
-- domain warping?
-- ridge noise
-- how to do trees? minecraft style or not. ultimately like to not and have some cool L system shit. L system coconut palm tree. oo climbing up it
-
-### Features
-- volcano
-- terraces
-- flat with mounds
-
-## Macro world gen
-- maybe diamond square? or some continenty thing or grammar thing... idk
-   world map visualizer, make a mesh and have it spinning and stuff. like kart racer character select
-- gradient info for erosion, fluid calcs
