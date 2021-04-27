@@ -1,6 +1,6 @@
 # Voxel Game
 
-![screenshot of excellent game](https://github.com/kennoath/voxelgame/screen.png "I hope this works")
+![screenshot of excellent game](https://github.com/kennoath/voxelgame/blob/master/screen.png "I hope this works")
 
 # Dependencies
  * freetype
