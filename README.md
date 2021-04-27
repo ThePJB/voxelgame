@@ -1,6 +1,6 @@
 # Voxel Game
 
-![screenshot of excellent game](https://github.com/kennoath/snowkoban/screen.png)
+![screenshot of excellent game](https://github.com/kennoath/voxelgame/screen.png "I hope this works")
 
 # Dependencies
  * freetype
